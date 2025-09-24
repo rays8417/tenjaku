@@ -4,7 +4,11 @@ version = "1.0.0"
 authors = []
 
 [addresses]
-higgs=""
+higgs="0xc131ed154a83832d32976ac43b4473985fe51de75712c50743f7e5a86a8157ee"
+zero="0x0"
+default_admin="0xc131ed154a83832d32976ac43b4473985fe51de75712c50743f7e5a86a8157ee"
+dev="0xc131ed154a83832d32976ac43b4473985fe51de75712c50743f7e5a86a8157ee"
+
 [dev-addresses]
 
 [dependencies.AptosFramework]
