@@ -1,12 +1,12 @@
-import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import express from "express";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 const router = express.Router();
 
 // GET /api/tournaments - Get all tournaments
-router.get('/', async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const { status, limit = 20, offset = 0 } = req.query;
 
@@ -22,28 +22,28 @@ router.get('/', async (req, res) => {
             user: {
               select: {
                 displayName: true,
-                walletAddress: true
-              }
-            }
-          }
+                walletAddress: true,
+              },
+            },
+          },
         },
         rewardPools: {
           select: {
             id: true,
             name: true,
             totalAmount: true,
-            distributedAmount: true
-          }
+            distributedAmount: true,
+          },
         },
         _count: {
           select: {
-            teams: true
-          }
-        }
+            teams: true,
+          },
+        },
       },
-      orderBy: { matchDate: 'desc' },
+      orderBy: { matchDate: "desc" },
       take: Number(limit),
-      skip: Number(offset)
+      skip: Number(offset),
     });
 
     res.json({
@@ -62,17 +62,17 @@ router.get('/', async (req, res) => {
         currentParticipants: tournament.currentParticipants,
         participantCount: tournament._count.teams,
         rewardPools: tournament.rewardPools,
-        createdAt: tournament.createdAt
-      }))
+        createdAt: tournament.createdAt,
+      })),
     });
   } catch (error) {
-    console.error('Tournaments fetch error:', error);
-    res.status(500).json({ error: 'Failed to fetch tournaments' });
+    console.error("Tournaments fetch error:", error);
+    res.status(500).json({ error: "Failed to fetch tournaments" });
   }
 });
 
 // GET /api/tournaments/:id - Get tournament details
-router.get('/:id', async (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -84,16 +84,16 @@ router.get('/:id', async (req, res) => {
             user: {
               select: {
                 displayName: true,
-                walletAddress: true
-              }
+                walletAddress: true,
+              },
             },
             scores: true,
             players: {
               include: {
-                player: true
-              }
-            }
-          }
+                player: true,
+              },
+            },
+          },
         },
         rewardPools: {
           include: {
@@ -104,14 +104,14 @@ router.get('/:id', async (req, res) => {
                     user: {
                       select: {
                         displayName: true,
-                        walletAddress: true
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
+                        walletAddress: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
         leaderboard: {
           include: {
@@ -120,24 +120,24 @@ router.get('/:id', async (req, res) => {
                 user: {
                   select: {
                     displayName: true,
-                    walletAddress: true
-                  }
-                }
-              }
-            }
+                    walletAddress: true,
+                  },
+                },
+              },
+            },
           },
-          orderBy: { rank: 'asc' }
+          orderBy: { rank: "asc" },
         },
         playerScores: {
           include: {
-            player: true
-          }
-        }
-      }
+            player: true,
+          },
+        },
+      },
     });
 
     if (!tournament) {
-      return res.status(404).json({ error: 'Tournament not found' });
+      return res.status(404).json({ error: "Tournament not found" });
     }
 
     res.json({
@@ -158,17 +158,17 @@ router.get('/:id', async (req, res) => {
         rewardPools: tournament.rewardPools,
         leaderboard: tournament.leaderboard,
         playerScores: tournament.playerScores,
-        createdAt: tournament.createdAt
-      }
+        createdAt: tournament.createdAt,
+      },
     });
   } catch (error) {
-    console.error('Tournament fetch error:', error);
-    res.status(500).json({ error: 'Failed to fetch tournament' });
+    console.error("Tournament fetch error:", error);
+    res.status(500).json({ error: "Failed to fetch tournament" });
   }
 });
 
 // GET /api/tournaments/:id/leaderboard - Get tournament leaderboard
-router.get('/:id/leaderboard', async (req, res) => {
+router.get("/:id/leaderboard", async (req, res) => {
   try {
     const { id } = req.params;
     const { limit = 50 } = req.query;
@@ -181,14 +181,14 @@ router.get('/:id/leaderboard', async (req, res) => {
             user: {
               select: {
                 displayName: true,
-                walletAddress: true
-              }
-            }
-          }
-        }
+                walletAddress: true,
+              },
+            },
+          },
+        },
       },
-      orderBy: { rank: 'asc' },
-      take: Number(limit)
+      orderBy: { rank: "asc" },
+      take: Number(limit),
     });
 
     res.json({
@@ -198,41 +198,37 @@ router.get('/:id/leaderboard', async (req, res) => {
         totalScore: entry.totalScore,
         matchesPlayed: entry.matchesPlayed,
         teamName: entry.userTeam.teamName,
-        user: entry.userTeam.user
-      }))
+        user: entry.userTeam.user,
+      })),
     });
   } catch (error) {
-    console.error('Leaderboard fetch error:', error);
-    res.status(500).json({ error: 'Failed to fetch leaderboard' });
+    console.error("Leaderboard fetch error:", error);
+    res.status(500).json({ error: "Failed to fetch leaderboard" });
   }
 });
 
 // GET /api/tournaments/:id/players - Get available players for tournament
-router.get('/:id/players', async (req, res) => {
+router.get("/:id/players", async (req, res) => {
   try {
     const { id } = req.params;
 
     const tournament = await prisma.tournament.findUnique({
       where: { id },
-      select: { team1: true, team2: true }
+      select: { team1: true, team2: true },
     });
 
     if (!tournament) {
-      return res.status(404).json({ error: 'Tournament not found' });
+      return res.status(404).json({ error: "Tournament not found" });
     }
 
     const players = await prisma.player.findMany({
       where: {
         team: {
-          in: [tournament.team1, tournament.team2]
+          in: [tournament.team1, tournament.team2],
         },
-        isActive: true
+        isActive: true,
       },
-      orderBy: [
-        { team: 'asc' },
-        { role: 'asc' },
-        { creditValue: 'desc' }
-      ]
+      orderBy: [{ team: "asc" }, { role: "asc" }, { creditValue: "desc" }],
     });
 
     res.json({
@@ -242,15 +238,14 @@ router.get('/:id/players', async (req, res) => {
         name: player.name,
         team: player.team,
         role: player.role,
-        creditValue: player.creditValue
-      }))
+        creditValue: player.creditValue,
+      })),
     });
   } catch (error) {
-    console.error('Players fetch error:', error);
-    res.status(500).json({ error: 'Failed to fetch players' });
+    console.error("Players fetch error:", error);
+    res.status(500).json({ error: "Failed to fetch players" });
   }
 });
-
 
 
 export default router;

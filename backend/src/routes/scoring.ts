@@ -1,26 +1,28 @@
-import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import express from "express";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 const router = express.Router();
 
 // POST /api/scoring/player-scores - Update player scores (Admin only)
-router.post('/player-scores', async (req, res) => {
+router.post("/player-scores", async (req, res) => {
   try {
     const { tournamentId, playerScores } = req.body;
 
     if (!tournamentId || !playerScores || !Array.isArray(playerScores)) {
-      return res.status(400).json({ error: 'Tournament ID and player scores array are required' });
+      return res
+        .status(400)
+        .json({ error: "Tournament ID and player scores array are required" });
     }
 
     // Check if tournament exists
     const tournament = await prisma.tournament.findUnique({
-      where: { id: tournamentId }
+      where: { id: tournamentId },
     });
 
     if (!tournament) {
-      return res.status(404).json({ error: 'Tournament not found' });
+      return res.status(404).json({ error: "Tournament not found" });
     }
 
     // Update player scores in transaction
@@ -28,15 +30,25 @@ router.post('/player-scores', async (req, res) => {
       const updatedScores = [];
 
       for (const scoreData of playerScores) {
-        const { playerId, runs, ballsFaced, wickets, oversBowled, runsConceded, catches, stumpings, runOuts } = scoreData;
+        const {
+          playerId,
+          runs,
+          ballsFaced,
+          wickets,
+          oversBowled,
+          runsConceded,
+          catches,
+          stumpings,
+          runOuts,
+        } = scoreData;
 
         // Calculate fantasy points based on cricket scoring system
         let fantasyPoints = 0;
-        
+
         // Batting points
         fantasyPoints += runs * 1; // 1 point per run
         fantasyPoints += Math.floor(ballsFaced / 2) * 1; // 1 point per 2 balls faced (bonus for staying)
-        
+
         // Bowling points
         fantasyPoints += wickets * 25; // 25 points per wicket
         fantasyPoints += Math.floor(oversBowled * 2) * 1; // 1 point per 2 balls bowled
@@ -46,7 +58,7 @@ router.post('/player-scores', async (req, res) => {
           else if (economy < 6) fantasyPoints += 4;
           else if (economy < 8) fantasyPoints += 2;
         }
-        
+
         // Fielding points
         fantasyPoints += catches * 8; // 8 points per catch
         fantasyPoints += stumpings * 10; // 10 points per stumping
@@ -57,8 +69,8 @@ router.post('/player-scores', async (req, res) => {
           where: {
             tournamentId_playerId: {
               tournamentId,
-              playerId
-            }
+              playerId,
+            },
           },
           update: {
             runs,
@@ -69,7 +81,7 @@ router.post('/player-scores', async (req, res) => {
             catches,
             stumpings,
             runOuts,
-            fantasyPoints
+            fantasyPoints,
           },
           create: {
             tournamentId,
@@ -82,8 +94,8 @@ router.post('/player-scores', async (req, res) => {
             catches,
             stumpings,
             runOuts,
-            fantasyPoints
-          }
+            fantasyPoints,
+          },
         });
 
         updatedScores.push(playerScore);
@@ -94,22 +106,22 @@ router.post('/player-scores', async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Player scores updated successfully',
-      scores: result
+      message: "Player scores updated successfully",
+      scores: result,
     });
   } catch (error) {
-    console.error('Player scores update error:', error);
-    res.status(500).json({ error: 'Failed to update player scores' });
+    console.error("Player scores update error:", error);
+    res.status(500).json({ error: "Failed to update player scores" });
   }
 });
 
 // POST /api/scoring/calculate-user-scores - Calculate user team scores
-router.post('/calculate-user-scores', async (req, res) => {
+router.post("/calculate-user-scores", async (req, res) => {
   try {
     const { tournamentId } = req.body;
 
     if (!tournamentId) {
-      return res.status(400).json({ error: 'Tournament ID is required' });
+      return res.status(400).json({ error: "Tournament ID is required" });
     }
 
     // Get all user teams for this tournament
@@ -118,10 +130,10 @@ router.post('/calculate-user-scores', async (req, res) => {
       include: {
         players: {
           include: {
-            player: true
-          }
-        }
-      }
+            player: true,
+          },
+        },
+      },
     });
 
     // Calculate scores for each team
@@ -138,14 +150,14 @@ router.post('/calculate-user-scores', async (req, res) => {
           where: {
             tournamentId_playerId: {
               tournamentId,
-              playerId: teamPlayer.playerId
-            }
-          }
+              playerId: teamPlayer.playerId,
+            },
+          },
         });
 
         if (playerScore) {
           const basePoints = Number(playerScore.fantasyPoints);
-          
+
           if (teamPlayer.playerId === team.captainId) {
             captainPoints = basePoints * 1.5; // Captain gets 1.5x points
             totalScore += captainPoints;
@@ -163,21 +175,21 @@ router.post('/calculate-user-scores', async (req, res) => {
         where: {
           userTeamId_tournamentId: {
             userTeamId: team.id,
-            tournamentId
-          }
+            tournamentId,
+          },
         },
         update: {
           totalScore,
           captainMultiplier: 1.5,
-          viceCaptainMultiplier: 1.25
+          viceCaptainMultiplier: 1.25,
         },
         create: {
           userTeamId: team.id,
           tournamentId,
           totalScore,
           captainMultiplier: 1.5,
-          viceCaptainMultiplier: 1.25
-        }
+          viceCaptainMultiplier: 1.25,
+        },
       });
 
       userScores.push({
@@ -185,28 +197,28 @@ router.post('/calculate-user-scores', async (req, res) => {
         teamName: team.teamName,
         totalScore,
         captainPoints,
-        viceCaptainPoints
+        viceCaptainPoints,
       });
     }
 
     res.json({
       success: true,
-      message: 'User scores calculated successfully',
-      scores: userScores
+      message: "User scores calculated successfully",
+      scores: userScores,
     });
   } catch (error) {
-    console.error('User scores calculation error:', error);
-    res.status(500).json({ error: 'Failed to calculate user scores' });
+    console.error("User scores calculation error:", error);
+    res.status(500).json({ error: "Failed to calculate user scores" });
   }
 });
 
 // POST /api/scoring/update-leaderboard - Update tournament leaderboard
-router.post('/update-leaderboard', async (req, res) => {
+router.post("/update-leaderboard", async (req, res) => {
   try {
     const { tournamentId } = req.body;
 
     if (!tournamentId) {
-      return res.status(400).json({ error: 'Tournament ID is required' });
+      return res.status(400).json({ error: "Tournament ID is required" });
     }
 
     // Get all user scores for this tournament
@@ -218,13 +230,13 @@ router.post('/update-leaderboard', async (req, res) => {
             user: {
               select: {
                 displayName: true,
-                walletAddress: true
-              }
-            }
-          }
-        }
+                walletAddress: true,
+              },
+            },
+          },
+        },
       },
-      orderBy: { totalScore: 'desc' }
+      orderBy: { totalScore: "desc" },
     });
 
     // Update leaderboard entries
@@ -238,44 +250,44 @@ router.post('/update-leaderboard', async (req, res) => {
         where: {
           tournamentId_userTeamId: {
             tournamentId,
-            userTeamId: userScore.userTeamId
-          }
+            userTeamId: userScore.userTeamId,
+          },
         },
         update: {
           totalScore: userScore.totalScore,
           rank,
-          matchesPlayed: 1 // Since it's one match per tournament
+          matchesPlayed: 1, // Since it's one match per tournament
         },
         create: {
           tournamentId,
           userTeamId: userScore.userTeamId,
           totalScore: userScore.totalScore,
           rank,
-          matchesPlayed: 1
-        }
+          matchesPlayed: 1,
+        },
       });
 
       leaderboardEntries.push({
         rank: leaderboardEntry.rank,
         teamName: userScore.userTeam.teamName,
         user: userScore.userTeam.user,
-        totalScore: leaderboardEntry.totalScore
+        totalScore: leaderboardEntry.totalScore,
       });
     }
 
     res.json({
       success: true,
-      message: 'Leaderboard updated successfully',
-      leaderboard: leaderboardEntries
+      message: "Leaderboard updated successfully",
+      leaderboard: leaderboardEntries,
     });
   } catch (error) {
-    console.error('Leaderboard update error:', error);
-    res.status(500).json({ error: 'Failed to update leaderboard' });
+    console.error("Leaderboard update error:", error);
+    res.status(500).json({ error: "Failed to update leaderboard" });
   }
 });
 
 // GET /api/scoring/tournament/:tournamentId/scores - Get all scores for a tournament
-router.get('/tournament/:tournamentId/scores', async (req, res) => {
+router.get("/tournament/:tournamentId/scores", async (req, res) => {
   try {
     const { tournamentId } = req.params;
 
@@ -284,8 +296,8 @@ router.get('/tournament/:tournamentId/scores', async (req, res) => {
       include: {
         playerScores: {
           include: {
-            player: true
-          }
+            player: true,
+          },
         },
         userScores: {
           include: {
@@ -294,19 +306,19 @@ router.get('/tournament/:tournamentId/scores', async (req, res) => {
                 user: {
                   select: {
                     displayName: true,
-                    walletAddress: true
-                  }
-                }
-              }
-            }
+                    walletAddress: true,
+                  },
+                },
+              },
+            },
           },
-          orderBy: { totalScore: 'desc' }
-        }
-      }
+          orderBy: { totalScore: "desc" },
+        },
+      },
     });
 
     if (!tournament) {
-      return res.status(404).json({ error: 'Tournament not found' });
+      return res.status(404).json({ error: "Tournament not found" });
     }
 
     res.json({
@@ -326,20 +338,20 @@ router.get('/tournament/:tournamentId/scores', async (req, res) => {
           catches: ps.catches,
           stumpings: ps.stumpings,
           runOuts: ps.runOuts,
-          fantasyPoints: ps.fantasyPoints
+          fantasyPoints: ps.fantasyPoints,
         })),
         userScores: tournament.userScores.map((us: any) => ({
           teamName: us.userTeam.teamName,
           user: us.userTeam.user,
           totalScore: us.totalScore,
           captainMultiplier: us.captainMultiplier,
-          viceCaptainMultiplier: us.viceCaptainMultiplier
-        }))
-      }
+          viceCaptainMultiplier: us.viceCaptainMultiplier,
+        })),
+      },
     });
   } catch (error) {
-    console.error('Scores fetch error:', error);
-    res.status(500).json({ error: 'Failed to fetch scores' });
+    console.error("Scores fetch error:", error);
+    res.status(500).json({ error: "Failed to fetch scores" });
   }
 });
 

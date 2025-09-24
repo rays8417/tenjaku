@@ -1,12 +1,12 @@
-import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import express from "express";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 const router = express.Router();
 
 // POST /api/admin/tournaments - Create tournament (Admin only)
-router.post('/tournaments', async (req, res) => {
+router.post("/tournaments", async (req, res) => {
   try {
     const {
       name,
@@ -16,11 +16,13 @@ router.post('/tournaments', async (req, res) => {
       team2,
       venue,
       entryFee,
-      maxParticipants
+      maxParticipants,
     } = req.body;
 
     if (!name || !matchDate || !team1 || !team2) {
-      return res.status(400).json({ error: 'Name, match date, team1, and team2 are required' });
+      return res
+        .status(400)
+        .json({ error: "Name, match date, team1, and team2 are required" });
     }
 
     const tournament = await prisma.tournament.create({
@@ -33,8 +35,8 @@ router.post('/tournaments', async (req, res) => {
         venue: venue || null,
         entryFee: entryFee || 0,
         maxParticipants: maxParticipants || null,
-        status: 'UPCOMING'
-      }
+        status: "UPCOMING",
+      },
     });
 
     res.json({
@@ -50,17 +52,17 @@ router.post('/tournaments', async (req, res) => {
         entryFee: tournament.entryFee,
         maxParticipants: tournament.maxParticipants,
         status: tournament.status,
-        createdAt: tournament.createdAt
-      }
+        createdAt: tournament.createdAt,
+      },
     });
   } catch (error) {
-    console.error('Tournament creation error:', error);
-    res.status(500).json({ error: 'Failed to create tournament' });
+    console.error("Tournament creation error:", error);
+    res.status(500).json({ error: "Failed to create tournament" });
   }
 });
 
 // PUT /api/admin/tournaments/:id - Update tournament (Admin only)
-router.put('/tournaments/:id', async (req, res) => {
+router.put("/tournaments/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const {
@@ -72,7 +74,7 @@ router.put('/tournaments/:id', async (req, res) => {
       venue,
       entryFee,
       maxParticipants,
-      status
+      status,
     } = req.body;
 
     const tournament = await prisma.tournament.update({
@@ -86,8 +88,8 @@ router.put('/tournaments/:id', async (req, res) => {
         venue: venue || undefined,
         entryFee: entryFee || undefined,
         maxParticipants: maxParticipants || undefined,
-        status: status || undefined
-      }
+        status: status || undefined,
+      },
     });
 
     res.json({
@@ -103,17 +105,17 @@ router.put('/tournaments/:id', async (req, res) => {
         entryFee: tournament.entryFee,
         maxParticipants: tournament.maxParticipants,
         status: tournament.status,
-        updatedAt: tournament.updatedAt
-      }
+        updatedAt: tournament.updatedAt,
+      },
     });
   } catch (error) {
-    console.error('Tournament update error:', error);
-    res.status(500).json({ error: 'Failed to update tournament' });
+    console.error("Tournament update error:", error);
+    res.status(500).json({ error: "Failed to update tournament" });
   }
 });
 
 // DELETE /api/admin/tournaments/:id - Delete tournament (Admin only)
-router.delete('/tournaments/:id', async (req, res) => {
+router.delete("/tournaments/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -123,41 +125,45 @@ router.delete('/tournaments/:id', async (req, res) => {
       include: {
         _count: {
           select: {
-            teams: true
-          }
-        }
-      }
+            teams: true,
+          },
+        },
+      },
     });
 
     if (!tournament) {
-      return res.status(404).json({ error: 'Tournament not found' });
+      return res.status(404).json({ error: "Tournament not found" });
     }
 
     if (tournament._count.teams > 0) {
-      return res.status(400).json({ error: 'Cannot delete tournament with participants' });
+      return res
+        .status(400)
+        .json({ error: "Cannot delete tournament with participants" });
     }
 
     await prisma.tournament.delete({
-      where: { id }
+      where: { id },
     });
 
     res.json({
       success: true,
-      message: 'Tournament deleted successfully'
+      message: "Tournament deleted successfully",
     });
   } catch (error) {
-    console.error('Tournament deletion error:', error);
-    res.status(500).json({ error: 'Failed to delete tournament' });
+    console.error("Tournament deletion error:", error);
+    res.status(500).json({ error: "Failed to delete tournament" });
   }
 });
 
 // POST /api/admin/players - Create player (Admin only)
-router.post('/players', async (req, res) => {
+router.post("/players", async (req, res) => {
   try {
     const { name, team, role, creditValue } = req.body;
 
     if (!name || !team || !role || creditValue === undefined) {
-      return res.status(400).json({ error: 'Name, team, role, and credit value are required' });
+      return res
+        .status(400)
+        .json({ error: "Name, team, role, and credit value are required" });
     }
 
     const player = await prisma.player.create({
@@ -165,8 +171,8 @@ router.post('/players', async (req, res) => {
         name,
         team,
         role,
-        creditValue
-      }
+        creditValue,
+      },
     });
 
     res.json({
@@ -177,17 +183,17 @@ router.post('/players', async (req, res) => {
         team: player.team,
         role: player.role,
         creditValue: player.creditValue,
-        isActive: player.isActive
-      }
+        isActive: player.isActive,
+      },
     });
   } catch (error) {
-    console.error('Player creation error:', error);
-    res.status(500).json({ error: 'Failed to create player' });
+    console.error("Player creation error:", error);
+    res.status(500).json({ error: "Failed to create player" });
   }
 });
 
 // PUT /api/admin/players/:id - Update player (Admin only)
-router.put('/players/:id', async (req, res) => {
+router.put("/players/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { name, team, role, creditValue, isActive } = req.body;
@@ -199,8 +205,8 @@ router.put('/players/:id', async (req, res) => {
         team: team || undefined,
         role: role || undefined,
         creditValue: creditValue || undefined,
-        isActive: isActive !== undefined ? isActive : undefined
-      }
+        isActive: isActive !== undefined ? isActive : undefined,
+      },
     });
 
     res.json({
@@ -211,17 +217,17 @@ router.put('/players/:id', async (req, res) => {
         team: player.team,
         role: player.role,
         creditValue: player.creditValue,
-        isActive: player.isActive
-      }
+        isActive: player.isActive,
+      },
     });
   } catch (error) {
-    console.error('Player update error:', error);
-    res.status(500).json({ error: 'Failed to update player' });
+    console.error("Player update error:", error);
+    res.status(500).json({ error: "Failed to update player" });
   }
 });
 
 // GET /api/admin/stats - Get admin statistics
-router.get('/stats', async (req, res) => {
+router.get("/stats", async (req, res) => {
   try {
     const [
       totalUsers,
@@ -231,49 +237,49 @@ router.get('/stats', async (req, res) => {
       activeTournaments,
       completedTournaments,
       totalEarnings,
-      totalSpent
+      totalSpent,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.tournament.count(),
       prisma.userTeam.count(),
       prisma.userReward.count(),
-      prisma.tournament.count({ where: { status: 'ONGOING' } }),
-      prisma.tournament.count({ where: { status: 'COMPLETED' } }),
+      prisma.tournament.count({ where: { status: "ONGOING" } }),
+      prisma.tournament.count({ where: { status: "COMPLETED" } }),
       prisma.user.aggregate({ _sum: { totalEarnings: true } }),
-      prisma.user.aggregate({ _sum: { totalSpent: true } })
+      prisma.user.aggregate({ _sum: { totalSpent: true } }),
     ]);
 
     const stats = {
       users: {
         total: totalUsers,
         totalEarnings: totalEarnings._sum.totalEarnings || 0,
-        totalSpent: totalSpent._sum.totalSpent || 0
+        totalSpent: totalSpent._sum.totalSpent || 0,
       },
       tournaments: {
         total: totalTournaments,
         active: activeTournaments,
-        completed: completedTournaments
+        completed: completedTournaments,
       },
       teams: {
-        total: totalTeams
+        total: totalTeams,
       },
       rewards: {
-        total: totalRewards
-      }
+        total: totalRewards,
+      },
     };
 
     res.json({
       success: true,
-      stats
+      stats,
     });
   } catch (error) {
-    console.error('Admin stats error:', error);
-    res.status(500).json({ error: 'Failed to fetch admin stats' });
+    console.error("Admin stats error:", error);
+    res.status(500).json({ error: "Failed to fetch admin stats" });
   }
 });
 
 // GET /api/admin/tournaments - Get all tournaments with detailed info (Admin only)
-router.get('/tournaments', async (req, res) => {
+router.get("/tournaments", async (req, res) => {
   try {
     const { status, limit = 50, offset = 0 } = req.query;
 
@@ -285,21 +291,21 @@ router.get('/tournaments', async (req, res) => {
         _count: {
           select: {
             teams: true,
-            rewardPools: true
-          }
+            rewardPools: true,
+          },
         },
         rewardPools: {
           select: {
             id: true,
             name: true,
             totalAmount: true,
-            distributedAmount: true
-          }
-        }
+            distributedAmount: true,
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: Number(limit),
-      skip: Number(offset)
+      skip: Number(offset),
     });
 
     res.json({
@@ -320,17 +326,17 @@ router.get('/tournaments', async (req, res) => {
         rewardPoolCount: tournament._count.rewardPools,
         rewardPools: tournament.rewardPools,
         createdAt: tournament.createdAt,
-        updatedAt: tournament.updatedAt
-      }))
+        updatedAt: tournament.updatedAt,
+      })),
     });
   } catch (error) {
-    console.error('Admin tournaments fetch error:', error);
-    res.status(500).json({ error: 'Failed to fetch tournaments' });
+    console.error("Admin tournaments fetch error:", error);
+    res.status(500).json({ error: "Failed to fetch tournaments" });
   }
 });
 
 // GET /api/admin/users - Get all users (Admin only)
-router.get('/users', async (req, res) => {
+router.get("/users", async (req, res) => {
   try {
     const { limit = 50, offset = 0 } = req.query;
 
@@ -338,13 +344,13 @@ router.get('/users', async (req, res) => {
       include: {
         _count: {
           select: {
-            teams: true
-          }
-        }
+            teams: true,
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: Number(limit),
-      skip: Number(offset)
+      skip: Number(offset),
     });
 
     res.json({
@@ -359,12 +365,12 @@ router.get('/users', async (req, res) => {
         joinDate: user.joinDate,
         lastActive: user.lastActive,
         isActive: user.isActive,
-        teamCount: user._count.teams
-      }))
+        teamCount: user._count.teams,
+      })),
     });
   } catch (error) {
-    console.error('Admin users fetch error:', error);
-    res.status(500).json({ error: 'Failed to fetch users' });
+    console.error("Admin users fetch error:", error);
+    res.status(500).json({ error: "Failed to fetch users" });
   }
 });
 

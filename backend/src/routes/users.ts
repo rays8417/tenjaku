@@ -1,22 +1,22 @@
-import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import express from "express";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 const router = express.Router();
 
 // POST /api/users/login - Login/Register with Petra wallet
-router.post('/login', async (req, res) => {
+router.post("/login", async (req, res) => {
   try {
     const { walletAddress, displayName, avatar } = req.body;
 
     if (!walletAddress) {
-      return res.status(400).json({ error: 'Wallet address is required' });
+      return res.status(400).json({ error: "Wallet address is required" });
     }
 
     // Check if user exists
     let user = await prisma.user.findUnique({
-      where: { walletAddress }
+      where: { walletAddress },
     });
 
     if (!user) {
@@ -27,18 +27,18 @@ router.post('/login', async (req, res) => {
           displayName: displayName || `Player ${walletAddress.slice(-4)}`,
           avatar: avatar || null,
           joinDate: new Date(),
-          lastActive: new Date()
-        }
+          lastActive: new Date(),
+        },
       });
     } else {
       // Update last active
       user = await prisma.user.update({
         where: { walletAddress },
-        data: { 
+        data: {
           lastActive: new Date(),
           displayName: displayName || user.displayName,
-          avatar: avatar || user.avatar
-        }
+          avatar: avatar || user.avatar,
+        },
       });
     }
 
@@ -51,17 +51,17 @@ router.post('/login', async (req, res) => {
         avatar: user.avatar,
         totalEarnings: user.totalEarnings,
         totalSpent: user.totalSpent,
-        joinDate: user.joinDate
-      }
+        joinDate: user.joinDate,
+      },
     });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: 'Login failed' });
+    console.error("Login error:", error);
+    res.status(500).json({ error: "Login failed" });
   }
 });
 
 // GET /api/users/profile/:walletAddress - Get user profile
-router.get('/profile/:walletAddress', async (req, res) => {
+router.get("/profile/:walletAddress", async (req, res) => {
   try {
     const { walletAddress } = req.params;
 
@@ -74,16 +74,16 @@ router.get('/profile/:walletAddress', async (req, res) => {
             scores: true,
             rewards: {
               include: {
-                rewardPool: true
-              }
-            }
-          }
-        }
-      }
+                rewardPool: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     res.json({
@@ -101,19 +101,22 @@ router.get('/profile/:walletAddress', async (req, res) => {
           id: team.id,
           teamName: team.teamName,
           tournament: team.tournament,
-          totalScore: team.scores.reduce((sum: number, score: any) => sum + Number(score.totalScore), 0),
-          rewards: team.rewards
-        }))
-      }
+          totalScore: team.scores.reduce(
+            (sum: number, score: any) => sum + Number(score.totalScore),
+            0
+          ),
+          rewards: team.rewards,
+        })),
+      },
     });
   } catch (error) {
-    console.error('Profile error:', error);
-    res.status(500).json({ error: 'Failed to fetch profile' });
+    console.error("Profile error:", error);
+    res.status(500).json({ error: "Failed to fetch profile" });
   }
 });
 
 // PUT /api/users/profile/:walletAddress - Update user profile
-router.put('/profile/:walletAddress', async (req, res) => {
+router.put("/profile/:walletAddress", async (req, res) => {
   try {
     const { walletAddress } = req.params;
     const { displayName, avatar } = req.body;
@@ -123,8 +126,8 @@ router.put('/profile/:walletAddress', async (req, res) => {
       data: {
         displayName: displayName || undefined,
         avatar: avatar || undefined,
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
 
     res.json({
@@ -135,17 +138,17 @@ router.put('/profile/:walletAddress', async (req, res) => {
         displayName: user.displayName,
         avatar: user.avatar,
         totalEarnings: user.totalEarnings,
-        totalSpent: user.totalSpent
-      }
+        totalSpent: user.totalSpent,
+      },
     });
   } catch (error) {
-    console.error('Profile update error:', error);
-    res.status(500).json({ error: 'Failed to update profile' });
+    console.error("Profile update error:", error);
+    res.status(500).json({ error: "Failed to update profile" });
   }
 });
 
 // GET /api/users/stats/:walletAddress - Get user statistics
-router.get('/stats/:walletAddress', async (req, res) => {
+router.get("/stats/:walletAddress", async (req, res) => {
   try {
     const { walletAddress } = req.params;
 
@@ -157,41 +160,59 @@ router.get('/stats/:walletAddress', async (req, res) => {
             tournament: true,
             scores: true,
             rewards: {
-              where: { status: 'COMPLETED' }
-            }
-          }
-        }
-      }
+              where: { status: "COMPLETED" },
+            },
+          },
+        },
+      },
     });
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     const stats = {
       totalTournaments: user.teams.length,
       totalEarnings: user.totalEarnings,
       totalSpent: user.totalSpent,
-      averageScore: user.teams.length > 0 
-        ? user.teams.reduce((sum: number, team: any) => 
-            sum + team.scores.reduce((scoreSum: number, score: any) => scoreSum + Number(score.totalScore), 0), 0
-          ) / user.teams.length 
-        : 0,
-      bestRank: user.teams.length > 0 
-        ? Math.min(...user.teams.map((team: any) => team.rewards[0]?.rank || 999))
-        : null,
-      totalRewards: user.teams.reduce((sum: number, team: any) => 
-        sum + team.rewards.reduce((rewardSum: number, reward: any) => rewardSum + Number(reward.amount), 0), 0
-      )
+      averageScore:
+        user.teams.length > 0
+          ? user.teams.reduce(
+              (sum: number, team: any) =>
+                sum +
+                team.scores.reduce(
+                  (scoreSum: number, score: any) =>
+                    scoreSum + Number(score.totalScore),
+                  0
+                ),
+              0
+            ) / user.teams.length
+          : 0,
+      bestRank:
+        user.teams.length > 0
+          ? Math.min(
+              ...user.teams.map((team: any) => team.rewards[0]?.rank || 999)
+            )
+          : null,
+      totalRewards: user.teams.reduce(
+        (sum: number, team: any) =>
+          sum +
+          team.rewards.reduce(
+            (rewardSum: number, reward: any) =>
+              rewardSum + Number(reward.amount),
+            0
+          ),
+        0
+      ),
     };
 
     res.json({
       success: true,
-      stats
+      stats,
     });
   } catch (error) {
-    console.error('Stats error:', error);
-    res.status(500).json({ error: 'Failed to fetch stats' });
+    console.error("Stats error:", error);
+    res.status(500).json({ error: "Failed to fetch stats" });
   }
 });
 
