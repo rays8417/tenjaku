@@ -74,6 +74,7 @@ model Player {
   name        String
   team        String   // Team name
   role        PlayerRole
+  creditValue Decimal  @default(10.0) // Credit value for fantasy team building
   tokenSupply BigInt   @default(20000000) // 20M token supply
   tokenPrice  Decimal  @default(1.0) // Initial token price in APT
   isActive    Boolean  @default(true)
@@ -88,9 +89,9 @@ model Player {
   tournamentEntries TournamentEntry[]
   tokenTransactions TokenTransaction[]
   snapshots   UserSnapshot[]
+  UserTeamPlayer UserTeamPlayer[]
   
   @@map("players")
-  UserTeamPlayer UserTeamPlayer[]
 }
 
 model UserHolding {
