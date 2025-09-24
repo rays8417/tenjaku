@@ -5,21 +5,42 @@ import { useState } from "react";
 export default function SwapsPage() {
   const [payAmount, setPayAmount] = useState("");
   const [receiveAmount, setReceiveAmount] = useState("");
+  const [isSwapped, setIsSwapped] = useState(false); // Track if tokens are swapped
   const balanceBoson = 0;
+  const balanceKohli = 0; // Add KOHLI balance
   const pricePerShare = 10; // mock price: 10 BOSON per share
 
+  const swapTokens = () => {
+    // Clear amounts when swapping
+    setPayAmount("");
+    setReceiveAmount("");
+    setIsSwapped(!isSwapped);
+  };
+
   const setPercent = (pct: number) => {
-    const amt = ((balanceBoson * pct) / 100).toString();
+    const currentBalance = isSwapped ? balanceKohli : balanceBoson;
+    const amt = ((currentBalance * pct) / 100).toString();
     setPayAmount(amt);
-    const shares = Number(amt || 0) / pricePerShare;
-    setReceiveAmount(shares ? shares.toString() : "");
+    calculateReceiveAmount(amt);
+  };
+
+  const calculateReceiveAmount = (amount: string) => {
+    const numAmount = Number(amount || 0);
+    if (isSwapped) {
+      // KOHLI to BOSON: multiply by price
+      const bosonAmount = numAmount * pricePerShare;
+      setReceiveAmount(amount ? bosonAmount.toString() : "");
+    } else {
+      // BOSON to KOHLI: divide by price
+      const kohliAmount = numAmount / pricePerShare;
+      setReceiveAmount(amount ? kohliAmount.toString() : "");
+    }
   };
 
   const handlePayChange = (v: string) => {
     const cleaned = v.replace(/[^0-9.]/g, "");
     setPayAmount(cleaned);
-    const shares = Number(cleaned || 0) / pricePerShare;
-    setReceiveAmount(cleaned ? shares.toString() : "");
+    calculateReceiveAmount(cleaned);
   };
 
   return (
@@ -51,20 +72,23 @@ export default function SwapsPage() {
                 className="bg-transparent text-4xl font-light outline-none placeholder:text-gray-300 w-2/3 focus:placeholder:text-gray-400 transition-colors text-black"
               />
               <button className="flex items-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 hover:border-gray-400 hover:bg-gray-50 transition-colors">
-                <span className="h-6 w-6 rounded-full bg-gray-600" />
-                <span className="font-semibold text-black">BOSON</span>
+                <span className={`h-6 w-6 rounded-full ${isSwapped ? 'bg-black' : 'bg-gray-600'}`} />
+                <span className="font-semibold text-black">{isSwapped ? 'KOHLI' : 'BOSON'}</span>
               </button>
             </div>
             <div className="text-xs tracking-wider text-gray-500 font-medium mb-1">YOUR BALANCE</div>
-            <div className="text-sm text-gray-700">{balanceBoson} BOSON</div>
+            <div className="text-sm text-gray-700">{isSwapped ? balanceKohli : balanceBoson} {isSwapped ? 'KOHLI' : 'BOSON'}</div>
           </div>
 
           {/* Divider */}
           <div className="relative h-16 flex items-center justify-center my-4">
             <div className="absolute left-0 right-0 mx-6 h-[1px] bg-gray-200" />
-            <div className="relative z-10 h-12 w-12 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center text-gray-500 hover:border-gray-300 hover:bg-gray-50 transition-colors cursor-pointer group">
+            <button 
+              onClick={swapTokens}
+              className="relative z-10 h-12 w-12 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center text-gray-500 hover:border-gray-300 hover:bg-gray-50 transition-colors cursor-pointer group"
+            >
               <span className="text-lg group-hover:rotate-180 transition-transform duration-300">⇅</span>
-            </div>
+            </button>
           </div>
 
           {/* You Receive */}
@@ -82,12 +106,12 @@ export default function SwapsPage() {
                 readOnly
               />
               <button className="flex items-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 hover:border-gray-400 hover:bg-gray-50 transition-colors">
-                <span className="h-6 w-6 rounded-full bg-black" />
-                <span className="font-semibold text-black">MBAPPÉ</span>
+                <span className={`h-6 w-6 rounded-full ${isSwapped ? 'bg-gray-600' : 'bg-black'}`} />
+                <span className="font-semibold text-black">{isSwapped ? 'BOSON' : 'KOHLI'}</span>
               </button>
             </div>
-            <div className="text-xs tracking-wider text-gray-500 font-medium mb-1">YOUR SHARES</div>
-            <div className="text-sm text-gray-700">0 MBAPPÉ</div>
+            <div className="text-xs tracking-wider text-gray-500 font-medium mb-1">{isSwapped ? 'YOUR BALANCE' : 'YOUR SHARES'}</div>
+            <div className="text-sm text-gray-700">{isSwapped ? balanceBoson : balanceKohli} {isSwapped ? 'BOSON' : 'KOHLI'}</div>
           </div>
 
           {/* CTA */}
