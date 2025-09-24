@@ -112,20 +112,6 @@ export default function LeaderboardPage() {
                 </div>
               </div>
 
-              {/* Bottom Actions */}
-              <div className="mt-12 pt-8 border-t border-gray-200 space-y-4">
-                <button className="flex items-center gap-3 text-sm text-gray-600 hover:text-black transition-colors">
-                  <span className="text-base">⚙️</span>
-                  <span>Settings</span>
-                </button>
-                <button className="flex items-center justify-between text-sm text-gray-600 hover:text-black transition-colors w-full">
-                  <div className="flex items-center gap-3">
-                    <span className="text-base">🔄</span>
-                    <span>Update</span>
-                  </div>
-                  <span>→</span>
-                </button>
-              </div>
             </div>
           </aside>
 
