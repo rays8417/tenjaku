@@ -1,5 +1,7 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
+import { createComprehensiveSnapshot, compareAptosWithDatabase } from '../services/snapshotService';
+import { getTokenHoldersWithBalances } from '../services/aptosService';
 
 const prisma = new PrismaClient();
 
@@ -8,93 +10,114 @@ const router = express.Router();
 // POST /api/snapshots/create - Create snapshot for tournament (Admin only)
 router.post('/create', async (req, res) => {
   try {
-    const { tournamentId, snapshotType, blockNumber, contractAddress } = req.body;
+    const { tournamentId, snapshotType, contractAddress, useAptosData = true } = req.body;
 
-    if (!tournamentId || !snapshotType || !blockNumber) {
-      return res.status(400).json({ error: 'Tournament ID, snapshot type, and block number are required' });
+    if (!tournamentId || !snapshotType) {
+      return res.status(400).json({ error: 'Tournament ID and snapshot type are required' });
     }
 
-    // Validate tournament exists
-    const tournament = await prisma.tournament.findUnique({
-      where: { id: tournamentId }
-    });
-
-    if (!tournament) {
-      return res.status(404).json({ error: 'Tournament not found' });
+    // Validate snapshot type
+    if (!['PRE_MATCH', 'POST_MATCH'].includes(snapshotType)) {
+      return res.status(400).json({ error: 'Snapshot type must be PRE_MATCH or POST_MATCH' });
     }
 
-    // Get all user holdings at the time of snapshot
-    const userHoldings = await prisma.userHolding.findMany({
-      include: {
-        user: {
-          select: {
-            id: true,
-            walletAddress: true,
-            displayName: true
-          }
-        },
-        player: {
-          select: {
-            id: true,
-            name: true,
-            team: true,
-            role: true,
-            tokenPrice: true
+    let result;
+    
+    if (useAptosData) {
+      // Create comprehensive snapshot using Aptos contract data
+      result = await createComprehensiveSnapshot(
+        tournamentId,
+        snapshotType as 'PRE_MATCH' | 'POST_MATCH',
+        contractAddress
+      );
+    } else {
+      // Fallback to original database-only approach
+      const tournament = await prisma.tournament.findUnique({
+        where: { id: tournamentId }
+      });
+
+      if (!tournament) {
+        return res.status(404).json({ error: 'Tournament not found' });
+      }
+
+      const userHoldings = await prisma.userHolding.findMany({
+        include: {
+          user: {
+            select: {
+              id: true,
+              walletAddress: true,
+              displayName: true
+            }
+          },
+          player: {
+            select: {
+              id: true,
+              name: true,
+              team: true,
+              role: true,
+              tokenPrice: true
+            }
           }
         }
-      }
-    });
+      });
 
-    // Create snapshot data
-    const snapshotData = {
-      tournamentId,
-      snapshotType,
-      timestamp: new Date().toISOString(),
-      totalUsers: userHoldings.length > 0 ? new Set(userHoldings.map(h => h.userId)).size : 0,
-      totalHoldings: userHoldings.length,
-      holdings: userHoldings.map(holding => ({
-        userId: holding.user.id,
-        walletAddress: holding.user.walletAddress,
-        displayName: holding.user.displayName,
-        playerId: holding.player.id,
-        playerName: holding.player.name,
-        playerTeam: holding.player.team,
-        playerRole: holding.player.role,
-        tokenAmount: holding.tokenAmount,
-        avgBuyPrice: holding.avgBuyPrice,
-        totalInvested: holding.totalInvested,
-        currentPrice: holding.player.tokenPrice,
-        currentValue: Number(holding.player.tokenPrice) * Number(holding.tokenAmount)
-      }))
-    };
-
-    // Store snapshot in database
-    const snapshot = await prisma.contractSnapshot.create({
-      data: {
-        contractType: 'AMM_CONTRACT',
-        contractAddress: contractAddress || '0x0000000000000000000000000000000000000000',
-        blockNumber: BigInt(blockNumber),
-        data: snapshotData
-      }
-    });
-
-    res.json({
-      success: true,
-      snapshot: {
-        id: snapshot.id,
+      const snapshotData = {
         tournamentId,
         snapshotType,
-        blockNumber: snapshot.blockNumber.toString(),
-        contractAddress,
+        timestamp: new Date().toISOString(),
+        totalUsers: userHoldings.length > 0 ? new Set(userHoldings.map(h => h.userId)).size : 0,
+        totalHoldings: userHoldings.length,
+        holdings: userHoldings.map(holding => ({
+          userId: holding.user.id,
+          walletAddress: holding.user.walletAddress,
+          displayName: holding.user.displayName,
+          playerId: holding.player.id,
+          playerName: holding.player.name,
+          playerTeam: holding.player.team,
+          playerRole: holding.player.role,
+          tokenAmount: holding.tokenAmount,
+          avgBuyPrice: holding.avgBuyPrice,
+          totalInvested: holding.totalInvested,
+          currentPrice: holding.player.tokenPrice,
+          currentValue: Number(holding.player.tokenPrice) * Number(holding.tokenAmount)
+        }))
+      };
+
+      const snapshot = await prisma.contractSnapshot.create({
+        data: {
+          contractType: 'AMM_CONTRACT',
+          contractAddress: contractAddress || '0x0000000000000000000000000000000000000000',
+          blockNumber: BigInt(0), // No block number for database-only snapshots
+          data: snapshotData as any // Type assertion for Prisma JSON field
+        }
+      });
+
+      result = {
+        snapshotId: snapshot.id,
+        tournamentId,
+        snapshotType,
+        blockNumber: '0',
+        contractAddress: contractAddress || '0x0000000000000000000000000000000000000000',
         timestamp: snapshotData.timestamp,
         totalUsers: snapshotData.totalUsers,
         totalHoldings: snapshotData.totalHoldings,
-        createdAt: snapshot.createdAt
-      }
+        aptosHolders: 0,
+        databaseHoldings: snapshotData.totalHoldings,
+        mergedHoldings: snapshotData.totalHoldings
+      };
+    }
+
+    res.json({
+      success: true,
+      snapshot: result,
+      message: useAptosData ? 'Snapshot created with Aptos contract data' : 'Snapshot created with database data only'
     });
   } catch (error) {
     console.error('Snapshot creation error:', error);
-    res.status(500).json({ error: 'Failed to create snapshot' });
+    res.status(500).json({ 
+      error: 'Failed to create snapshot',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 
@@ -187,22 +210,22 @@ router.post('/validate-eligibility', async (req, res) => {
       return res.status(400).json({ error: 'Insufficient snapshots for eligibility validation' });
     }
 
-    const preMatchSnapshot = snapshots.find(s => s.data.snapshotType === 'PRE_MATCH');
-    const postMatchSnapshot = snapshots.find(s => s.data.snapshotType === 'POST_MATCH');
+    const preMatchSnapshot = snapshots.find(s => (s.data as any)?.snapshotType === 'PRE_MATCH');
+    const postMatchSnapshot = snapshots.find(s => (s.data as any)?.snapshotType === 'POST_MATCH');
 
     if (!preMatchSnapshot || !postMatchSnapshot) {
       return res.status(400).json({ error: 'Both pre-match and post-match snapshots are required' });
     }
 
     // Find user holdings in both snapshots
-    const preMatchHoldings = preMatchSnapshot.data.holdings.filter((h: any) => h.userId === userId);
-    const postMatchHoldings = postMatchSnapshot.data.holdings.filter((h: any) => h.userId === userId);
+    const preMatchHoldings = (preMatchSnapshot.data as any)?.holdings?.filter((h: any) => h.userId === userId) || [];
+    const postMatchHoldings = (postMatchSnapshot.data as any)?.holdings?.filter((h: any) => h.userId === userId) || [];
 
     // Check eligibility criteria
     const eligibility = {
       userId,
       isEligible: true,
-      reasons: [],
+      reasons: [] as string[],
       preMatchHoldings: preMatchHoldings.length,
       postMatchHoldings: postMatchHoldings.length,
       preMatchValue: preMatchHoldings.reduce((sum: number, h: any) => sum + h.currentValue, 0),
@@ -312,23 +335,23 @@ router.post('/compare', async (req, res) => {
     const holdings2 = new Map(data2.holdings.map((h: any) => [`${h.userId}-${h.playerId}`, h]));
 
     const changes = {
-      newHoldings: [],
-      removedHoldings: [],
-      changedHoldings: [],
-      unchangedHoldings: []
+      newHoldings: [] as any[],
+      removedHoldings: [] as any[],
+      changedHoldings: [] as any[],
+      unchangedHoldings: [] as any[]
     };
 
     // Find new holdings
     for (const [key, holding2] of holdings2) {
       if (!holdings1.has(key)) {
-        changes.newHoldings.push(holding2);
+        changes.newHoldings.push(holding2 as any);
       }
     }
 
     // Find removed holdings
     for (const [key, holding1] of holdings1) {
       if (!holdings2.has(key)) {
-        changes.removedHoldings.push(holding1);
+        changes.removedHoldings.push(holding1 as any);
       }
     }
 
@@ -336,26 +359,29 @@ router.post('/compare', async (req, res) => {
     for (const [key, holding1] of holdings1) {
       if (holdings2.has(key)) {
         const holding2 = holdings2.get(key);
-        if (Number(holding1.tokenAmount) !== Number(holding2.tokenAmount)) {
+        const h1 = holding1 as any;
+        const h2 = holding2 as any;
+        
+        if (Number(h1.tokenAmount) !== Number(h2.tokenAmount)) {
           changes.changedHoldings.push({
-            userId: holding1.userId,
-            playerId: holding1.playerId,
-            playerName: holding1.playerName,
+            userId: h1.userId,
+            playerId: h1.playerId,
+            playerName: h1.playerName,
             before: {
-              tokenAmount: holding1.tokenAmount,
-              value: holding1.currentValue
+              tokenAmount: h1.tokenAmount,
+              value: h1.currentValue
             },
             after: {
-              tokenAmount: holding2.tokenAmount,
-              value: holding2.currentValue
+              tokenAmount: h2.tokenAmount,
+              value: h2.currentValue
             },
             change: {
-              tokenAmount: Number(holding2.tokenAmount) - Number(holding1.tokenAmount),
-              value: holding2.currentValue - holding1.currentValue
+              tokenAmount: Number(h2.tokenAmount) - Number(h1.tokenAmount),
+              value: h2.currentValue - h1.currentValue
             }
           });
         } else {
-          changes.unchangedHoldings.push(holding1);
+          changes.unchangedHoldings.push(h1);
         }
       }
     }
@@ -391,6 +417,132 @@ router.post('/compare', async (req, res) => {
   } catch (error) {
     console.error('Snapshot comparison error:', error);
     res.status(500).json({ error: 'Failed to compare snapshots' });
+  }
+});
+
+// POST /api/snapshots/compare-aptos - Compare Aptos contract data with database
+router.post('/compare-aptos', async (req, res) => {
+  try {
+    console.log('Comparing Aptos contract data with database...');
+    
+    // Get Aptos token holders
+    const aptosHolders = await getTokenHoldersWithBalances();
+    
+    // Compare with database
+    const comparison = await compareAptosWithDatabase(aptosHolders);
+    
+    res.json({
+      success: true,
+      comparison: {
+        summary: {
+          totalAptosHolders: aptosHolders.length,
+          aptosOnlyHolders: comparison.aptosOnlyHolders.length,
+          databaseOnlyHolders: comparison.databaseOnlyHolders.length,
+          matchingHolders: comparison.matchingHolders.length,
+          discrepancies: comparison.discrepancies.length
+        },
+        details: comparison
+      }
+    });
+  } catch (error) {
+    console.error('Aptos comparison error:', error);
+    res.status(500).json({ 
+      error: 'Failed to compare Aptos data with database',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// POST /api/snapshots/sync-aptos - Sync Aptos holders to database (creates new users if needed)
+router.post('/sync-aptos', async (req, res) => {
+  try {
+    const { createMissingUsers = false } = req.body;
+    
+    console.log('Syncing Aptos holders with database...');
+    
+    // Get Aptos token holders
+    const aptosHolders = await getTokenHoldersWithBalances();
+    
+    // Get existing users
+    const walletAddresses = aptosHolders.map(holder => holder.address);
+    const existingUsers = await prisma.user.findMany({
+      where: {
+        walletAddress: {
+          in: walletAddresses
+        }
+      }
+    });
+
+    const existingWallets = new Set(existingUsers.map(user => user.walletAddress));
+    const missingWallets = walletAddresses.filter(addr => !existingWallets.has(addr));
+
+    let createdUsers: any[] = [];
+    
+    if (createMissingUsers && missingWallets.length > 0) {
+      console.log(`Creating ${missingWallets.length} new users...`);
+      
+      const newUsers = await Promise.all(
+        missingWallets.map(async (walletAddress) => {
+          return await prisma.user.create({
+            data: {
+              walletAddress,
+              displayName: `User_${walletAddress.slice(-6)}`, // Temporary display name
+              isActive: true
+            }
+          });
+        })
+      );
+      
+      createdUsers = newUsers;
+    }
+
+    const syncResult = {
+      totalAptosHolders: aptosHolders.length,
+      existingUsers: existingUsers.length,
+      missingWallets: missingWallets.length,
+      createdUsers: createdUsers.length,
+      createdUserDetails: createdUsers.map(user => ({
+        id: user.id,
+        walletAddress: user.walletAddress,
+        displayName: user.displayName
+      }))
+    };
+
+    res.json({
+      success: true,
+      sync: syncResult,
+      message: `Sync completed. ${createdUsers.length} users created.`
+    });
+  } catch (error) {
+    console.error('Aptos sync error:', error);
+    res.status(500).json({ 
+      error: 'Failed to sync Aptos holders with database',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// GET /api/snapshots/aptos-holders - Get current Aptos token holders
+router.get('/aptos-holders', async (req, res) => {
+  try {
+    const aptosHolders = await getTokenHoldersWithBalances();
+    
+    res.json({
+      success: true,
+      holders: aptosHolders.map(holder => ({
+        address: holder.address,
+        balance: holder.formattedBalance,
+        balanceBigInt: holder.balance.toString()
+      })),
+      totalHolders: aptosHolders.length,
+      totalTokens: aptosHolders.reduce((sum, holder) => sum + holder.balance, BigInt(0)).toString()
+    });
+  } catch (error) {
+    console.error('Error fetching Aptos holders:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch Aptos token holders',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 

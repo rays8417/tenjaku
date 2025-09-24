@@ -20,8 +20,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aptos-labs/ts-sdk": "^5.1.0",
     "@prisma/client": "^6.16.2",
+    "@types/cron": "^2.0.1",
     "cors": "^2.8.5",
+    "cron": "^4.3.3",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "nodemon": "^3.1.10"

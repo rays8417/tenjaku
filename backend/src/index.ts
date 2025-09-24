@@ -35,7 +35,7 @@ app.use('/api/teams', teamRoutes);
 app.use('/api/scoring', scoringRoutes);
 app.use('/api/rewards', rewardRoutes);
 app.use('/api/admin', adminRoutes);
-// app.use('/api/snapshots', snapshotRoutes);
+app.use('/api/snapshots', snapshotRoutes);
 
 // Error handling middleware
 app.use(
