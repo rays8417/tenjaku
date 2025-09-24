@@ -532,7 +532,9 @@ router.get('/aptos-holders', async (req, res) => {
       holders: aptosHolders.map(holder => ({
         address: holder.address,
         balance: holder.formattedBalance,
-        balanceBigInt: holder.balance.toString()
+        balanceBigInt: holder.balance.toString(),
+        playerId: holder.playerId,
+        moduleName: holder.moduleName
       })),
       totalHolders: aptosHolders.length,
       totalTokens: aptosHolders.reduce((sum, holder) => sum + holder.balance, BigInt(0)).toString()
@@ -541,6 +543,35 @@ router.get('/aptos-holders', async (req, res) => {
     console.error('Error fetching Aptos holders:', error);
     res.status(500).json({ 
       error: 'Failed to fetch Aptos token holders',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// GET /api/snapshots/aptos-holders/:moduleName - Get Aptos token holders for specific player module
+router.get('/aptos-holders/:moduleName', async (req, res) => {
+  try {
+    const { moduleName } = req.params;
+    
+    const { getTokenHoldersWithBalancesForPlayer } = await import('../services/aptosService');
+    const aptosHolders = await getTokenHoldersWithBalancesForPlayer(moduleName);
+    
+    res.json({
+      success: true,
+      moduleName,
+      holders: aptosHolders.map(holder => ({
+        address: holder.address,
+        balance: holder.formattedBalance,
+        balanceBigInt: holder.balance.toString(),
+        playerId: holder.playerId
+      })),
+      totalHolders: aptosHolders.length,
+      totalTokens: aptosHolders.reduce((sum, holder) => sum + holder.balance, BigInt(0)).toString()
+    });
+  } catch (error) {
+    console.error(`Error fetching Aptos holders for ${req.params.moduleName}:`, error);
+    res.status(500).json({ 
+      error: `Failed to fetch Aptos token holders for ${req.params.moduleName}`,
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }

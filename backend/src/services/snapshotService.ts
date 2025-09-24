@@ -82,23 +82,45 @@ export async function mapAptosHoldersToUsers(aptosHolders: TokenHolderBalance[])
       const dbUser = walletToUser.get(aptosHolder.address);
       
       if (dbUser) {
-        // User exists in database - use their holdings data
-        for (const holding of dbUser.holdings) {
-          mappedData.push({
-            userId: dbUser.id,
-            walletAddress: dbUser.walletAddress,
-            displayName: dbUser.displayName,
-            playerId: holding.player.id,
-            playerName: holding.player.name,
-            playerTeam: holding.player.team,
-            playerRole: holding.player.role,
-            tokenAmount: holding.tokenAmount,
-            avgBuyPrice: Number(holding.avgBuyPrice),
-            totalInvested: Number(holding.totalInvested),
-            currentPrice: Number(holding.player.tokenPrice),
-            currentValue: Number(holding.player.tokenPrice) * Number(holding.tokenAmount),
-            source: 'database'
-          });
+        // If we have playerId from Aptos data, use that specific player
+        if (aptosHolder.playerId) {
+          const playerHolding = dbUser.holdings.find(h => h.player.id === aptosHolder.playerId);
+          if (playerHolding) {
+            mappedData.push({
+              userId: dbUser.id,
+              walletAddress: dbUser.walletAddress,
+              displayName: dbUser.displayName,
+              playerId: playerHolding.player.id,
+              playerName: playerHolding.player.name,
+              playerTeam: playerHolding.player.team,
+              playerRole: playerHolding.player.role,
+              tokenAmount: aptosHolder.balance, // Use Aptos balance instead of database balance
+              avgBuyPrice: Number(playerHolding.avgBuyPrice),
+              totalInvested: Number(playerHolding.totalInvested),
+              currentPrice: Number(playerHolding.player.tokenPrice),
+              currentValue: Number(playerHolding.player.tokenPrice) * Number(aptosHolder.balance),
+              source: 'aptos_contract'
+            });
+          }
+        } else {
+          // No specific player ID, use all holdings for this user
+          for (const holding of dbUser.holdings) {
+            mappedData.push({
+              userId: dbUser.id,
+              walletAddress: dbUser.walletAddress,
+              displayName: dbUser.displayName,
+              playerId: holding.player.id,
+              playerName: holding.player.name,
+              playerTeam: holding.player.team,
+              playerRole: holding.player.role,
+              tokenAmount: holding.tokenAmount,
+              avgBuyPrice: Number(holding.avgBuyPrice),
+              totalInvested: Number(holding.totalInvested),
+              currentPrice: Number(holding.player.tokenPrice),
+              currentValue: Number(holding.player.tokenPrice) * Number(holding.tokenAmount),
+              source: 'database'
+            });
+          }
         }
       } else {
         // User not in database - this could be a new holder or external holder

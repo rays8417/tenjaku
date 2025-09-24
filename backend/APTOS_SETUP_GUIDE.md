@@ -40,21 +40,26 @@ export const CONTRACT_CONFIG = {
 
 ## Smart Contract Requirements
 
-Your smart contract must have these two functions:
+Each player has their own module in your smart contract. Each module must have these two functions:
 
-### 1. `get_token_holders()`
+### 1. `get_token_holders()` (per player module)
 ```move
 public fun get_token_holders(): vector<address> {
-    // Return all addresses that hold your tokens
+    // Return all addresses that hold this player's tokens
 }
 ```
 
-### 2. `balance(address: address): u64`
+### 2. `balance(address: address): u64` (per player module)
 ```move
 public fun balance(owner: address): u64 {
-    // Return the token balance for the given address
+    // Return the token balance for the given address for this player
 }
 ```
+
+### Module Structure
+- Each player has their own module (e.g., `AbhishekSharma`, `ViratKohli`, etc.)
+- The module name should match the `aptosTokenAddress` field in your Player database records
+- All modules are deployed under the same contract address
 
 ## API Endpoints
 
@@ -71,7 +76,7 @@ Content-Type: application/json
 }
 ```
 
-### 2. Get Current Aptos Token Holders
+### 2. Get Current Aptos Token Holders (All Modules)
 ```http
 GET /api/snapshots/aptos-holders
 ```
@@ -84,7 +89,9 @@ Response:
     {
       "address": "0x123...",
       "balance": "1000000",
-      "balanceBigInt": "1000000"
+      "balanceBigInt": "1000000",
+      "playerId": "player-uuid",
+      "moduleName": "AbhishekSharma"
     }
   ],
   "totalHolders": 5,
@@ -92,7 +99,30 @@ Response:
 }
 ```
 
-### 3. Compare Aptos Data with Database
+### 3. Get Aptos Token Holders for Specific Player Module
+```http
+GET /api/snapshots/aptos-holders/AbhishekSharma
+```
+
+Response:
+```json
+{
+  "success": true,
+  "moduleName": "AbhishekSharma",
+  "holders": [
+    {
+      "address": "0x123...",
+      "balance": "1000000",
+      "balanceBigInt": "1000000",
+      "playerId": "player-uuid"
+    }
+  ],
+  "totalHolders": 2,
+  "totalTokens": "2000000"
+}
+```
+
+### 4. Compare Aptos Data with Database
 ```http
 POST /api/snapshots/compare-aptos
 ```
@@ -119,7 +149,7 @@ Response:
 }
 ```
 
-### 4. Sync Aptos Holders to Database
+### 5. Sync Aptos Holders to Database
 ```http
 POST /api/snapshots/sync-aptos
 Content-Type: application/json
