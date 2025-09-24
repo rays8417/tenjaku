@@ -1,6 +1,6 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
-import { createComprehensiveSnapshot, compareAptosWithDatabase } from '../services/snapshotService';
+import { createComprehensiveSnapshot, compareAptosWithDatabase, comparePrePostMatchSnapshots } from '../services/snapshotService';
 import { getTokenHoldersWithBalances } from '../services/aptosService';
 
 const prisma = new PrismaClient();
@@ -572,6 +572,60 @@ router.get('/aptos-holders/:moduleName', async (req, res) => {
     console.error(`Error fetching Aptos holders for ${req.params.moduleName}:`, error);
     res.status(500).json({ 
       error: `Failed to fetch Aptos token holders for ${req.params.moduleName}`,
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// POST /api/snapshots/compare-pre-post - Compare pre-match and post-match snapshots for tournament
+router.post('/compare-pre-post', async (req, res) => {
+  try {
+    const { tournamentId } = req.body;
+    
+    if (!tournamentId) {
+      return res.status(400).json({ error: 'Tournament ID is required' });
+    }
+    
+    console.log(`Comparing pre/post match snapshots for tournament ${tournamentId}...`);
+    
+    const comparison = await comparePrePostMatchSnapshots(tournamentId);
+    
+    res.json({
+      success: true,
+      comparison: {
+        tournamentId: comparison.tournamentId,
+        preMatchSnapshotId: comparison.preMatchSnapshotId,
+        postMatchSnapshotId: comparison.postMatchSnapshotId,
+        preMatchBlock: comparison.preMatchBlock,
+        postMatchBlock: comparison.postMatchBlock,
+        timeSpanMs: comparison.timeSpan,
+        timeSpanHours: Math.round(comparison.timeSpan / (1000 * 60 * 60) * 100) / 100,
+        
+        summary: comparison.summary,
+        
+        playerChanges: Array.from(comparison.playerChanges.values()),
+        
+        rewardEligibility: comparison.rewardEligibility,
+        totalEligibleUsers: comparison.rewardEligibility.length,
+        
+        userChanges: comparison.userChanges.map(user => ({
+          userId: user.userId,
+          walletAddress: user.walletAddress,
+          displayName: user.displayName,
+          preMatchValue: user.preMatch.totalValue,
+          postMatchValue: user.postMatch.totalValue,
+          valueChange: user.changes.valueChange,
+          tradingActivity: user.changes.tradingActivity,
+          isEligible: user.eligibility.isEligible,
+          eligibilityReasons: user.eligibility.reasons,
+          maintainedHoldings: user.eligibility.maintainedHoldings
+        }))
+      }
+    });
+  } catch (error) {
+    console.error('Pre/post match comparison error:', error);
+    res.status(500).json({ 
+      error: 'Failed to compare pre/post match snapshots',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }

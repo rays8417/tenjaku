@@ -346,3 +346,236 @@ export async function compareAptosWithDatabase(aptosHolders: TokenHolderBalance[
     throw new Error(`Failed to compare Aptos with database: ${error}`);
   }
 }
+
+/**
+ * Compare pre-match and post-match snapshots
+ * This is specifically designed for tournament reward calculations
+ */
+export async function comparePrePostMatchSnapshots(tournamentId: string) {
+  try {
+    console.log(`Comparing pre/post match snapshots for tournament ${tournamentId}...`);
+    
+    // Get snapshots for this tournament
+    const snapshots = await prisma.contractSnapshot.findMany({
+      where: {
+        data: {
+          path: ['tournamentId'],
+          equals: tournamentId
+        }
+      },
+      orderBy: { createdAt: 'asc' }
+    });
+
+    if (snapshots.length < 2) {
+      throw new Error('Insufficient snapshots for comparison');
+    }
+
+    const preMatchSnapshot = snapshots.find(s => (s.data as any)?.snapshotType === 'PRE_MATCH');
+    const postMatchSnapshot = snapshots.find(s => (s.data as any)?.snapshotType === 'POST_MATCH');
+
+    if (!preMatchSnapshot || !postMatchSnapshot) {
+      throw new Error('Both pre-match and post-match snapshots are required');
+    }
+
+    const preData = preMatchSnapshot.data as any;
+    const postData = postMatchSnapshot.data as any;
+
+    // Create maps for efficient comparison
+    const preHoldings = new Map(
+      preData.allHoldings?.map((h: any) => [`${h.userId}-${h.playerId}`, h]) || []
+    );
+    const postHoldings = new Map(
+      postData.allHoldings?.map((h: any) => [`${h.userId}-${h.playerId}`, h]) || []
+    );
+
+    const comparison = {
+      tournamentId,
+      preMatchSnapshotId: preMatchSnapshot.id,
+      postMatchSnapshotId: postMatchSnapshot.id,
+      preMatchBlock: preData.blockNumber,
+      postMatchBlock: postData.blockNumber,
+      timeSpan: new Date(postData.timestamp).getTime() - new Date(preData.timestamp).getTime(),
+      
+      summary: {
+        totalUsers: new Set([...preData.allHoldings, ...postData.allHoldings].map((h: any) => h.userId)).size,
+        preMatchHoldings: preData.allHoldings?.length || 0,
+        postMatchHoldings: postData.allHoldings?.length || 0,
+        newHoldings: 0,
+        removedHoldings: 0,
+        changedHoldings: 0,
+        unchangedHoldings: 0
+      },
+      
+      userChanges: [] as any[],
+      playerChanges: new Map(),
+      rewardEligibility: [] as any[]
+    };
+
+    // Track all unique users for reward eligibility
+    const allUserIds = new Set([
+      ...(preData.allHoldings || []).map((h: any) => h.userId),
+      ...(postData.allHoldings || []).map((h: any) => h.userId)
+    ]);
+
+    // Analyze changes for each user
+    for (const userId of allUserIds) {
+      const userPreHoldings = (preData.allHoldings || []).filter((h: any) => h.userId === userId);
+      const userPostHoldings = (postData.allHoldings || []).filter((h: any) => h.userId === userId);
+      
+      const userChange = {
+        userId,
+        walletAddress: userPreHoldings[0]?.walletAddress || userPostHoldings[0]?.walletAddress,
+        displayName: userPreHoldings[0]?.displayName || userPostHoldings[0]?.displayName,
+        
+        preMatch: {
+          totalHoldings: userPreHoldings.length,
+          totalValue: userPreHoldings.reduce((sum: number, h: any) => sum + h.currentValue, 0),
+          totalTokens: userPreHoldings.reduce((sum: number, h: any) => sum + Number(h.tokenAmount), 0),
+          holdings: userPreHoldings
+        },
+        
+        postMatch: {
+          totalHoldings: userPostHoldings.length,
+          totalValue: userPostHoldings.reduce((sum: number, h: any) => sum + h.currentValue, 0),
+          totalTokens: userPostHoldings.reduce((sum: number, h: any) => sum + Number(h.tokenAmount), 0),
+          holdings: userPostHoldings
+        },
+        
+        changes: {
+          valueChange: 0,
+          tokenChange: 0,
+          holdingsChange: 0,
+          tradingActivity: 0 // Percentage of portfolio changed
+        },
+        
+        eligibility: {
+          isEligible: false,
+          reasons: [] as string[],
+          maintainedHoldings: 0,
+          minimumHoldingMet: false
+        }
+      };
+
+      // Calculate changes
+      userChange.changes.valueChange = userChange.postMatch.totalValue - userChange.preMatch.totalValue;
+      userChange.changes.tokenChange = userChange.postMatch.totalTokens - userChange.preMatch.totalTokens;
+      userChange.changes.holdingsChange = userChange.postMatch.totalHoldings - userChange.preMatch.totalHoldings;
+      
+      // Calculate trading activity (percentage of portfolio that changed)
+      if (userChange.preMatch.totalValue > 0) {
+        userChange.changes.tradingActivity = Math.abs(userChange.changes.valueChange) / userChange.preMatch.totalValue;
+      }
+
+      // Determine reward eligibility
+      const minimumHoldingValue = 100; // Minimum APT value required
+      const maxTradingThreshold = 0.5; // 50% max portfolio change allowed
+      
+      // Check if user had holdings before match
+      if (userChange.preMatch.totalHoldings === 0) {
+        userChange.eligibility.reasons.push('No holdings before match');
+      } else {
+        userChange.eligibility.isEligible = true;
+        
+        // Check minimum holding requirement
+        if (userChange.preMatch.totalValue >= minimumHoldingValue) {
+          userChange.eligibility.minimumHoldingMet = true;
+        } else {
+          userChange.eligibility.reasons.push(`Insufficient pre-match holdings (${userChange.preMatch.totalValue} < ${minimumHoldingValue})`);
+          userChange.eligibility.isEligible = false;
+        }
+        
+        // Check for excessive trading
+        if (userChange.changes.tradingActivity > maxTradingThreshold) {
+          userChange.eligibility.reasons.push(`Excessive trading activity (${(userChange.changes.tradingActivity * 100).toFixed(1)}% portfolio change)`);
+          userChange.eligibility.isEligible = false;
+        }
+        
+        // Count maintained holdings (same or increased)
+        const maintainedCount = userPreHoldings.filter((preH: any) => {
+          const postH = userPostHoldings.find((ph: any) => 
+            ph.playerId === preH.playerId && Number(ph.tokenAmount) >= Number(preH.tokenAmount)
+          );
+          return !!postH;
+        }).length;
+        
+        userChange.eligibility.maintainedHoldings = maintainedCount;
+      }
+
+      comparison.userChanges.push(userChange);
+      
+      // Track player-specific changes
+      for (const holding of [...userPreHoldings, ...userPostHoldings]) {
+        const playerId = holding.playerId;
+        if (!comparison.playerChanges.has(playerId)) {
+          comparison.playerChanges.set(playerId, {
+            playerId,
+            playerName: holding.playerName,
+            playerTeam: holding.playerTeam,
+            totalPreHolders: 0,
+            totalPostHolders: 0,
+            netChange: 0
+          });
+        }
+        
+        const playerChange = comparison.playerChanges.get(playerId);
+        if (userPreHoldings.some((h: any) => h.playerId === playerId)) {
+          playerChange.totalPreHolders++;
+        }
+        if (userPostHoldings.some((h: any) => h.playerId === playerId)) {
+          playerChange.totalPostHolders++;
+        }
+        playerChange.netChange = playerChange.totalPostHolders - playerChange.totalPreHolders;
+      }
+      
+      // Add to reward eligibility list
+      if (userChange.eligibility.isEligible) {
+        comparison.rewardEligibility.push({
+          userId: userChange.userId,
+          walletAddress: userChange.walletAddress,
+          displayName: userChange.displayName,
+          preMatchValue: userChange.preMatch.totalValue,
+          postMatchValue: userChange.postMatch.totalValue,
+          maintainedHoldings: userChange.eligibility.maintainedHoldings,
+          rewardMultiplier: calculateRewardMultiplier(userChange)
+        });
+      }
+    }
+
+    // Update summary
+    comparison.summary.newHoldings = comparison.userChanges.filter(u => u.changes.holdingsChange > 0).length;
+    comparison.summary.removedHoldings = comparison.userChanges.filter(u => u.changes.holdingsChange < 0).length;
+    comparison.summary.changedHoldings = comparison.userChanges.filter(u => u.changes.tradingActivity > 0).length;
+    comparison.summary.unchangedHoldings = comparison.userChanges.filter(u => u.changes.tradingActivity === 0).length;
+
+    console.log(`Comparison completed: ${comparison.rewardEligibility.length} users eligible for rewards`);
+    
+    return comparison;
+  } catch (error) {
+    console.error('Error comparing pre/post match snapshots:', error);
+    throw new Error(`Failed to compare pre/post match snapshots: ${error}`);
+  }
+}
+
+/**
+ * Calculate reward multiplier based on user's holding behavior
+ */
+function calculateRewardMultiplier(userChange: any): number {
+  let multiplier = 1.0;
+  
+  // Bonus for maintaining all holdings
+  if (userChange.eligibility.maintainedHoldings === userChange.preMatch.totalHoldings) {
+    multiplier += 0.2; // 20% bonus
+  }
+  
+  // Penalty for excessive trading
+  if (userChange.changes.tradingActivity > 0.3) {
+    multiplier -= 0.1; // 10% penalty
+  }
+  
+  // Bonus for holding throughout entire match
+  if (userChange.changes.valueChange >= 0) {
+    multiplier += 0.1; // 10% bonus for not selling
+  }
+  
+  return Math.max(0.5, Math.min(2.0, multiplier)); // Cap between 0.5x and 2.0x
+}
