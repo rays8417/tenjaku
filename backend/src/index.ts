@@ -3,14 +3,13 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 
-import userRoutes from './routes/users.js';
-import tournamentRoutes from './routes/tournaments.js';
-import teamRoutes from './routes/teams.js';
-import scoringRoutes from './routes/scoring.js';
-import rewardRoutes from './routes/rewards.js';
-import adminRoutes from './routes/admin.js';
-import tradingRoutes from './routes/trading.js';
-import snapshotRoutes from './routes/snapshots.js';
+import userRoutes from './routes/users';
+import tournamentRoutes from './routes/tournaments';
+import teamRoutes from './routes/teams';
+import scoringRoutes from './routes/scoring';
+import rewardRoutes from './routes/rewards';
+import adminRoutes from './routes/admin';
+import snapshotRoutes from './routes/snapshots';
 
 // Load environment variables
 dotenv.config();
@@ -36,8 +35,7 @@ app.use('/api/teams', teamRoutes);
 app.use('/api/scoring', scoringRoutes);
 app.use('/api/rewards', rewardRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/trading', tradingRoutes);
-app.use('/api/snapshots', snapshotRoutes);
+// app.use('/api/snapshots', snapshotRoutes);
 
 // Error handling middleware
 app.use(
