@@ -1,0 +1,332 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+// Cricket Fantasy Sports Database Schema
+// Designed for centralized tournament and reward management on Aptos chain
+
+model User {
+  id          String   @id @default(uuid())
+  walletAddress String @unique // Petra wallet address (primary identifier)
+  displayName String?  // Optional display name
+  avatar      String?  // Optional profile picture URL
+  totalEarnings Decimal @default(0) // Total APT tokens earned
+  totalSpent   Decimal @default(0) // Total APT tokens spent
+  joinDate    DateTime @default(now())
+  lastActive  DateTime @default(now())
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  teams       UserTeam[]
+  holdings    UserHolding[]
+  tournamentEntries TournamentEntry[]
+  tokenTransactions TokenTransaction[]
+  
+  @@map("users")
+}
+
+model Tournament {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  matchDate   DateTime // Single match date
+  team1       String   // Team 1 name
+  team2       String   // Team 2 name
+  venue       String?
+  status      TournamentStatus @default(UPCOMING)
+  entryFee    Decimal  @default(0) // Entry fee in APT tokens
+  maxParticipants Int?
+  currentParticipants Int @default(0)
+  aptosEventId String? // Aptos blockchain event ID
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  teams       UserTeam[]
+  rewardPools RewardPool[]
+  leaderboard LeaderboardEntry[]
+  playerScores PlayerScore[]
+  userScores  UserScore[]
+  entries     TournamentEntry[]
+  
+  @@map("tournaments")
+}
+
+
+model Player {
+  id          String   @id @default(uuid())
+  name        String
+  team        String   // Team name
+  role        PlayerRole
+  tokenSupply BigInt   @default(20000000) // 20M token supply
+  tokenPrice  Decimal  @default(1.0) // Initial token price in APT
+  isActive    Boolean  @default(true)
+  aptosPlayerId String? // Aptos blockchain player token ID
+  aptosTokenAddress String? // Aptos token address
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  scores      PlayerScore[]
+  userHoldings UserHolding[]
+  tournamentEntries TournamentEntry[]
+  tokenTransactions TokenTransaction[]
+  
+  @@map("players")
+  UserTeamPlayer UserTeamPlayer[]
+}
+
+model UserHolding {
+  id          String   @id @default(uuid())
+  userId      String   // Foreign key to User
+  playerId    String   // Foreign key to Player
+  tokenAmount BigInt   @default(0) // Amount of player tokens held
+  avgBuyPrice Decimal  @default(0) // Average buy price
+  totalInvested Decimal @default(0) // Total APT invested
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  player      Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, playerId])
+  @@map("user_holdings")
+}
+
+model TournamentEntry {
+  id          String   @id @default(uuid())
+  userId      String   // Foreign key to User
+  tournamentId String  // Foreign key to Tournament
+  playerId    String   // Foreign key to Player
+  tokenAmount BigInt   // Amount of tokens entered
+  entryPrice  Decimal  // Price at time of entry
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tournament  Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  player      Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, tournamentId, playerId])
+  @@map("tournament_entries")
+}
+
+model UserTeam {
+  id          String   @id @default(uuid())
+  userId      String   // Foreign key to User
+  tournamentId String
+  teamName    String
+  captainId   String
+  viceCaptainId String
+  totalCredits Decimal @default(100) // Total credits used
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tournament  Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  players     UserTeamPlayer[]
+  scores      UserScore[]
+  rewards     UserReward[]
+  
+  @@unique([userId, tournamentId]) // One team per user per tournament
+  @@map("user_teams")
+}
+
+model UserTeamPlayer {
+  id          String   @id @default(uuid())
+  userTeamId  String
+  playerId    String
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  userTeam    UserTeam @relation(fields: [userTeamId], references: [id], onDelete: Cascade)
+  player      Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  
+  @@unique([userTeamId, playerId])
+  @@map("user_team_players")
+}
+
+model PlayerScore {
+  id          String   @id @default(uuid())
+  tournamentId String
+  playerId    String
+  runs        Int      @default(0)
+  ballsFaced  Int      @default(0)
+  wickets     Int      @default(0)
+  oversBowled Decimal  @default(0)
+  runsConceded Int     @default(0)
+  catches     Int      @default(0)
+  stumpings   Int      @default(0)
+  runOuts     Int      @default(0)
+  fantasyPoints Decimal @default(0) // Calculated fantasy points
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  tournament  Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  player      Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  
+  @@unique([tournamentId, playerId])
+  @@map("player_scores")
+}
+
+model UserScore {
+  id          String   @id @default(uuid())
+  userTeamId  String
+  tournamentId String
+  totalScore  Decimal  @default(0)
+  captainMultiplier Decimal @default(1.5) // Captain gets 1.5x points
+  viceCaptainMultiplier Decimal @default(1.25) // Vice-captain gets 1.25x points
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  userTeam    UserTeam @relation(fields: [userTeamId], references: [id], onDelete: Cascade)
+  tournament  Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  
+  @@unique([userTeamId, tournamentId])
+  @@map("user_scores")
+}
+
+model RewardPool {
+  id          String   @id @default(uuid())
+  tournamentId String
+  name        String
+  totalAmount Decimal  // Total reward amount in APT tokens
+  distributedAmount Decimal @default(0) // Amount already distributed
+  distributionType RewardDistributionType @default(PERCENTAGE)
+  distributionRules Json // JSON containing distribution logic
+  aptosPoolId String? // Aptos blockchain pool ID
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  tournament  Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  rewards     UserReward[]
+  
+  @@map("reward_pools")
+}
+
+model UserReward {
+  id          String   @id @default(uuid())
+  userTeamId  String
+  rewardPoolId String
+  rank        Int?     // User's rank in tournament
+  amount      Decimal  @default(0) // Reward amount in APT tokens
+  percentage  Decimal? // Percentage of total pool
+  status      RewardStatus @default(PENDING)
+  aptosTransactionId String? // Aptos blockchain transaction ID
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  userTeam    UserTeam @relation(fields: [userTeamId], references: [id], onDelete: Cascade)
+  rewardPool  RewardPool @relation(fields: [rewardPoolId], references: [id], onDelete: Cascade)
+  
+  @@map("user_rewards")
+}
+
+model LeaderboardEntry {
+  id          String   @id @default(uuid())
+  tournamentId String
+  userTeamId  String
+  totalScore  Decimal  @default(0)
+  rank        Int
+  matchesPlayed Int    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  tournament  Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  
+  @@unique([tournamentId, userTeamId])
+  @@map("leaderboard_entries")
+}
+
+model TokenTransaction {
+  id          String   @id @default(uuid())
+  userId      String
+  playerId    String
+  transactionType TokenTransactionType
+  tokenAmount BigInt
+  aptAmount   Decimal  // APT amount involved
+  price       Decimal  // Price per token
+  aptosTransactionId String? // Aptos blockchain transaction ID
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  player      Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  
+  @@map("token_transactions")
+}
+
+model ContractSnapshot {
+  id          String   @id @default(uuid())
+  contractType ContractType
+  contractAddress String
+  blockNumber BigInt
+  data        Json     // Snapshot data from contract
+  createdAt   DateTime @default(now())
+  
+  @@map("contract_snapshots")
+}
+
+// Enums
+enum TournamentStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+
+enum PlayerRole {
+  BATSMAN
+  BOWLER
+  ALL_ROUNDER
+  WICKET_KEEPER
+}
+
+enum RewardDistributionType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  TIER_BASED
+}
+
+enum RewardStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum TokenTransactionType {
+  BUY
+  SELL
+  MINT
+  BURN
+}
+
+enum ContractType {
+  BOSON_MINTING
+  PLAYER_FT_MINTING
+  AMM_CONTRACT
+}
