@@ -228,7 +228,7 @@ router.get("/:id/players", async (req, res) => {
         },
         isActive: true,
       },
-      orderBy: [{ team: "asc" }, { role: "asc" }, { creditValue: "desc" }],
+      orderBy: [{ team: "asc" }, { role: "asc" }, { tokenPrice: "desc" }],
     });
 
     res.json({
@@ -238,7 +238,7 @@ router.get("/:id/players", async (req, res) => {
         name: player.name,
         team: player.team,
         role: player.role,
-        creditValue: player.creditValue,
+        tokenPrice: player.tokenPrice,
       })),
     });
   } catch (error) {

@@ -171,7 +171,7 @@ router.post("/players", async (req, res) => {
         name,
         team,
         role,
-        creditValue,
+      
       },
     });
 
@@ -182,7 +182,6 @@ router.post("/players", async (req, res) => {
         name: player.name,
         team: player.team,
         role: player.role,
-        creditValue: player.creditValue,
         isActive: player.isActive,
       },
     });
@@ -204,7 +203,6 @@ router.put("/players/:id", async (req, res) => {
         name: name || undefined,
         team: team || undefined,
         role: role || undefined,
-        creditValue: creditValue || undefined,
         isActive: isActive !== undefined ? isActive : undefined,
       },
     });
@@ -216,7 +214,6 @@ router.put("/players/:id", async (req, res) => {
         name: player.name,
         team: player.team,
         role: player.role,
-        creditValue: player.creditValue,
         isActive: player.isActive,
       },
     });

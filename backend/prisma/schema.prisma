@@ -35,6 +35,7 @@ model User {
   holdings    UserHolding[]
   tournamentEntries TournamentEntry[]
   tokenTransactions TokenTransaction[]
+  snapshots   UserSnapshot[]
   
   @@map("users")
 }
@@ -62,6 +63,7 @@ model Tournament {
   playerScores PlayerScore[]
   userScores  UserScore[]
   entries     TournamentEntry[]
+  snapshots   MatchSnapshot[]
   
   @@map("tournaments")
 }
@@ -85,6 +87,7 @@ model Player {
   userHoldings UserHolding[]
   tournamentEntries TournamentEntry[]
   tokenTransactions TokenTransaction[]
+  snapshots   UserSnapshot[]
   
   @@map("players")
   UserTeamPlayer UserTeamPlayer[]
@@ -146,6 +149,7 @@ model UserTeam {
   
   @@unique([userId, tournamentId]) // One team per user per tournament
   @@map("user_teams")
+  LeaderboardEntry LeaderboardEntry[]
 }
 
 model UserTeamPlayer {
@@ -254,6 +258,7 @@ model LeaderboardEntry {
   
   // Relations
   tournament  Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  userTeam    UserTeam @relation(fields: [userTeamId], references: [id], onDelete: Cascade)
   
   @@unique([tournamentId, userTeamId])
   @@map("leaderboard_entries")
@@ -286,6 +291,39 @@ model ContractSnapshot {
   createdAt   DateTime @default(now())
   
   @@map("contract_snapshots")
+}
+
+model MatchSnapshot {
+  id          String   @id @default(uuid())
+  tournamentId String
+  snapshotType SnapshotType
+  blockNumber BigInt?
+  data        Json     // Snapshot data including user holdings
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  tournament  Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  userSnapshots UserSnapshot[]
+  
+  @@map("match_snapshots")
+}
+
+model UserSnapshot {
+  id          String   @id @default(uuid())
+  snapshotId  String
+  userId      String
+  playerId    String
+  tokenAmount BigInt   // Amount of player tokens held at snapshot time
+  price       Decimal  // Price per token at snapshot time
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  snapshot    MatchSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  player      Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  
+  @@unique([snapshotId, userId, playerId])
+  @@map("user_snapshots")
 }
 
 // Enums
@@ -328,4 +366,9 @@ enum ContractType {
   BOSON_MINTING
   PLAYER_FT_MINTING
   AMM_CONTRACT
+}
+
+enum SnapshotType {
+  PRE_MATCH
+  POST_MATCH
 }
