@@ -253,4 +253,113 @@ router.get('/:id/players', async (req, res) => {
 
 
 
+
+
+// POST /api/tournaments - Create a new tournament
+router.post('/', async (req, res) => {
+  try {
+    const {
+      name,
+      description,
+      matchDate,
+      team1,
+      team2,
+      venue,
+      entryFee = 0,
+      maxParticipants
+    } = req.body;
+
+    // Input validation
+    if (!name || !matchDate || !team1 || !team2) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: name, matchDate, team1, and team2 are required'
+      });
+    }
+
+    // Validate matchDate is in the future
+    const matchDateTime = new Date(matchDate);
+    if (matchDateTime <= new Date()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Match date must be in the future'
+      });
+    }
+
+    // Validate entryFee is non-negative
+    if (entryFee < 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Entry fee must be non-negative'
+      });
+    }
+
+    // Validate maxParticipants if provided
+    if (maxParticipants && maxParticipants <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Max participants must be a positive number'
+      });
+    }
+
+    // Create the tournament
+    const tournament = await prisma.tournament.create({
+      data: {
+        name,
+        description,
+        matchDate: matchDateTime,
+        team1,
+        team2,
+        venue,
+        entryFee: Number(entryFee),
+        maxParticipants: maxParticipants ? Number(maxParticipants) : null,
+        currentParticipants: 0,
+        status: 'UPCOMING'
+      },
+      include: {
+        _count: {
+          select: {
+            teams: true
+          }
+        }
+      }
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Tournament created successfully',
+      tournament: {
+        id: tournament.id,
+        name: tournament.name,
+        description: tournament.description,
+        matchDate: tournament.matchDate,
+        team1: tournament.team1,
+        team2: tournament.team2,
+        venue: tournament.venue,
+        status: tournament.status,
+        entryFee: tournament.entryFee,
+        maxParticipants: tournament.maxParticipants,
+        currentParticipants: tournament.currentParticipants,
+        participantCount: tournament._count.teams,
+        createdAt: tournament.createdAt
+      }
+    });
+  } catch (error: any) {
+    console.error('Tournament creation error:', error);
+    
+    // Handle specific Prisma errors
+    if (error.code === 'P2002') {
+      return res.status(400).json({
+        success: false,
+        error: 'A tournament with this configuration already exists'
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create tournament'
+    });
+  }
+});
+
 export default router;
