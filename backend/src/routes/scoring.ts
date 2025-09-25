@@ -1,5 +1,6 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
+import { getTokenHoldersWithBalances } from "../services/aptosService";
 
 const prisma = new PrismaClient();
 
@@ -31,7 +32,8 @@ router.post("/player-scores", async (req, res) => {
 
       for (const scoreData of playerScores) {
         const {
-          playerId,
+          moduleName: moduleName,
+         // Use moduleName instead of playerId
           runs,
           ballsFaced,
           wickets,
@@ -64,28 +66,11 @@ router.post("/player-scores", async (req, res) => {
         fantasyPoints += stumpings * 10; // 10 points per stumping
         fantasyPoints += runOuts * 6; // 6 points per run out
 
-        // Update or create player score
-        const playerScore = await tx.playerScore.upsert({
-          where: {
-            tournamentId_playerId: {
-              tournamentId,
-              playerId,
-            },
-          },
-          update: {
-            runs,
-            ballsFaced,
-            wickets,
-            oversBowled,
-            runsConceded,
-            catches,
-            stumpings,
-            runOuts,
-            fantasyPoints,
-          },
-          create: {
+        // Store player score with moduleName (contract-based)
+        const playerScore = await tx.playerScore.create({
+          data: {
             tournamentId,
-            playerId,
+            moduleName: moduleName, // Store moduleName as playerId
             runs,
             ballsFaced,
             wickets,
@@ -115,7 +100,7 @@ router.post("/player-scores", async (req, res) => {
   }
 });
 
-// POST /api/scoring/calculate-user-scores - Calculate user team scores
+// POST /api/scoring/calculate-user-scores - Calculate user team scores using contract data
 router.post("/calculate-user-scores", async (req, res) => {
   try {
     const { tournamentId } = req.body;
@@ -124,87 +109,60 @@ router.post("/calculate-user-scores", async (req, res) => {
       return res.status(400).json({ error: "Tournament ID is required" });
     }
 
-    // Get all user teams for this tournament
-    const userTeams = await prisma.userTeam.findMany({
+    // Get player scores from contract data
+    const playerScores = await prisma.playerScore.findMany({
       where: { tournamentId },
-      include: {
-        players: {
-          include: {
-            player: true,
-          },
-        },
-      },
     });
 
-    // Calculate scores for each team
+    // Get current token holders from contract
+    const tokenHolders = await getTokenHoldersWithBalances();
+
+    // Group token holders by address
+    const holdersByAddress = new Map();
+    tokenHolders.forEach(holder => {
+      if (!holdersByAddress.has(holder.address)) {
+        holdersByAddress.set(holder.address, []);
+      }
+      holdersByAddress.get(holder.address).push(holder);
+    });
+
+    // Calculate scores for each token holder
     const userScores = [];
 
-    for (const team of userTeams) {
+    for (const [address, holders] of holdersByAddress) {
       let totalScore = 0;
-      let captainPoints = 0;
-      let viceCaptainPoints = 0;
+      const userPlayerScores = [];
 
-      for (const teamPlayer of team.players) {
-        // Get player score for this tournament
-        const playerScore = await prisma.playerScore.findUnique({
-          where: {
-            tournamentId_playerId: {
-              tournamentId,
-              playerId: teamPlayer.playerId,
-            },
-          },
-        });
-
-        if (playerScore) {
-          const basePoints = Number(playerScore.fantasyPoints);
-
-          if (teamPlayer.playerId === team.captainId) {
-            captainPoints = basePoints * 1.5; // Captain gets 1.5x points
-            totalScore += captainPoints;
-          } else if (teamPlayer.playerId === team.viceCaptainId) {
-            viceCaptainPoints = basePoints * 1.25; // Vice-captain gets 1.25x points
-            totalScore += viceCaptainPoints;
-          } else {
-            totalScore += basePoints;
-          }
+      // Calculate score for each player token held
+      for (const holder of holders) {
+        const playerScoreData = playerScores.find(ps => ps.moduleName === holder.moduleName);
+        if (playerScoreData) {
+          // Calculate points based on token amount (proportional to holdings)
+          const points = Number(playerScoreData.fantasyPoints);
+          const tokenRatio = Number(holder.balance) / 1000000; // Normalize token amount
+          const weightedPoints = points * tokenRatio;
+          
+          totalScore += weightedPoints;
+          userPlayerScores.push({
+            moduleName: holder.moduleName,
+            tokens: holder.balance,
+            points: weightedPoints
+          });
         }
       }
 
-      // Update or create user score
-      const userScore = await prisma.userScore.upsert({
-        where: {
-          userTeamId_tournamentId: {
-            userTeamId: team.id,
-            tournamentId,
-          },
-        },
-        update: {
-          totalScore,
-          captainMultiplier: 1.5,
-          viceCaptainMultiplier: 1.25,
-        },
-        create: {
-          userTeamId: team.id,
-          tournamentId,
-          totalScore,
-          captainMultiplier: 1.5,
-          viceCaptainMultiplier: 1.25,
-        },
-      });
-
+      // Store user score
       userScores.push({
-        teamId: team.id,
-        teamName: team.teamName,
+        walletAddress: address,
         totalScore,
-        captainPoints,
-        viceCaptainPoints,
+        playerScores: userPlayerScores
       });
     }
-
     res.json({
       success: true,
-      message: "User scores calculated successfully",
-      scores: userScores,
+      message: "User scores calculated successfully using contract data",
+      totalUsers: userScores.length,
+      userScores: userScores.sort((a, b) => b.totalScore - a.totalScore), // Sort by score descending
     });
   } catch (error) {
     console.error("User scores calculation error:", error);
