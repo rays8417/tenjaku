@@ -539,7 +539,7 @@ export default function SwapsPage() {
       const payload = {
         function: swapFunction as `${string}::${string}::${string}`,
         typeArguments: [tokens.from.type, tokens.to.type],
-        functionArguments: [x_in.toString(), y_min_out.toString()],
+        functionArguments: [x_in, y_min_out],
       };
 
       console.log("🔧 === BUILDING TRANSACTION ===");
@@ -598,7 +598,7 @@ export default function SwapsPage() {
       let response;
       try {
         // Try the primary wallet method
-        response = await window.aptos.signAndSubmitTransaction(payload);
+        response = await window.aptos.signAndSubmitTransaction({ payload });
 
         // Validate response structure
         if (!response) {
@@ -866,7 +866,7 @@ export default function SwapsPage() {
 
       console.log("📦 Create pool payload:", payload);
 
-      const response = await window.aptos.signAndSubmitTransaction(payload);
+      const response = await window.aptos.signAndSubmitTransaction({ payload });
       console.log(
         "⏳ Waiting for pool creation confirmation...",
         response.hash
@@ -1448,3 +1448,4 @@ export default function SwapsPage() {
     </div>
   );
 }
+

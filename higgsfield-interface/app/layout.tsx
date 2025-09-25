@@ -38,6 +38,9 @@ export default function RootLayout({
               <span className="font-bold text-lg tracking-tight">Higgsfield</span>
             </Link>
             <nav className="flex items-center gap-1">
+              <Link href="/my-teams" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                My Teams
+              </Link>
               <Link href="/tournaments" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
                 Tournaments
               </Link>
@@ -46,9 +49,6 @@ export default function RootLayout({
               </Link>
               <Link href="/leaderboard" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
                 Leaderboard
-              </Link>
-              <Link href="/inventory" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                Inventory
               </Link>
             </nav>
           </div>
