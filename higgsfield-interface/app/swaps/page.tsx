@@ -53,7 +53,7 @@ const TOKEN_DECIMALS = 8;
 const DECIMAL_MULTIPLIER = Math.pow(10, TOKEN_DECIMALS);
 
 // Slippage tolerance (99.5% = 0.5% slippage)
-const SLIPPAGE_TOLERANCE = 0.995;
+const SLIPPAGE_TOLERANCE = 0.9;
 
 export default function SwapsPage() {
   // UI State
@@ -539,7 +539,7 @@ export default function SwapsPage() {
       const payload = {
         function: swapFunction as `${string}::${string}::${string}`,
         typeArguments: [tokens.from.type, tokens.to.type],
-        functionArguments: [x_in, y_min_out],
+        functionArguments: [x_in.toString(), y_min_out.toString()],
       };
 
       console.log("🔧 === BUILDING TRANSACTION ===");
@@ -597,8 +597,13 @@ export default function SwapsPage() {
 
       let response;
       try {
-        // Try the primary wallet method
-        response = await window.aptos.signAndSubmitTransaction({ payload });
+        // Use the correct Petra wallet transaction format
+        response = await window.aptos.signAndSubmitTransaction({
+          type: "entry_function_payload",
+          function: payload.function,
+          type_arguments: payload.typeArguments,
+          arguments: payload.functionArguments,
+        });
 
         // Validate response structure
         if (!response) {
@@ -866,7 +871,12 @@ export default function SwapsPage() {
 
       console.log("📦 Create pool payload:", payload);
 
-      const response = await window.aptos.signAndSubmitTransaction({ payload });
+      const response = await window.aptos.signAndSubmitTransaction({
+        type: "entry_function_payload",
+        function: payload.function,
+        type_arguments: payload.typeArguments,
+        arguments: payload.functionArguments,
+      });
       console.log(
         "⏳ Waiting for pool creation confirmation...",
         response.hash
@@ -1448,4 +1458,3 @@ export default function SwapsPage() {
     </div>
   );
 }
-
