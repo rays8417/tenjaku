@@ -34,71 +34,18 @@ const APTOS_FULLNODE_URL = "https://fullnode.devnet.aptoslabs.com/v1";
 
 const BOSON_TOKEN = {
   name: "BOSON",
-  type: "0xaf230e3024e92da6a3a15f5a6a3f201c886891268717bf8a21157bb73a1c027b::Boson::Boson",
-  priceUSD: 1.00 // Base price: 1 BOSON = $1 USD
+  type: "0xc131ed154a83832d32976ac43b4473985fe51de75712c50743f7e5a86a8157ee::Boson::Boson" // PLACEHOLDER - Replace with actual BOSON token type on devnet
 };
 
-const CRICKET_TOKENS = {
-  ABHISHEK: {
-    name: "ABHISHEK",
-    displayName: "Abhishek Sharma",
-    type: "0xaf230e3024e92da6a3a15f5a6a3f201c886891268717bf8a21157bb73a1c027b::AbhishekSharma::AbhishekSharma"
-  },
-  KOHLI: {
+const KOHLI_TOKEN = {
   name: "KOHLI", 
-    displayName: "Virat Kohli", 
-    type: "0xaf230e3024e92da6a3a15f5a6a3f201c886891268717bf8a21157bb73a1c027b::ViratKohli::ViratKohli"
-  },
-  BEN_STOKES: {
-    name: "BEN_STOKES",
-    displayName: "Ben Stokes",
-    type: "0xaf230e3024e92da6a3a15f5a6a3f201c886891268717bf8a21157bb73a1c027b::BenStokes::BenStokes"
-  },
-  TRAVIS_HEAD: {
-    name: "TRAVIS_HEAD", 
-    displayName: "Travis Head",
-    type: "0xaf230e3024e92da6a3a15f5a6a3f201c886891268717bf8a21157bb73a1c027b::TravisHead::TravisHead"
-  },
-  GLEN_MAXWELL: {
-    name: "GLEN_MAXWELL",
-    displayName: "Glen Maxwell",
-    type: "0xaf230e3024e92da6a3a15f5a6a3f201c886891268717bf8a21157bb73a1c027b::GlenMaxwell::GlenMaxwell"
-  },
-  HARDIK_PANDYA: {
-    name: "HARDIK_PANDYA",
-    displayName: "Hardik Pandya", 
-    type: "0xaf230e3024e92da6a3a15f5a6a3f201c886891268717bf8a21157bb73a1c027b::HardikPandya::HardikPandya"
-  },
-  SHUBHMAN_GILL: {
-    name: "SHUBHMAN_GILL",
-    displayName: "Shubhman Gill",
-    type: "0xaf230e3024e92da6a3a15f5a6a3f201c886891268717bf8a21157bb73a1c027b::ShubhmanGill::ShubhmanGill"
-  },
-  KANE_WILLIAMSON: {
-    name: "KANE_WILLIAMSON",
-    displayName: "Kane Williamson",
-    type: "0xaf230e3024e92da6a3a15f5a6a3f201c886891268717bf8a21157bb73a1c027b::KaneWilliamson::KaneWilliamson"
-  },
-  JASPRIT_BUMRAH: {
-    name: "JASPRIT_BUMRAH",
-    displayName: "Jasprit Bumrah",
-    type: "0xaf230e3024e92da6a3a15f5a6a3f201c886891268717bf8a21157bb73a1c027b::JaspreetBumhrah::JaspreetBumhrah"
-  },
-  SURYAKUMAR_YADAV: {
-    name: "SURYAKUMAR_YADAV", 
-    displayName: "Suryakumar Yadav",
-    type: "0xaf230e3024e92da6a3a15f5a6a3f201c886891268717bf8a21157bb73a1c027b::SuryakumarYadav::SuryakumarYadav"
-  },
-  SHUBHAM_DUBE: {
-    name: "SHUBHAM_DUBE",
-    displayName: "Shubham Dube", 
-    type: "0xaf230e3024e92da6a3a15f5a6a3f201c886891268717bf8a21157bb73a1c027b::ShubhamDube::ShubhamDube"
-  }
+  type: "0xc131ed154a83832d32976ac43b4473985fe51de75712c50743f7e5a86a8157ee::ViratKohli::ViratKohli" // PLACEHOLDER - Replace with actual KOHLI token type on devnet
 };
 
-// For backward compatibility
-const KOHLI_TOKEN = CRICKET_TOKENS.KOHLI;
-const ABHISHEK_SHARMA_TOKEN = CRICKET_TOKENS.ABHISHEK;
+const ABHISHEK_SHARMA_TOKEN = {
+  name: "ABHISHEK",
+  type: "0xc131ed154a83832d32976ac43b4473985fe51de75712c50743f7e5a86a8157ee::AbhishekSharma::AbhishekSharma"
+};
 
 // Token decimals - assuming 8 decimals for both tokens
 const TOKEN_DECIMALS = 8;
@@ -120,11 +67,6 @@ export default function SwapsPage() {
     kohli: 0,
     abhishek: 0
   });
-  const [balanceErrors, setBalanceErrors] = useState({
-    boson: null as string | null,
-    kohli: null as string | null,
-    abhishek: null as string | null
-  });
   const [isLoading, setIsLoading] = useState({
     balance: false,
     quote: false,
@@ -132,8 +74,7 @@ export default function SwapsPage() {
     price: false
   });
   const [tokenPrices, setTokenPrices] = useState({
-    allReserves: [] as any[],
-    cricketTokenPrices: {} as Record<string, number>,
+    abhishekBoson: null as any,
     lastUpdated: null as Date | null
   });
 
@@ -142,13 +83,13 @@ export default function SwapsPage() {
     if (isSwapped) {
       return {
         from: BOSON_TOKEN,
-        to: CRICKET_TOKENS.ABHISHEK,
+        to: ABHISHEK_SHARMA_TOKEN,
         fromBalance: balances.boson,
         toBalance: balances.abhishek || 0
       };
     } else {
       return {
-        from: CRICKET_TOKENS.ABHISHEK,
+        from: ABHISHEK_SHARMA_TOKEN,
         to: BOSON_TOKEN,
         fromBalance: balances.abhishek || 0,
         toBalance: balances.boson
@@ -199,38 +140,29 @@ export default function SwapsPage() {
     }
   };
 
-  // Calculate token price using liquidity pool formula
-  // Formula: P_x = (R_y × P_y) / R_x
-  // Where P_x is price of token X, R_x is reserve of token X, R_y is reserve of token Y, P_y is price of token Y
-  const calculateTokenPrice = (reserveX: string, reserveY: string, basePriceY: number = 1.0) => {
-    const rx = Number(reserveX) / DECIMAL_MULTIPLIER; // Convert from raw units
-    const ry = Number(reserveY) / DECIMAL_MULTIPLIER; // Convert from raw units
-    
-    if (rx === 0 || ry === 0) return null;
-    
-    // P_x = (R_y × P_y) / R_x
-    const priceX = (ry * basePriceY) / rx;
-    
-    return {
-      priceUSD: priceX,
-      reserveX: rx,
-      reserveY: ry,
-      priceInBoson: ry / rx, // How many BOSON per token
-      bosonPriceInToken: rx / ry, // How many tokens per BOSON
-    };
-  };
-
-  // Fetch all token pair reserves from the API
-  const fetchAllTokenPrices = async () => {
+  // Fetch token pair price from Aptos fullnode API
+  const fetchTokenPairPrice = async (tokenA?: string, tokenB?: string) => {
     setIsLoading(prev => ({ ...prev, price: true }));
     
     try {
-      console.log("🔍 === FETCHING ALL TOKEN RESERVES ===");
+      // Use provided tokens or default to ABHISHEK/BOSON pair
+      const token1 = tokenA || ABHISHEK_SHARMA_TOKEN.type;
+      const token2 = tokenB || BOSON_TOKEN.type;
       
-      // Fetch all resources with TokenPairReserve
-      const url = `${APTOS_FULLNODE_URL}/accounts/${ROUTER_ADDRESS}/resources`;
+      // Construct the resource type URL-encoded string based on the curl command
+      const accountAddress = "0xc131ed154a83832d32976ac43b4473985fe51de75712c50743f7e5a86a8157ee";
+      const resourceType = `${accountAddress}::swap::TokenPairMetadata<${token1},%20${token2}>`;
       
-      console.log("📊 API request:", { url, routerAddress: ROUTER_ADDRESS });
+      const url = `${APTOS_FULLNODE_URL}/accounts/${accountAddress}/resource/${encodeURIComponent(resourceType)}`;
+      
+      console.log("🔍 === FETCHING TOKEN PAIR PRICE ===");
+      console.log("📊 API request details:", {
+        url,
+        resourceType,
+        accountAddress,
+        token1Name: token1.split('::').pop(),
+        token2Name: token2.split('::').pop()
+      });
       
       const response = await fetch(url, {
         method: 'GET',
@@ -243,112 +175,54 @@ export default function SwapsPage() {
         throw new Error(`API request failed: ${response.status} ${response.statusText}`);
       }
       
-      const allResources = await response.json();
+      const data = await response.json();
       
-      // Filter for TokenPairReserve resources
-      const reserveResources = allResources.filter((resource: any) => 
-        resource.type.includes('TokenPairReserve')
-      );
+      console.log("✅ Token pair price data received:", data);
       
-      console.log("✅ Found TokenPairReserve resources:", reserveResources.length);
-      
-      // Calculate prices for all cricket tokens
-      const cricketTokenPrices: Record<string, number> = {};
-      const processedReserves: any[] = [];
-      
-      reserveResources.forEach((resource: any) => {
-        try {
-          const typeString = resource.type;
-          const { reserve_x, reserve_y, block_timestamp_last } = resource.data;
-          
-          // Extract token types from the type string
-          const tokenMatch = typeString.match(/TokenPairReserve<([^,]+),\s*([^>]+)>/);
-          if (!tokenMatch) return;
-          
-          const [, token1Type, token2Type] = tokenMatch;
-          const token1Name = token1Type.split('::').pop() || '';
-          const token2Name = token2Type.split('::').pop() || '';
-          
-          console.log(`📊 Processing pair: ${token1Name} / ${token2Name}`, {
-            reserve_x,
-            reserve_y,
-            timestamp: block_timestamp_last
-          });
-          
-          // Determine which token is BOSON and which is the cricket player
-          let cricketTokenName = '';
-          let cricketTokenReserve = '';
-          let bosonReserve = '';
-          let cricketTokenType = '';
-          
-          if (token1Name === 'Boson') {
-            cricketTokenName = token2Name;
-            cricketTokenType = token2Type;
-            bosonReserve = reserve_x;
-            cricketTokenReserve = reserve_y;
-          } else if (token2Name === 'Boson') {
-            cricketTokenName = token1Name;
-            cricketTokenType = token1Type;
-            bosonReserve = reserve_y;
-            cricketTokenReserve = reserve_x;
-          } else {
-            // Skip pairs that don't include BOSON
-            return;
-          }
-          
-          // Calculate price using the liquidity pool formula
-          const priceData = calculateTokenPrice(cricketTokenReserve, bosonReserve, BOSON_TOKEN.priceUSD);
-          
-          // Skip if calculation failed
-          if (priceData === null) {
-            console.warn(`⚠️ Skipping ${cricketTokenName}: Invalid reserves`);
-            return;
-          }
-          
-          cricketTokenPrices[cricketTokenName] = priceData.priceUSD;
-          
-          // Store processed reserve data
-          processedReserves.push({
-            cricketToken: cricketTokenName,
-            cricketTokenType,
-            bosonReserve: Number(bosonReserve) / DECIMAL_MULTIPLIER,
-            cricketReserve: Number(cricketTokenReserve) / DECIMAL_MULTIPLIER,
-            priceUSD: priceData.priceUSD,
-            priceInBoson: priceData.priceInBoson,
-            bosonPriceInToken: priceData.bosonPriceInToken,
-            lastUpdated: block_timestamp_last,
-            rawData: resource.data
-          });
-          
-          console.log(`💰 ${cricketTokenName} Price: $${priceData.priceUSD.toFixed(6)} USD`);
-          
-        } catch (error) {
-          console.error("❌ Error processing reserve:", error, resource);
-        }
-      });
+      // Extract useful information from the response and calculate prices
+      const priceInfo = {
+        ...data,
+        token1: token1.split('::').pop(),
+        token2: token2.split('::').pop(),
+        reserves: data?.data?.balance_x && data?.data?.balance_y ? {
+          // Raw reserve values
+          tokenX: data.data.balance_x.value,
+          tokenY: data.data.balance_y.value,
+          // Formatted reserve values (with decimals)
+          formattedX: Number(data.data.balance_x.value) / DECIMAL_MULTIPLIER,
+          formattedY: Number(data.data.balance_y.value) / DECIMAL_MULTIPLIER,
+          // Basic ratio
+          ratio: Number(data.data.balance_x.value) / Number(data.data.balance_y.value),
+          // Price calculations using liquidity pool formulas
+          // Assuming 1 Boson = $1 USD (as per your reference)
+          bosonPriceUSD: 1,
+          // Formula: P_x = (R_y × P_y) / R_x
+          // AbhishekSharma price in USD = (Boson Reserve × Boson Price) / AbhishekSharma Reserve
+          abhishekPriceUSD: (Number(data.data.balance_y.value) / DECIMAL_MULTIPLIER * 1) / (Number(data.data.balance_x.value) / DECIMAL_MULTIPLIER),
+          // AbhishekSharma price in Boson = Boson Reserve / AbhishekSharma Reserve
+          abhishekPriceInBoson: (Number(data.data.balance_y.value) / DECIMAL_MULTIPLIER) / (Number(data.data.balance_x.value) / DECIMAL_MULTIPLIER),
+          // Inverse: Boson price in AbhishekSharma
+          bosonPriceInAbhishek: (Number(data.data.balance_x.value) / DECIMAL_MULTIPLIER) / (Number(data.data.balance_y.value) / DECIMAL_MULTIPLIER)
+        } : null
+      };
       
       setTokenPrices({
-        allReserves: processedReserves,
-        cricketTokenPrices,
+        abhishekBoson: priceInfo,
         lastUpdated: new Date()
       });
       
-      console.log("✅ === ALL TOKEN PRICES CALCULATED ===");
-      console.log("📊 Cricket token prices:", cricketTokenPrices);
-      
-      return { reserves: processedReserves, prices: cricketTokenPrices };
+      return priceInfo;
       
     } catch (error) {
-      console.error("❌ Failed to fetch token reserves:", error);
+      console.error("❌ Failed to fetch token pair price:", error);
       console.error("This might mean:");
-      console.error("  1. The router contract doesn't exist at this address");
-      console.error("  2. No liquidity pools have been created yet");
+      console.error("  1. The token pair doesn't exist yet");
+      console.error("  2. The API endpoint is incorrect");
       console.error("  3. Network connectivity issues");
       
       // Don't throw error to prevent UI breaking
       setTokenPrices({
-        allReserves: [],
-        cricketTokenPrices: {},
+        abhishekBoson: null,
         lastUpdated: new Date()
       });
     } finally {
@@ -356,156 +230,45 @@ export default function SwapsPage() {
     }
   };
 
-  // For backward compatibility
-  const fetchTokenPairPrice = fetchAllTokenPrices;
-
   // Fetch on-chain token balances
   const fetchBalances = async () => {
-    if (!account?.address) {
-      console.warn("❌ Cannot fetch balances: No account connected");
-      return;
-    }
+    if (!account?.address) return;
     
     setIsLoading(prev => ({ ...prev, balance: true }));
     
-    // Reset previous errors
-    setBalanceErrors({
-      boson: null,
-      kohli: null,
-      abhishek: null
-    });
-    
     try {
-      console.log("🔍 === FETCHING BALANCES FOR ACCOUNT ===");
-      console.log("👤 Account address:", account.address);
-      console.log("🌐 Network:", "Aptos Devnet");
-      console.log("📦 Using Aptos SDK version:", "Latest");
-      
-      // Initialize balances and errors
-      let bosonBalance = 0;
-      let kohliBalance = 0;
-      let abhishekBalance = 0;
-      const errors: any = {};
-      
       // Fetch BOSON balance
-      console.log("\n💰 === FETCHING BOSON BALANCE ===");
-      console.log("🔧 BOSON token type:", BOSON_TOKEN.type);
-      try {
-        const bosonBalanceRaw = await aptos.getAccountCoinAmount({
-          accountAddress: account.address,
-          coinType: BOSON_TOKEN.type as `${string}::${string}::${string}`
-        });
-        bosonBalance = bosonBalanceRaw / DECIMAL_MULTIPLIER;
-        console.log("✅ BOSON balance SUCCESS:");
-        console.log("   Raw balance:", bosonBalanceRaw);
-        console.log("   Formatted balance:", bosonBalance);
-        console.log("   Decimals used:", TOKEN_DECIMALS);
-      } catch (bosonError: any) {
-        const errorMsg = bosonError?.message || bosonError?.toString() || "Unknown error";
-        errors.boson = errorMsg;
-        console.error("❌ BOSON balance fetch FAILED:");
-        console.error("   Error message:", errorMsg);
-        console.error("   Error code:", bosonError?.code);
-        console.error("   Error status:", bosonError?.status);
-        console.error("   Full error:", bosonError);
-        
-        // Check for specific error types
-        if (errorMsg.includes("not found") || errorMsg.includes("does not exist")) {
-          console.log("🔍 This likely means the account has never received BOSON tokens");
-        } else if (errorMsg.includes("resource not found")) {
-          console.log("🔍 This likely means the BOSON token type doesn't exist or is incorrect");
-        } else if (errorMsg.includes("network")) {
-          console.log("🔍 This likely means a network connectivity issue");
-        }
-      }
+      const bosonBalance = await aptos.getAccountCoinAmount({
+        accountAddress: account.address,
+        coinType: BOSON_TOKEN.type as `${string}::${string}::${string}`
+      });
       
       // Fetch KOHLI token balance  
-      console.log("\n🏏 === FETCHING KOHLI BALANCE ===");
-      console.log("🔧 KOHLI token type:", KOHLI_TOKEN.type);
-      try {
-        const kohliBalanceRaw = await aptos.getAccountCoinAmount({
-          accountAddress: account.address,
-          coinType: KOHLI_TOKEN.type as `${string}::${string}::${string}`
-        });
-        kohliBalance = kohliBalanceRaw / DECIMAL_MULTIPLIER;
-        console.log("✅ KOHLI balance SUCCESS:");
-        console.log("   Raw balance:", kohliBalanceRaw);
-        console.log("   Formatted balance:", kohliBalance);
-      } catch (kohliError: any) {
-        const errorMsg = kohliError?.message || kohliError?.toString() || "Unknown error";
-        errors.kohli = errorMsg;
-        console.error("❌ KOHLI balance fetch FAILED:");
-        console.error("   Error:", errorMsg);
-        console.error("   Full error:", kohliError);
-      }
+      const kohliBalance = await aptos.getAccountCoinAmount({
+        accountAddress: account.address,
+        coinType: KOHLI_TOKEN.type as `${string}::${string}::${string}`
+      });
       
       // Fetch AbhishekSharma token balance
-      console.log("\n🏏 === FETCHING ABHISHEK BALANCE ===");
-      console.log("🔧 ABHISHEK token type:", ABHISHEK_SHARMA_TOKEN.type);
-      try {
-        const abhishekBalanceRaw = await aptos.getAccountCoinAmount({
-          accountAddress: account.address,
-          coinType: ABHISHEK_SHARMA_TOKEN.type as `${string}::${string}::${string}`
-        });
-        abhishekBalance = abhishekBalanceRaw / DECIMAL_MULTIPLIER;
-        console.log("✅ ABHISHEK balance SUCCESS:");
-        console.log("   Raw balance:", abhishekBalanceRaw);
-        console.log("   Formatted balance:", abhishekBalance);
-      } catch (abhishekError: any) {
-        const errorMsg = abhishekError?.message || abhishekError?.toString() || "Unknown error";
-        errors.abhishek = errorMsg;
-        console.error("❌ ABHISHEK balance fetch FAILED:");
-        console.error("   Error:", errorMsg);
-        console.error("   Full error:", abhishekError);
-      }
-      
-      const newBalances = {
-        boson: bosonBalance,
-        kohli: kohliBalance,
-        abhishek: abhishekBalance
-      };
-      
-      console.log("\n✅ === BALANCE FETCH COMPLETE ===");
-      console.log("📊 Final balances:", newBalances);
-      console.log("🔍 Balance summary:");
-      console.log(`   BOSON: ${bosonBalance} (${bosonBalance > 0 ? 'HAS BALANCE' : 'ZERO BALANCE'})`);
-      console.log(`   KOHLI: ${kohliBalance} (${kohliBalance > 0 ? 'HAS BALANCE' : 'ZERO BALANCE'})`);
-      console.log(`   ABHISHEK: ${abhishekBalance} (${abhishekBalance > 0 ? 'HAS BALANCE' : 'ZERO BALANCE'})`);
-      
-      // Update state
-      setBalances(newBalances);
-      setBalanceErrors(errors);
-      
-      // Check if user has any tokens
-      const hasAnyTokens = bosonBalance > 0 || kohliBalance > 0 || abhishekBalance > 0;
-      if (!hasAnyTokens) {
-        console.warn("⚠️ Account has no token balances");
-        console.log("💡 If you believe you should have tokens, check:");
-        console.log("   1. You're connected to the correct wallet");
-        console.log("   2. You're on the correct network (Aptos Devnet)");
-        console.log("   3. The token contracts are deployed at the expected addresses");
-        console.log("   4. Your wallet actually received the tokens");
-      }
-      
-    } catch (error) {
-      console.error("❌ Failed to fetch balances:", error);
-      console.error("Error details:", {
-        message: (error as Error)?.message,
-        stack: (error as Error)?.stack,
-        account: account?.address,
-        tokenTypes: {
-          boson: BOSON_TOKEN.type,
-          kohli: KOHLI_TOKEN.type,
-          abhishek: ABHISHEK_SHARMA_TOKEN.type
-        }
+      const abhishekBalance = await aptos.getAccountCoinAmount({
+        accountAddress: account.address,
+        coinType: ABHISHEK_SHARMA_TOKEN.type as `${string}::${string}::${string}`
       });
+      
+      setBalances({
+        boson: bosonBalance / DECIMAL_MULTIPLIER,
+        kohli: kohliBalance / DECIMAL_MULTIPLIER,
+        abhishek: abhishekBalance / DECIMAL_MULTIPLIER
+      });
+    } catch (error) {
+      console.error("Failed to fetch balances:", error);
       // Don't show alert for balance errors as they might be expected (no tokens)
     } finally {
       setIsLoading(prev => ({ ...prev, balance: false }));
     }
   };
 
-  // Calculate quote using live pricing data from API
+  // Get real-time price quote using AMM formula with on-chain reserves
   const fetchQuote = async (inputAmount: string) => {
     if (!inputAmount || Number(inputAmount) <= 0) {
       setReceiveAmount("");
@@ -516,156 +279,149 @@ export default function SwapsPage() {
     
     try {
       const tokens = getCurrentTokens();
+      const amountIn = Math.floor(Number(inputAmount) * DECIMAL_MULTIPLIER);
       
-      console.log("🔍 === CALCULATING QUOTE USING LIVE PRICING ===");
+      console.log("🔍 === FETCHING QUOTE ===");
       console.log("📊 Quote request details:", {
         inputAmount,
+        amountIn,
         fromToken: tokens.from.name,
         toToken: tokens.to.name,
         fromTokenType: tokens.from.type,
         toTokenType: tokens.to.type,
-        availableReserves: tokenPrices.allReserves.length,
-        availablePrices: Object.keys(tokenPrices.cricketTokenPrices),
-        isSwapped: isSwapped
+        routerAddress: ROUTER_ADDRESS
       });
       
-      // Enhanced debugging for pricing data
-      console.log("🔧 Available token reserves:", tokenPrices.allReserves.map(r => ({
-        token: r.cricketToken,
-        priceUSD: r.priceUSD,
-        priceInBoson: r.priceInBoson,
-        bosonPriceInToken: r.bosonPriceInToken,
-        cricketReserve: r.cricketReserve,
-        bosonReserve: r.bosonReserve
-      })));
+      // Based on your contract, token_reserves is NOT a public view function!
+      // Looking at your contract, there's no public view function to get reserves directly.
+      // We need to use a different approach - calculate the quote using get_amount_in function
       
-      if (tokenPrices.allReserves.length === 0) {
-        console.log("⚠️ No pricing data available, fetching...");
-        await fetchAllTokenPrices();
-        // Re-check after fetching
-        if (tokenPrices.allReserves.length === 0) {
-          console.error("❌ Still no pricing data after fetch");
-          setReceiveAmount("0");
-          return;
+      console.log("💡 SOLUTION: Using get_amount_in function instead of trying to read reserves directly");
+      console.log("📋 Your contract has these public functions we can use:");
+      console.log("   - router::get_amount_in<X, Y>(y_out_amount: u64): u64");
+      console.log("   - This function internally calls token_reserves and calculates the input needed");
+      
+      // Let's try to get a quote by asking: "how much input do I need for 1 output token?"
+      const oneTokenOut = DECIMAL_MULTIPLIER; // 1 token in raw units
+      
+      const getAmountInFunction = `${ROUTER_ADDRESS}::router::get_amount_in`;
+      
+      console.log(`🧪 Testing get_amount_in function: ${getAmountInFunction}`);
+      console.log("📦 View payload:", {
+        function: getAmountInFunction,
+        typeArguments: [tokens.from.type, tokens.to.type],
+        functionArguments: [oneTokenOut.toString()]
+      });
+      
+      const amountInForOneOut = await aptos.view({
+        payload: {
+          function: getAmountInFunction as `${string}::${string}::${string}`,
+          typeArguments: [tokens.from.type, tokens.to.type],
+          functionArguments: [oneTokenOut.toString()]
         }
+      });
+      
+      console.log("✅ get_amount_in response:", amountInForOneOut);
+      
+      if (!Array.isArray(amountInForOneOut) || amountInForOneOut.length === 0) {
+        throw new Error("Invalid response from get_amount_in function");
       }
       
-      let outputAmount = 0;
-      const fromTokenName = tokens.from.name;
-      const toTokenName = tokens.to.name;
+      const inputNeededForOneOutput = Number(amountInForOneOut[0]);
+      console.log("📊 Exchange rate calculation:", {
+        inputNeededForOneOutput,
+        inputNeededFormatted: inputNeededForOneOutput / DECIMAL_MULTIPLIER,
+        exchangeRate: DECIMAL_MULTIPLIER / inputNeededForOneOutput
+      });
       
-      console.log("🧮 Calculating quote for:", `${fromTokenName} → ${toTokenName}`);
+      // Calculate output for our actual input amount
+      const exchangeRate = DECIMAL_MULTIPLIER / inputNeededForOneOutput; // How many output tokens per input token
+      const amountOut = Math.floor(amountIn * exchangeRate);
       
-      if (fromTokenName === "BOSON" && toTokenName !== "BOSON") {
-        // Swapping BOSON for cricket token
-        console.log("💰 Case: BOSON → Cricket token");
-        const toReserve = tokenPrices.allReserves.find(r => r.cricketToken === toTokenName);
-        console.log("🔍 Looking for reserve data for:", toTokenName);
-        console.log("📊 Found reserve:", toReserve);
-        
-        if (toReserve) {
-          outputAmount = Number(inputAmount) * toReserve.bosonPriceInToken;
-          console.log("✅ BOSON → Cricket token calculation:", {
-            inputAmount,
-            inputAmountNumber: Number(inputAmount),
-            rate: toReserve.bosonPriceInToken,
-            outputAmount,
-            formula: `${inputAmount} BOSON × ${toReserve.bosonPriceInToken} = ${outputAmount} ${toTokenName}`
-          });
-        } else {
-          console.warn("⚠️ No reserve data found for token:", toTokenName);
-        }
-      } else if (toTokenName === "BOSON" && fromTokenName !== "BOSON") {
-        // Swapping cricket token for BOSON
-        console.log("🏏 Case: Cricket token → BOSON");
-        const fromReserve = tokenPrices.allReserves.find(r => r.cricketToken === fromTokenName);
-        console.log("🔍 Looking for reserve data for:", fromTokenName);
-        console.log("📊 Found reserve:", fromReserve);
-        
-        if (fromReserve) {
-          outputAmount = Number(inputAmount) * fromReserve.priceInBoson;
-          console.log("✅ Cricket token → BOSON calculation:", {
-            inputAmount,
-            inputAmountNumber: Number(inputAmount),
-            rate: fromReserve.priceInBoson,
-            outputAmount,
-            formula: `${inputAmount} ${fromTokenName} × ${fromReserve.priceInBoson} = ${outputAmount} BOSON`
-          });
-        } else {
-          console.warn("⚠️ No reserve data found for token:", fromTokenName);
-        }
-      } else if (fromTokenName !== "BOSON" && toTokenName !== "BOSON") {
-        // Swapping cricket token for cricket token (through BOSON)
-        console.log("🔄 Case: Cricket token → Cricket token (via BOSON)");
-        const fromReserve = tokenPrices.allReserves.find(r => r.cricketToken === fromTokenName);
-        const toReserve = tokenPrices.allReserves.find(r => r.cricketToken === toTokenName);
-        
-        console.log("🔍 Looking for reserve data:");
-        console.log("   From token:", fromTokenName, "→", fromReserve);
-        console.log("   To token:", toTokenName, "→", toReserve);
-        
-        if (fromReserve && toReserve) {
-          // Convert: fromToken → BOSON → toToken
-          const bosonAmount = Number(inputAmount) * fromReserve.priceInBoson;
-          outputAmount = bosonAmount * toReserve.bosonPriceInToken;
-          console.log("✅ Cricket token → Cricket token calculation:", {
+      console.log("🧮 === REAL EXCHANGE RATE CALCULATION ===");
+      console.log("Formula: amountOut = amountIn * (1 / inputNeededForOneOutput) * DECIMAL_MULTIPLIER");
+      console.log("Calculation inputs:", {
+        amountIn,
+        inputNeededForOneOutput,
+        exchangeRate,
+        amountOut,
+        formattedOutput: amountOut / DECIMAL_MULTIPLIER
+      });
+      
+      // Now we have the real exchange rate, let's set the receive amount
+      setReceiveAmount((amountOut / DECIMAL_MULTIPLIER).toString());
+      
+      console.log("✅ === REAL QUOTE COMPLETE ===");
+      console.log("Final result:", {
         inputAmount,
-            inputAmountNumber: Number(inputAmount),
-            fromToken: fromTokenName,
-            toToken: toTokenName,
-            bosonAmount,
-            outputAmount,
-            step1Rate: fromReserve.priceInBoson,
-            step2Rate: toReserve.bosonPriceInToken,
-            step1: `${inputAmount} ${fromTokenName} × ${fromReserve.priceInBoson} = ${bosonAmount} BOSON`,
-            step2: `${bosonAmount} BOSON × ${toReserve.bosonPriceInToken} = ${outputAmount} ${toTokenName}`
-          });
-        } else {
-          console.warn("⚠️ Missing reserve data:");
-          console.warn("   From token reserve:", fromReserve ? "Found" : "Missing");
-          console.warn("   To token reserve:", toReserve ? "Found" : "Missing");
-        }
-      } else {
-        console.warn("⚠️ Unsupported swap case:", `${fromTokenName} → ${toTokenName}`);
+        outputAmount: amountOut / DECIMAL_MULTIPLIER,
+        exchangeRate: exchangeRate,
+        usingRealContractData: true
+      });
+      
+      // Compare with price data from API if available
+      if (tokenPrices.abhishekBoson?.reserves) {
+        const apiRatio = tokenPrices.abhishekBoson.reserves.ratio;
+        const contractRatio = 1 / exchangeRate;
+        console.log("📊 Price comparison:", {
+          apiRatio,
+          contractRatio,
+          difference: Math.abs(apiRatio - contractRatio),
+          percentDifference: Math.abs((apiRatio - contractRatio) / apiRatio) * 100
+        });
       }
       
-      if (outputAmount > 0) {
-        const outputAmountStr = outputAmount.toString();
-        setReceiveAmount(outputAmountStr);
-        
-        console.log("✅ === QUOTE CALCULATION COMPLETE ===");
-        console.log("📊 Final result:", {
-          input: `${inputAmount} ${fromTokenName}`,
-          output: `${outputAmountStr} ${toTokenName}`,
-          outputNumber: outputAmount,
-          usingLivePricingData: true,
-          calculationSuccessful: true
-        });
-      } else {
-        console.warn("⚠️ Could not calculate quote - no pricing data found or calculation failed");
-        console.warn("🔧 Debug info:", {
-          hasReserves: tokenPrices.allReserves.length > 0,
-          fromToken: fromTokenName,
-          toToken: toTokenName,
-          inputAmount,
-          reserveCount: tokenPrices.allReserves.length
-        });
-        setReceiveAmount("0");
-      }
-      
+      return; // Exit early since we got a real quote
+  
     } catch (error) {
-      console.error("❌ Failed to calculate quote:", error);
-      console.error("Error details:", {
-        message: (error as Error)?.message,
-        stack: (error as Error)?.stack,
-        inputAmount,
-        tokenPricesState: {
-          reserveCount: tokenPrices.allReserves.length,
-          priceCount: Object.keys(tokenPrices.cricketTokenPrices).length,
-          lastUpdated: tokenPrices.lastUpdated
+      console.error("❌ Failed to fetch quote:", error);
+      console.error("Error details:", error);
+      
+      // Try fallback calculation using API price data if available
+      if (tokenPrices.abhishekBoson?.reserves) {
+        console.log("🔄 Attempting fallback calculation using API price data...");
+        try {
+          const tokens = getCurrentTokens();
+          let fallbackOutput = 0;
+          
+          // Calculate based on which direction we're swapping
+          if (tokens.from.name === "ABHISHEK" || tokens.from.type.includes("AbhishekSharma")) {
+            // Swapping AbhishekSharma for Boson
+            // Use the calculated exchange rate: AbhishekSharma -> Boson
+            fallbackOutput = Number(inputAmount) * tokenPrices.abhishekBoson.reserves.abhishekPriceInBoson;
+          } else {
+            // Swapping Boson for AbhishekSharma  
+            // Use the inverse rate: Boson -> AbhishekSharma
+            fallbackOutput = Number(inputAmount) * tokenPrices.abhishekBoson.reserves.bosonPriceInAbhishek;
+          }
+          
+          setReceiveAmount(fallbackOutput.toString());
+          
+          console.log("✅ Fallback quote calculated using liquidity pool formula:", {
+            inputAmount,
+            outputAmount: fallbackOutput,
+            fromToken: tokens.from.name,
+            toToken: tokens.to.name,
+            abhishekPriceInBoson: tokenPrices.abhishekBoson.reserves.abhishekPriceInBoson,
+            bosonPriceInAbhishek: tokenPrices.abhishekBoson.reserves.bosonPriceInAbhishek,
+            usingApiPriceData: true
+          });
+          
+          return;
+        } catch (fallbackError) {
+          console.error("❌ Fallback calculation also failed:", fallbackError);
         }
-      });
+      }
+      
+      // Set receive amount to 0 to indicate error
       setReceiveAmount("0");
+      
+      // Show error message to user
+      console.error("Quote failed. This likely means:");
+      console.error("  1. The liquidity pool doesn't exist yet");
+      console.error("  2. No liquidity has been added to the pool");
+      console.error("  3. Network connectivity issues");
+      console.error("  4. Contract function parameters are incorrect");
     } finally {
       setIsLoading(prev => ({ ...prev, quote: false }));
     }
@@ -674,7 +430,7 @@ export default function SwapsPage() {
   // Debounced version of fetchQuote to prevent excessive API calls
   const debouncedFetchQuote = useCallback(
     debounce((inputAmount: string) => fetchQuote(inputAmount), 500),
-    [isSwapped, tokenPrices.allReserves, tokenPrices.cricketTokenPrices]
+    [isSwapped, tokenPrices]
   );
 
   // Execute the swap transaction using higgs::router
@@ -1083,82 +839,6 @@ export default function SwapsPage() {
     }
   };
 
-  // Inspect account resources to see what tokens exist
-  const inspectAccountResources = async () => {
-    if (!account) {
-      alert("Please connect wallet first");
-      return;
-    }
-
-    try {
-      console.log("🔍 === INSPECTING ACCOUNT RESOURCES ===");
-      console.log("👤 Account address:", account.address);
-      
-      // Fetch all account resources
-      const url = `https://fullnode.devnet.aptoslabs.com/v1/accounts/${account.address}/resources`;
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch account resources: ${response.status}`);
-      }
-      
-      const resources = await response.json();
-      console.log("📊 Total resources found:", resources.length);
-      
-      // Filter for coin store resources (token balances)
-      const coinStores = resources.filter((resource: any) => 
-        resource.type.includes('CoinStore') || resource.type.includes('coin::CoinStore')
-      );
-      
-      console.log("💰 === TOKEN BALANCES FOUND ===");
-      console.log("🔍 Found", coinStores.length, "coin stores:");
-      
-      coinStores.forEach((coinStore: any, index: number) => {
-        const balance = coinStore.data?.coin?.value || '0';
-        const coinType = coinStore.type.match(/CoinStore<(.+)>/)?.[1] || 'Unknown';
-        const formattedBalance = Number(balance) / DECIMAL_MULTIPLIER;
-        
-        console.log(`${index + 1}. ${coinType}`);
-        console.log(`   Raw Balance: ${balance}`);
-        console.log(`   Formatted Balance: ${formattedBalance}`);
-        console.log(`   Resource Type: ${coinStore.type}`);
-        console.log("---");
-        
-        // Check if this matches our expected tokens
-        if (coinType === BOSON_TOKEN.type) {
-          console.log("✅ FOUND BOSON TOKEN!");
-        } else if (coinType === ABHISHEK_SHARMA_TOKEN.type) {
-          console.log("✅ FOUND ABHISHEK TOKEN!");
-        } else if (coinType === KOHLI_TOKEN.type) {
-          console.log("✅ FOUND KOHLI TOKEN!");
-        }
-      });
-      
-      // Also check for APT balance
-      const aptStores = coinStores.filter((store: any) => 
-        store.type.includes('0x1::aptos_coin::AptosCoin')
-      );
-      
-      if (aptStores.length > 0) {
-        const aptBalance = aptStores[0].data?.coin?.value || '0';
-        const formattedAptBalance = Number(aptBalance) / 100000000; // APT has 8 decimals
-        console.log("💎 APT Balance:", formattedAptBalance, "APT");
-      }
-      
-      // Check what our expected tokens should look like
-      console.log("\n🎯 === EXPECTED TOKEN TYPES ===");
-      console.log("Expected BOSON:", BOSON_TOKEN.type);
-      console.log("Expected ABHISHEK:", ABHISHEK_SHARMA_TOKEN.type);
-      console.log("Expected KOHLI:", KOHLI_TOKEN.type);
-      
-      alert(`Account inspection complete! Found ${coinStores.length} token types. Check console for details.`);
-      
-    } catch (error: any) {
-      console.error("❌ Account inspection failed:", error);
-      alert(`Account inspection failed: ${error.message}`);
-    }
-  };
-
   const swapTokens = () => {
     // Clear amounts when swapping
     setPayAmount("");
@@ -1178,23 +858,15 @@ export default function SwapsPage() {
   // Fetch token prices on component mount and periodically
   useEffect(() => {
     // Fetch prices immediately
-    fetchAllTokenPrices();
+    fetchTokenPairPrice();
     
     // Set up periodic price updates every 30 seconds
     const priceInterval = setInterval(() => {
-      fetchAllTokenPrices();
+      fetchTokenPairPrice();
     }, 30000);
     
     return () => clearInterval(priceInterval);
   }, []);
-
-  // Recalculate quote when pricing data becomes available or changes
-  useEffect(() => {
-    if (payAmount && tokenPrices.allReserves.length > 0) {
-      console.log("🔄 Pricing data updated, recalculating quote...");
-      fetchQuote(payAmount);
-    }
-  }, [tokenPrices.allReserves, tokenPrices.cricketTokenPrices, payAmount]);
 
   // ===== UI HELPER FUNCTIONS =====
 
@@ -1215,73 +887,69 @@ export default function SwapsPage() {
   return (
     <div className="min-h-screen bg-white">
       <div className="mx-auto max-w-7xl px-6 py-8">
-          {/* Header */}
+        {/* Header */}
         <div className="flex items-center justify-between mb-8">
-              <div>
+          <div>
             <h1 className="text-2xl font-bold text-black">Token Swap</h1>
             <p className="text-gray-500 text-sm mt-1">Exchange your tokens instantly with live pricing</p>
-              </div>
-              
-              {/* Wallet Connection */}
-              {!account ? (
-                <button
-                  onClick={connectWallet}
+          </div>
+          
+          {/* Wallet Connection */}
+          {!account ? (
+            <button
+              onClick={connectWallet}
               className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors font-medium"
-                >
-                  Connect Wallet
-                </button>
-              ) : (
+            >
+              Connect Wallet
+            </button>
+          ) : (
             <div className="flex items-center gap-4">
-                <div className="text-right">
+              <div className="text-right">
                 <div className="text-sm font-semibold text-black">
-                    {account.address.slice(0, 6)}...{account.address.slice(-4)}
-                  </div>
+                  {account.address.slice(0, 6)}...{account.address.slice(-4)}
+                </div>
                 <div className="text-xs text-gray-500">Aptos Devnet</div>
               </div>
-                    <button
-                      onClick={disconnectWallet}
+              <button
+                onClick={disconnectWallet}
                 className="text-sm text-red-600 hover:text-red-800 transition-colors font-medium px-3 py-1.5 border border-red-200 rounded-lg hover:bg-red-50"
-                    >
-                      Disconnect
-                    </button>
-                </div>
-              )}
+              >
+                Disconnect
+              </button>
             </div>
-            
-        <div className="flex justify-center">
-          {/* Swap Interface */}
-          <div className="w-full max-w-md">
+          )}
+        </div>
+
+        <div className="grid grid-cols-12 gap-8">
+          {/* Left Column - Swap Interface */}
+          <div className="col-span-12 lg:col-span-7">
             <div className="border border-gray-200 rounded-xl p-6">
 
               <h2 className="text-xl font-bold text-black mb-6">Swap Tokens</h2>
-
-          {/* You Pay */}
+              
+              {/* You Pay */}
               <div className="space-y-6">
                 <div className="bg-gray-50 rounded-xl p-6">
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-sm font-medium text-gray-600">You Pay</span>
-              <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                       <button onClick={() => setPercent(25)} className="px-3 py-1 bg-black text-white rounded-lg text-xs hover:bg-gray-800 transition-colors">25%</button>
                       <button onClick={() => setPercent(50)} className="px-3 py-1 bg-black text-white rounded-lg text-xs hover:bg-gray-800 transition-colors">50%</button>
                       <button onClick={() => setPercent(100)} className="px-3 py-1 bg-black text-white rounded-lg text-xs hover:bg-gray-800 transition-colors">MAX</button>
-              </div>
-            </div>
+                    </div>
+                  </div>
                   
-            <div className="flex items-center justify-between mb-4">
-              <input
-                inputMode="decimal"
-                value={payAmount}
-                onChange={(e) => handlePayChange(e.target.value)}
+                  <div className="flex items-center justify-between mb-4">
+                    <input
+                      inputMode="decimal"
+                      value={payAmount}
+                      onChange={(e) => handlePayChange(e.target.value)}
                       placeholder="0.00"
                       className="bg-transparent text-3xl font-semibold outline-none placeholder:text-gray-300 flex-1 text-black"
                     />
                     <div className="flex items-center gap-3 ml-4">
-                      <div className={`h-8 w-8 rounded-full ${isSwapped ? 'bg-black' : 'bg-gradient-to-r from-blue-500 to-purple-600'} flex items-center justify-center text-white font-bold text-xs`}>
-                        {isSwapped ? '🏏' : 'A'}
-            </div>
-                      <span className="font-bold text-black text-lg">
-                        {isSwapped ? 'BOSON' : 'ABHISHEK'}
-                      </span>
+                      <div className={`h-8 w-8 rounded-full ${isSwapped ? 'bg-black' : 'bg-gradient-to-r from-blue-500 to-purple-600'}`} />
+                      <span className="font-bold text-black text-lg">{getCurrentTokens().from.name}</span>
                     </div>
                   </div>
                   
@@ -1289,57 +957,53 @@ export default function SwapsPage() {
                     Balance: {isLoading.balance ? (
                       "Loading..."
                     ) : (
-                      `${getCurrentTokens().fromBalance.toFixed(4)} ${isSwapped ? 'BOSON' : 'ABHISHEK'}`
+                      `${getCurrentTokens().fromBalance.toFixed(4)} ${getCurrentTokens().from.name}`
                     )}
-            </div>
-          </div>
+                  </div>
+                </div>
 
                 {/* Swap Button */}
                 <div className="flex justify-center">
-            <button 
-              onClick={swapTokens}
+                  <button 
+                    onClick={swapTokens}
                     className="h-12 w-12 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center text-gray-500 hover:border-gray-300 hover:bg-gray-50 transition-colors group"
-            >
+                  >
                     <svg className="h-5 w-5 group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                     </svg>
-            </button>
-          </div>
+                  </button>
+                </div>
 
-          {/* You Receive */}
+                {/* You Receive */}
                 <div className="bg-gray-50 rounded-xl p-6">
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-sm font-medium text-gray-600">You Receive</span>
                     {isLoading.quote && <span className="text-xs text-blue-600 animate-pulse">Calculating...</span>}
-            </div>
+                  </div>
                   
-            <div className="flex items-center justify-between mb-4">
-              <input
-                inputMode="decimal"
-                value={isLoading.quote ? "..." : receiveAmount}
+                  <div className="flex items-center justify-between mb-4">
+                    <input
+                      inputMode="decimal"
+                      value={isLoading.quote ? "..." : receiveAmount}
                       placeholder="0.00"
                       className="bg-transparent text-3xl font-semibold outline-none placeholder:text-gray-300 flex-1 text-black"
-                readOnly
-              />
+                      readOnly
+                    />
                     <div className="flex items-center gap-3 ml-4">
-                      <div className={`h-8 w-8 rounded-full ${isSwapped ? 'bg-gradient-to-r from-blue-500 to-purple-600' : 'bg-black'} flex items-center justify-center text-white font-bold text-xs`}>
-                        {isSwapped ? 'A' : '🏏'}
-            </div>
-                      <span className="font-bold text-black text-lg">
-                        {isSwapped ? 'ABHISHEK' : 'BOSON'}
-                      </span>
+                      <div className={`h-8 w-8 rounded-full ${isSwapped ? 'bg-gradient-to-r from-blue-500 to-purple-600' : 'bg-black'}`} />
+                      <span className="font-bold text-black text-lg">{getCurrentTokens().to.name}</span>
                     </div>
                   </div>
                   
                   <div className="text-sm text-gray-500">
                     Balance: {isLoading.balance ? (
-                "Loading..."
-              ) : (
-                `${getCurrentTokens().toBalance.toFixed(4)} ${isSwapped ? 'ABHISHEK' : 'BOSON'}`
-              )}
+                      "Loading..."
+                    ) : (
+                      `${getCurrentTokens().toBalance.toFixed(4)} ${getCurrentTokens().to.name}`
+                    )}
                   </div>
-            </div>
-            
+                </div>
+
                 {/* Swap Button */}
                 <button
                   onClick={handleSwap}
@@ -1359,11 +1023,198 @@ export default function SwapsPage() {
                         : "Enter Amount"
                   }
                 </button>
-          </div>
+              </div>
 
+              {/* Debug Section */}
+              {account && (
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => fetchTokenPairPrice()}
+                      disabled={isLoading.price}
+                      className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                    >
+                      {isLoading.price ? "Fetching..." : "Refresh Prices"}
+                    </button>
+                    <button onClick={testContract} className="px-3 py-1.5 text-xs bg-gray-600 text-white rounded hover:bg-gray-700">Test Contract</button>
+                    <button onClick={createPool} className="px-3 py-1.5 text-xs bg-green-600 text-white rounded hover:bg-green-700">Create Pool</button>
+                    <button onClick={testSwapFunction} className="px-3 py-1.5 text-xs bg-purple-600 text-white rounded hover:bg-purple-700">Test Swap</button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
+          {/* Right Column - Live Token Prices */}
+          <div className="col-span-12 lg:col-span-5">
+            <div className="border border-gray-200 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-black">Live Token Prices</h2>
+                <div className="flex items-center gap-2">
+                  {isLoading.price && (
+                    <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
+                  )}
+                  <span className="text-xs text-gray-500">
+                    {tokenPrices.lastUpdated 
+                      ? `Updated ${tokenPrices.lastUpdated.toLocaleTimeString()}`
+                      : isLoading.price ? 'Updating...' : 'No data'
+                    }
+                  </span>
+                </div>
+              </div>
+
+              {isLoading.price ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="bg-gray-50 rounded-lg p-4 animate-pulse">
+                      <div className="h-4 bg-gray-200 rounded w-1/3 mb-2" />
+                      <div className="h-6 bg-gray-200 rounded w-2/3" />
+                    </div>
+                  ))}
+                </div>
+              ) : tokenPrices.abhishekBoson?.reserves ? (
+                <div className="space-y-4">
+                  {/* Token Pair Overview */}
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-blue-900">
+                        {tokenPrices.abhishekBoson.token1}/{tokenPrices.abhishekBoson.token2} Pair
+                      </span>
+                      <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full font-medium">
+                        Active
+                      </span>
+                    </div>
+                    <div className="text-xs text-blue-700">Liquidity Pool Status</div>
+                  </div>
+
+                  {/* Token Prices */}
+                  <div className="space-y-3">
+                    <div className="bg-black text-white rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-sm text-gray-300">BOSON (BOSON)</div>
+                          <div className="text-2xl font-bold">$1.00</div>
+                          <div className="text-xs text-gray-400">USD</div>
+                        </div>
+                        <div className="h-10 w-10 bg-white rounded-full flex items-center justify-center">
+                          <span className="text-black font-bold text-sm">B</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-sm text-blue-100">ABHISHEK (ABHISHEK)</div>
+                          <div className="text-2xl font-bold">
+                            ${tokenPrices.abhishekBoson.reserves.abhishekPriceUSD.toFixed(6)}
+                          </div>
+                          <div className="text-xs text-blue-200">USD</div>
+                        </div>
+                        <div className="h-10 w-10 bg-white rounded-full flex items-center justify-center">
+                          <span className="text-blue-600 font-bold text-sm">A</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Exchange Rates */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Exchange Rates</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600">1 ABHISHEK =</span>
+                        <span className="font-semibold text-black">
+                          {tokenPrices.abhishekBoson.reserves.abhishekPriceInBoson.toFixed(6)} BOSON
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600">1 BOSON =</span>
+                        <span className="font-semibold text-black">
+                          {tokenPrices.abhishekBoson.reserves.bosonPriceInAbhishek.toFixed(2)} ABHISHEK
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Liquidity Reserves */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Liquidity Reserves</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-black">
+                          {tokenPrices.abhishekBoson.reserves.formattedX.toLocaleString()}
+                        </div>
+                        <div className="text-xs text-gray-500">ABHISHEK</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-black">
+                          {tokenPrices.abhishekBoson.reserves.formattedY.toLocaleString()}
+                        </div>
+                        <div className="text-xs text-gray-500">BOSON</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Price Details */}
+                  {receiveAmount && Number(receiveAmount) > 0 && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <h3 className="text-sm font-semibold text-green-800 mb-3">💰 Current Trade Value</h3>
+                      {getCurrentTokens().to.name === "ABHISHEK" ? (
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-green-700">Unit Price:</span>
+                            <span className="font-semibold text-green-900">
+                              ${tokenPrices.abhishekBoson.reserves.abhishekPriceUSD.toFixed(6)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-green-700">Total Value:</span>
+                            <span className="font-semibold text-green-900">
+                              ${(Number(receiveAmount) * tokenPrices.abhishekBoson.reserves.abhishekPriceUSD).toFixed(4)}
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-green-700">Unit Price:</span>
+                            <span className="font-semibold text-green-900">$1.00</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-green-700">Total Value:</span>
+                            <span className="font-semibold text-green-900">
+                              ${Number(receiveAmount).toFixed(4)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Refresh Button */}
+                  <button
+                    onClick={() => fetchTokenPairPrice()}
+                    disabled={isLoading.price}
+                    className="w-full py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 font-medium"
+                  >
+                    {isLoading.price ? "Refreshing..." : "Refresh Prices"}
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="text-4xl mb-4">📊</div>
+                  <div className="text-gray-500 mb-4">No price data available</div>
+                  <button
+                    onClick={() => fetchTokenPairPrice()}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Load Token Prices
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
