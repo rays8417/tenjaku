@@ -16,6 +16,25 @@ interface PlayerRow {
   strikeRate?: number;
 }
 
+interface PlayerScore {
+  id: string;
+  tournamentId: string;
+  playerId: string | null;
+  moduleName: string;
+  runs: number;
+  ballsFaced: number;
+  wickets: number;
+  oversBowled: string;
+  runsConceded: number;
+  catches: number;
+  stumpings: number;
+  runOuts: number;
+  fantasyPoints: string;
+  createdAt: string;
+  updatedAt: string;
+  player: any | null;
+}
+
 interface Tournament {
   id: string;
   name: string;
@@ -38,35 +57,120 @@ export default function TournamentsPage() {
   const [activeTab, setActiveTab] = useState<Role>("Overview");
   const [query, setQuery] = useState("");
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [latestTournamentPerformance, setLatestTournamentPerformance] = useState<PlayerScore[]>([]);
+  const [isLoadingTournaments, setIsLoadingTournaments] = useState(true);
+  const [isLoadingPerformance, setIsLoadingPerformance] = useState(false);
 
 
   useEffect(() => {
     const fetchTournaments = async () => {
+      setIsLoadingTournaments(true);
       try {
         const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/tournaments`)
         console.log("tournaments data on client side", response.data.tournaments)
-        setTournaments(response.data.tournaments || [])
+        setTournaments((response.data.tournaments || []).reverse())
       } catch (error) {
         console.error("Error fetching tournaments:", error)
         setTournaments([])
+      } finally {
+        setIsLoadingTournaments(false);
       }
     }
 
     fetchTournaments()
   }, [])
 
+  const fetchLatestTournamentPerformance = async () => {
+    if (tournaments.length === 0) return;
+    
+    setIsLoadingPerformance(true);
+    try {
+      const latestTournament = tournaments[0]
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/tournaments/${latestTournament.id}`)
+      console.log("latest tournament performance data on client side", response.data.tournament)
+      setLatestTournamentPerformance(response.data.tournament.playerScores || [])
+    } catch (error) {
+      console.error("Error fetching tournament performance:", error)
+      setLatestTournamentPerformance([])
+    } finally {
+      setIsLoadingPerformance(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchLatestTournamentPerformance()
+  }, [tournaments])
+
+  // Function to determine player role based on performance
+  const determinePlayerRole = (playerScore: PlayerScore): Exclude<Role, "Overview"> => {
+    const { runs, wickets, catches, stumpings } = playerScore;
+    
+    // If player has wickets, they are a bowler or all-rounder
+    if (wickets > 0) {
+      // If they also have runs, they are an all-rounder
+      if (runs > 0) {
+        return "All-rounders";
+      }
+      return "Bowlers";
+    }
+    
+    // If player has stumpings, they are a wicketkeeper
+    if (stumpings > 0) {
+      return "Wicketkeepers";
+    }
+    
+    // If player has catches but no stumpings, could be wicketkeeper or batsman
+    if (catches > 0 && runs > 0) {
+      return "Wicketkeepers";
+    }
+    
+    // Default to batsman if they have runs
+    if (runs > 0) {
+      return "Batsmen";
+    }
+    
+    // Default fallback
+    return "Batsmen";
+  };
+
+  // Function to calculate strike rate
+  const calculateStrikeRate = (runs: number, ballsFaced: number): number | undefined => {
+    if (ballsFaced === 0) return undefined;
+    return Number(((runs / ballsFaced) * 100).toFixed(2));
+  };
+
+  // Function to calculate average
+  const calculateAverage = (runs: number, ballsFaced: number): number | undefined => {
+    if (ballsFaced === 0) return undefined;
+    return Number((runs / (ballsFaced / 6)).toFixed(2));
+  };
+
+  // Transform server data to PlayerRow format
   const players = useMemo<PlayerRow[]>(
-    () => [
-      { id: "p1", name: "Babar Azam", team: "PAK", role: "Batsmen", price: "₹9.8m", points: 218, avg: 59.38, strikeRate: 89.34 },
-      { id: "p2", name: "Virat Kohli", team: "IND", role: "Batsmen", price: "₹9.5m", points: 206, avg: 58.07, strikeRate: 93.54 },
-      { id: "p3", name: "Rohit Sharma", team: "IND", role: "Batsmen", price: "₹9.0m", points: 199, avg: 48.63, strikeRate: 90.90 },
-      { id: "p4", name: "Shakib Al Hasan", team: "BAN", role: "All-rounders", price: "₹8.7m", points: 189, avg: 39.66, strikeRate: 84.04 },
-      { id: "p5", name: "Shaheen Afridi", team: "PAK", role: "Bowlers", price: "₹8.9m", points: 185 },
-      { id: "p6", name: "Jasprit Bumrah", team: "IND", role: "Bowlers", price: "₹8.8m", points: 172 },
-      { id: "p7", name: "Mohammad Rizwan", team: "PAK", role: "Wicketkeepers", price: "₹8.6m", points: 165, avg: 49.45, strikeRate: 87.89 },
-      { id: "p8", name: "Hardik Pandya", team: "IND", role: "All-rounders", price: "₹8.4m", points: 151, avg: 33.26, strikeRate: 113.55 },
-    ],
-    []
+    () => {
+      if (latestTournamentPerformance.length === 0) {
+        return [];
+      }
+      
+      return latestTournamentPerformance
+        .map((playerScore) => {
+          const strikeRate = calculateStrikeRate(playerScore.runs, playerScore.ballsFaced);
+          const avg = calculateAverage(playerScore.runs, playerScore.ballsFaced);
+          
+          return {
+            id: playerScore.id,
+            name: playerScore.moduleName.replace(/([A-Z])/g, ' $1').trim(), // Convert camelCase to readable name
+            team: "TBD", // Team info not available in current data structure
+            role: determinePlayerRole(playerScore),
+            price: "₹0", // Price not available in current data structure
+            points: parseInt(playerScore.fantasyPoints),
+            avg: avg,
+            strikeRate: strikeRate,
+          };
+        })
+        .sort((a, b) => b.points - a.points); // Sort by fantasy points descending
+    },
+    [latestTournamentPerformance]
   );
 
   const visiblePlayers = players.filter((p) => {
@@ -123,6 +227,58 @@ export default function TournamentsPage() {
         <div className="bg-black text-white text-sm font-bold px-3 py-1 rounded min-w-[50px] text-center">
           {player.points}
         </div>
+      </div>
+    </div>
+  );
+
+  // Shimmer component for tournament items
+  const TournamentShimmer = () => (
+    <div className="flex flex-col gap-2 p-4 border border-gray-200 rounded-lg animate-pulse">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-6 bg-gray-200 rounded"></div>
+            <div className="h-4 w-16 bg-gray-200 rounded"></div>
+          </div>
+          <div className="h-3 w-6 bg-gray-200 rounded"></div>
+          <div className="flex items-center gap-2">
+            <div className="h-4 w-16 bg-gray-200 rounded"></div>
+            <div className="h-6 w-6 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <div className="h-3 w-24 bg-gray-200 rounded"></div>
+          <div className="h-3 w-32 bg-gray-200 rounded"></div>
+        </div>
+        <div className="h-6 w-16 bg-gray-200 rounded-full"></div>
+      </div>
+      <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+        <div className="h-3 w-20 bg-gray-200 rounded"></div>
+      </div>
+    </div>
+  );
+
+  // Shimmer component for player items
+  const PlayerShimmer = () => (
+    <div className="flex items-center justify-between py-4 border-b border-gray-100 animate-pulse">
+      <div className="flex items-center gap-4">
+        <div className="h-4 w-8 bg-gray-200 rounded"></div>
+        <div className="h-9 w-9 bg-gray-200 rounded"></div>
+        <div className="space-y-1">
+          <div className="h-4 w-24 bg-gray-200 rounded"></div>
+          <div className="flex items-center gap-3">
+            <div className="h-3 w-8 bg-gray-200 rounded"></div>
+            <div className="h-3 w-16 bg-gray-200 rounded"></div>
+            <div className="h-3 w-12 bg-gray-200 rounded"></div>
+            <div className="h-3 w-10 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center gap-4">
+        <div className="h-4 w-12 bg-gray-200 rounded"></div>
+        <div className="h-8 w-12 bg-gray-200 rounded"></div>
       </div>
     </div>
   );
@@ -234,7 +390,12 @@ export default function TournamentsPage() {
                 <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse" />
               </div>
               <div className="space-y-3">
-                {tournaments.length > 0 ? (
+                {isLoadingTournaments ? (
+                  // Show shimmer while loading
+                  Array.from({ length: 2 }).map((_, index) => (
+                    <TournamentShimmer key={index} />
+                  ))
+                ) : tournaments.length > 0 ? (
                   tournaments.map((tournament) => (
                     <TournamentItem key={tournament.id} tournament={tournament} />
                   ))
@@ -287,17 +448,23 @@ export default function TournamentsPage() {
                     {activeTab === "Overview" ? "All Players" : activeTab} ({visiblePlayers.length})
                   </div>
                   <div className="space-y-0">
-                    {visiblePlayers.map((p, idx) => (
-                      <PlayerItem key={p.id} player={p} index={idx} />
-                    ))}
+                    {isLoadingPerformance ? (
+                      // Show shimmer while loading player performance
+                      Array.from({ length: 5 }).map((_, index) => (
+                        <PlayerShimmer key={index} />
+                      ))
+                    ) : visiblePlayers.length > 0 ? (
+                      visiblePlayers.map((p, idx) => (
+                        <PlayerItem key={p.id} player={p} index={idx} />
+                      ))
+                    ) : (
+                      <div className="text-center py-12 text-gray-500">
+                        <div className="text-4xl mb-2">🏏</div>
+                        <div className="font-medium">No players found</div>
+                        <div className="text-sm">Try adjusting your search or filters</div>
+                      </div>
+                    )}
                   </div>
-                  {visiblePlayers.length === 0 && (
-                    <div className="text-center py-12 text-gray-500">
-                      <div className="text-4xl mb-2">🏏</div>
-                      <div className="font-medium">No players found</div>
-                      <div className="text-sm">Try adjusting your search or filters</div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>

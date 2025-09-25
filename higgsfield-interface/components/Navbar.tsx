@@ -12,7 +12,7 @@ export default function Navbar() {
     { href: "/my-teams", label: "My Teams" },
     { href: "/tournaments", label: "Tournaments" },
     { href: "/swaps", label: "Swaps" },
-    { href: "/leaderboard", label: "Leaderboard" },
+    // { href: "/leaderboard", label: "Leaderboard" },
   ];
 
   return (
