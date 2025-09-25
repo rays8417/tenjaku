@@ -11,22 +11,68 @@ interface PlayerRow {
   role: Exclude<Role, "Overview">;
   price: string;
   points: number;
+  avg?: number;
+  strikeRate?: number;
+}
+
+interface Fixture {
+  id: string;
+  teamA: string;
+  teamB: string;
+  date: string;
+  time: string;
+  venue: string;
+  status: "upcoming" | "live" | "completed";
+  result?: string;
 }
 
 export default function TournamentsPage() {
   const [activeTab, setActiveTab] = useState<Role>("Overview");
   const [query, setQuery] = useState("");
 
+  const fixtures = useMemo<Fixture[]>(
+    () => [
+      {
+        id: "f1",
+        teamA: "IND",
+        teamB: "PAK", 
+        date: "Oct 15",
+        time: "2:30 PM",
+        venue: "Dubai International Stadium",
+        status: "upcoming"
+      },
+      {
+        id: "f2", 
+        teamA: "BAN",
+        teamB: "SRI",
+        date: "Oct 17",
+        time: "7:30 PM", 
+        venue: "Sharjah Cricket Stadium",
+        status: "upcoming"
+      },
+      {
+        id: "f3",
+        teamA: "AFG", 
+        teamB: "NEP",
+        date: "Oct 19",
+        time: "2:30 PM",
+        venue: "Dubai International Stadium", 
+        status: "upcoming"
+      }
+    ],
+    []
+  );
+
   const players = useMemo<PlayerRow[]>(
     () => [
-      { id: "p1", name: "Virat Kohli", team: "IND", role: "Batsmen", price: "₹9.5m", points: 206 },
-      { id: "p2", name: "Rohit Sharma", team: "IND", role: "Batsmen", price: "₹9.0m", points: 199 },
-      { id: "p3", name: "Ben Stokes", team: "ENG", role: "All-rounders", price: "₹9.2m", points: 184 },
-      { id: "p4", name: "Jasprit Bumrah", team: "IND", role: "Bowlers", price: "₹8.8m", points: 172 },
-      { id: "p5", name: "Mitchell Starc", team: "AUS", role: "Bowlers", price: "₹8.7m", points: 165 },
-      { id: "p6", name: "Jos Buttler", team: "ENG", role: "Wicketkeepers", price: "₹9.1m", points: 158 },
-      { id: "p7", name: "Hardik Pandya", team: "IND", role: "All-rounders", price: "₹8.9m", points: 151 },
-      { id: "p8", name: "Kane Williamson", team: "NZ", role: "Batsmen", price: "₹8.6m", points: 140 },
+      { id: "p1", name: "Babar Azam", team: "PAK", role: "Batsmen", price: "₹9.8m", points: 218, avg: 59.38, strikeRate: 89.34 },
+      { id: "p2", name: "Virat Kohli", team: "IND", role: "Batsmen", price: "₹9.5m", points: 206, avg: 58.07, strikeRate: 93.54 },
+      { id: "p3", name: "Rohit Sharma", team: "IND", role: "Batsmen", price: "₹9.0m", points: 199, avg: 48.63, strikeRate: 90.90 },
+      { id: "p4", name: "Shakib Al Hasan", team: "BAN", role: "All-rounders", price: "₹8.7m", points: 189, avg: 39.66, strikeRate: 84.04 },
+      { id: "p5", name: "Shaheen Afridi", team: "PAK", role: "Bowlers", price: "₹8.9m", points: 185 },
+      { id: "p6", name: "Jasprit Bumrah", team: "IND", role: "Bowlers", price: "₹8.8m", points: 172 },
+      { id: "p7", name: "Mohammad Rizwan", team: "PAK", role: "Wicketkeepers", price: "₹8.6m", points: 165, avg: 49.45, strikeRate: 87.89 },
+      { id: "p8", name: "Hardik Pandya", team: "IND", role: "All-rounders", price: "₹8.4m", points: 151, avg: 33.26, strikeRate: 113.55 },
     ],
     []
   );
@@ -43,10 +89,10 @@ export default function TournamentsPage() {
   const TabButton = ({ label }: { label: Role }) => (
     <button
       onClick={() => setActiveTab(label)}
-      className={`rounded-full px-4 py-2 text-sm border transition-colors ${
+      className={`px-4 py-2 text-sm font-medium transition-all duration-200 ${
         activeTab === label
-          ? "bg-black text-white border-transparent shadow-sm"
-          : "border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300"
+          ? "text-black border-b-2 border-black"
+          : "text-gray-500 hover:text-gray-700 border-b-2 border-transparent"
       }`}
     >
       {label}
@@ -54,134 +100,194 @@ export default function TournamentsPage() {
   );
 
   const PlayerItem = ({ player, index }: { player: PlayerRow; index: number }) => (
-    <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 hover:bg-gray-50 transition-colors shadow-sm">
+    <div className="flex items-center justify-between py-4 border-b border-gray-100 hover:bg-gray-50/50 transition-colors group">
       <div className="flex items-center gap-4">
-        <div className="text-xs w-6 text-gray-500 font-medium">{String(index + 1).padStart(2, "0")}</div>
-        <div className="relative h-10 w-10 shrink-0 rounded-full bg-gray-600 flex items-center justify-center font-semibold text-white text-sm">
+        <div className="text-sm w-8 text-gray-400 font-mono">{String(index + 1).padStart(2, "0")}</div>
+        <div className="relative h-9 w-9 shrink-0 rounded bg-black flex items-center justify-center font-bold text-white text-xs">
           {player.name.split(" ").map((n) => n[0]).join("")}
         </div>
-        <div>
-          <div className="font-medium text-black">{player.name}</div>
-          <div className="text-xs text-gray-500 flex items-center gap-2">
-            <span>{player.team}</span>
-            <span className="inline-block h-1 w-1 rounded-full bg-gray-300" />
+        <div className="min-w-0">
+          <div className="font-semibold text-black text-sm">{player.name}</div>
+          <div className="text-xs text-gray-500 flex items-center gap-3">
+            <span className="font-medium">{player.team}</span>
             <span>{player.role}</span>
+            {player.avg && (
+              <>
+                <span className="text-gray-300">•</span>
+                <span>Avg {player.avg}</span>
+              </>
+            )}
+            {player.strikeRate && (
+              <>
+                <span className="text-gray-300">•</span>
+                <span>SR {player.strikeRate}</span>
+              </>
+            )}
           </div>
         </div>
       </div>
-      <div className="flex items-center gap-3">
-        <div className="text-xs text-gray-500 font-medium">{player.price}</div>
-        <div className="rounded-full bg-black text-white text-xs font-medium px-3 py-1.5">
+      <div className="flex items-center gap-4">
+        <div className="text-sm text-gray-600 font-medium">{player.price}</div>
+        <div className="bg-black text-white text-sm font-bold px-3 py-1 rounded min-w-[50px] text-center">
           {player.points}
         </div>
       </div>
     </div>
   );
 
+  const FixtureItem = ({ fixture }: { fixture: Fixture }) => (
+    <div className="flex flex-col gap-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50/50 transition-colors">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-6 bg-gradient-to-br from-orange-500 to-red-600 rounded text-white text-xs font-bold flex items-center justify-center">
+              {fixture.teamA}
+            </div>
+            <span className="text-sm font-medium text-black">{fixture.teamA}</span>
+          </div>
+          <span className="text-xs text-gray-400 font-medium">VS</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-black">{fixture.teamB}</span>
+            <div className="h-6 w-6 bg-gradient-to-br from-green-500 to-blue-600 rounded text-white text-xs font-bold flex items-center justify-center">
+              {fixture.teamB}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center justify-between text-xs">
+        <div className="text-gray-600">
+          <div className="font-medium">{fixture.date} • {fixture.time}</div>
+          <div className="text-gray-500 mt-1">{fixture.venue}</div>
+        </div>
+        <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+          fixture.status === 'upcoming' ? 'bg-blue-100 text-blue-700' :
+          fixture.status === 'live' ? 'bg-red-100 text-red-700' :
+          'bg-green-100 text-green-700'
+        }`}>
+          {fixture.status.toUpperCase()}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen px-4 sm:px-8 py-6 sm:py-10 bg-gray-50">
-      <div className="mx-auto max-w-[1200px] grid grid-cols-12 gap-6">
-        {/* Left Sidebar */}
-        <aside className="col-span-12 md:col-span-3 flex flex-col gap-4">
-          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <p className="text-sm text-gray-600">Cricket Tournament</p>
-                <h2 className="text-xl font-semibold mt-1 text-black">Silver League</h2>
-              </div>
-              <div className="h-10 w-10 rounded-lg bg-black text-white flex items-center justify-center font-bold">C</div>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <div className="text-2xl font-semibold text-black">TP 3,096,340</div>
-                <p className="text-xs text-gray-500 mt-1">4/6 matches remaining</p>
-              </div>
-              <div className="space-y-2">
-                <div className="h-2 w-full rounded-full bg-gray-200">
-                  <div className="h-2 rounded-full bg-emerald-500" style={{ width: "33%" }} />
-                </div>
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span>Subs 0/5</span>
-                  <span>Current Rewards: TP +0</span>
-                </div>
-              </div>
-            </div>
-            <div className="mt-6 rounded-lg border border-red-200 bg-red-50 p-4">
-              <div className="text-xs font-medium text-red-600 mb-3">NOT QUALIFIED</div>
-              <div className="grid grid-cols-2 gap-4 text-xs">
+    <div className="min-h-screen bg-white">
+      <div className="mx-auto max-w-7xl px-6 py-8">
+        <div className="grid grid-cols-12 gap-8">
+          {/* Left Sidebar */}
+          <aside className="col-span-12 lg:col-span-4 space-y-6">
+            {/* Tournament Card */}
+            <div className="border border-gray-200 rounded-xl p-6">
+              <div className="flex items-start justify-between mb-6">
                 <div>
-                  <div className="text-gray-600 mb-1">Active Players</div>
-                  <div className="font-medium text-black">0/5</div>
+                  <div className="text-sm text-gray-500 font-medium">ASIA CUP 2024</div>
+                  <h1 className="text-2xl font-bold text-black mt-1">Fantasy Cricket</h1>
                 </div>
-                <div>
-                  <div className="text-gray-600 mb-1">Total Points</div>
-                  <div className="font-medium text-black">0/200</div>
+                <div className="h-12 w-12 rounded-lg bg-black text-white flex items-center justify-center font-bold text-lg">
+                  🏏
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <h3 className="font-semibold text-black mb-4">Fixtures</h3>
-            <div className="space-y-3">
-              {[{ a: "IND", b: "AUS" }, { a: "ENG", b: "NZ" }, { a: "SA", b: "PAK" }].map((f, i) => (
-                <div key={i} className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">
-                  <div className="flex items-center gap-2 text-sm font-medium text-black">
-                    <span className="h-2 w-2 bg-gray-400 rounded-full" />
-                    {f.a}
+              <div className="space-y-6">
+                <div>
+                  <div className="text-3xl font-bold text-black">3,096,340</div>
+                  <div className="text-sm text-gray-500 mt-1">Total Points • 4/6 matches remaining</div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-black rounded-full transition-all duration-500" style={{ width: "33%" }} />
                   </div>
-                  <div className="text-xs text-gray-500 font-medium">vs</div>
-                  <div className="flex items-center gap-2 text-sm font-medium text-black">
-                    {f.b}
-                    <span className="h-2 w-2 bg-gray-400 rounded-full" />
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Progress</span>
+                    <span className="font-medium text-black">33%</span>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </aside>
 
-        {/* Center Content */}
-        <section className="col-span-12 md:col-span-9">
-          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-black">Performance</h2>
-            </div>
-            
-            <div className="flex items-center gap-3 mb-6">
-              <div className="relative flex-1">
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search players..."
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-colors"
-                />
-                <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">⌕</div>
+                <div className="border border-orange-200 bg-orange-50 rounded-lg p-4">
+                  <div className="text-sm font-bold text-orange-700 mb-2">QUALIFICATION STATUS</div>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <div className="text-gray-600">Active Players</div>
+                      <div className="font-bold text-black">5/11</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-600">Min Points</div>
+                      <div className="font-bold text-black">180/200</div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <button className="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm hover:bg-gray-50 transition-colors">
-                ⚙︎
-              </button>
             </div>
 
-            <div className="flex flex-wrap gap-2 mb-6">
-              {(["Overview", "Batsmen", "Bowlers", "All-rounders", "Wicketkeepers"] as Role[]).map((r) => (
-                <TabButton key={r} label={r} />
-              ))}
-            </div>
-
-            <div className="space-y-3">
-              <div className="text-xs uppercase tracking-wider text-gray-500 font-medium px-1">
-                {activeTab === "Overview" ? "Players" : activeTab}
+            {/* Fixtures */}
+            <div className="border border-gray-200 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-black">Upcoming Matches</h2>
+                <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse" />
               </div>
-              <div className="space-y-2">
-                {visiblePlayers.map((p, idx) => (
-                  <PlayerItem key={p.id} player={p} index={idx} />
+              <div className="space-y-3">
+                {fixtures.map((fixture) => (
+                  <FixtureItem key={fixture.id} fixture={fixture} />
                 ))}
               </div>
             </div>
-          </div>
-        </section>
+          </aside>
 
+          {/* Center Content */}
+          <section className="col-span-12 lg:col-span-8">
+            <div className="border border-gray-200 rounded-xl p-6">
+              <div className="mb-8">
+                <div>
+                  <h2 className="text-2xl font-bold text-black">Player Performance</h2>
+                  <p className="text-gray-500 text-sm mt-1">Track and analyze player statistics</p>
+                </div>
+              </div>
+              
+              <div className="flex flex-col gap-6">
+                <div className="relative">
+                  <input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search players by name or team..."
+                    className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-white outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                </div>
+
+                <div className="border-b border-gray-200">
+                  <div className="flex space-x-8">
+                    {(["Overview", "Batsmen", "Bowlers", "All-rounders", "Wicketkeepers"] as Role[]).map((r) => (
+                      <TabButton key={r} label={r} />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="text-sm font-medium text-gray-900 mb-4">
+                    {activeTab === "Overview" ? "All Players" : activeTab} ({visiblePlayers.length})
+                  </div>
+                  <div className="space-y-0">
+                    {visiblePlayers.map((p, idx) => (
+                      <PlayerItem key={p.id} player={p} index={idx} />
+                    ))}
+                  </div>
+                  {visiblePlayers.length === 0 && (
+                    <div className="text-center py-12 text-gray-500">
+                      <div className="text-4xl mb-2">🏏</div>
+                      <div className="font-medium">No players found</div>
+                      <div className="text-sm">Try adjusting your search or filters</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   );
