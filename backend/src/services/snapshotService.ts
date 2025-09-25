@@ -213,6 +213,8 @@ export async function createComprehensiveSnapshot(
     const aptosHolders = await getTokenHoldersWithBalances();
     const currentBlockNumber = await getCurrentBlockNumber();
 
+    console.log("aptosHolders", aptosHolders)
+
     // Step 2: Map Aptos holders to database users
     const aptosMappedData = await mapAptosHoldersToUsers(aptosHolders);
 

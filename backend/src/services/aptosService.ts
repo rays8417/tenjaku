@@ -46,6 +46,7 @@ export async function getTokenHolders(moduleName: string): Promise<string[]> {
     const payload = {
       function: `${CONTRACT_CONFIG.CONTRACT_ADDRESS}::${moduleName}::${CONTRACT_CONFIG.GET_TOKEN_HOLDERS_FUNCTION}` as const,
       arguments: [], // Add any required arguments here
+      type_arguments: [],
     };
 
     const response = await aptos.view({
@@ -73,6 +74,7 @@ export async function getTokenBalance(address: string, moduleName: string): Prom
     const payload = {
       function: `${CONTRACT_CONFIG.CONTRACT_ADDRESS}::${moduleName}::${CONTRACT_CONFIG.BALANCE_FUNCTION}` as const,
       arguments: [address],
+      type_arguments: [],
     };
 
     const response = await aptos.view({
@@ -168,8 +170,21 @@ export async function getTokenHoldersWithBalances(): Promise<TokenHolderBalance[
   try {
     console.log('Starting snapshot process for all player modules...');
     
-    // Get all players with their Aptos module names
-    const players = await getPlayersWithModules();
+    // Hardcoded list of player module names
+    const players = [
+      { id: '1', name: 'AbhishekSharma', moduleName: 'AbhishekSharma' },
+      { id: '2', name: 'BenStokes', moduleName: 'BenStokes' },
+      { id: '3', name: 'Boson', moduleName: 'Boson' },
+      { id: '4', name: 'GlenMaxwell', moduleName: 'GlenMaxwell' },
+      { id: '5', name: 'HardikPandya', moduleName: 'HardikPandya' },
+      { id: '6', name: 'JaspreetBumhrah', moduleName: 'JaspreetBumhrah' },
+      { id: '7', name: 'KaneWilliamson', moduleName: 'KaneWilliamson' },
+      { id: '8', name: 'ShubhamDube', moduleName: 'ShubhamDube' },
+      { id: '9', name: 'ShubhmanGill', moduleName: 'ShubhmanGill' },
+      { id: '10', name: 'ViratKohli', moduleName: 'ViratKohli' }
+    ];
+
+    console.log("players-----------", players)
     
     if (players.length === 0) {
       console.log('No players with Aptos modules found');
