@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import localFont from "next/font/local";
+import Navbar from "../components/Navbar";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -29,30 +29,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <header className="sticky top-0 z-40 bg-white/90 dark:bg-black/80 backdrop-blur-xl border-b border-black/5 dark:border-white/5 shadow-sm">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-black to-gray-700 dark:from-white dark:to-gray-300 flex items-center justify-center transform group-hover:scale-105 transition-transform">
-                <span className="text-white dark:text-black font-bold text-sm">H</span>
-              </div>
-              <span className="font-bold text-lg tracking-tight">Higgsfield</span>
-            </Link>
-            <nav className="flex items-center gap-1">
-              <Link href="/my-teams" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                My Teams
-              </Link>
-              <Link href="/tournaments" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                Tournaments
-              </Link>
-              <Link href="/swaps" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                Swaps
-              </Link>
-              <Link href="/leaderboard" className="px-4 py-2 rounded-full text-sm font-medium hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                Leaderboard
-              </Link>
-            </nav>
-          </div>
-        </header>
+        <Navbar />
         <main className="min-h-[calc(100vh-64px)]">{children}</main>
       </body>
     </html>
