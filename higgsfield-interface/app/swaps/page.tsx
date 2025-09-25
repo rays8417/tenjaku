@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 import debounce from "lodash/debounce";
 import { useWallet } from "../../contexts/WalletContext";
+import toast from "react-hot-toast";
 
 // Extend Window interface for Aptos wallet
 declare global {
@@ -438,7 +439,7 @@ export default function SwapsPage() {
   // Execute the swap transaction using higgs::router
   const handleSwap = async () => {
     if (!account || !payAmount || Number(payAmount) <= 0) {
-      alert("Please connect wallet and enter a valid amount");
+      toast.error("Please connect wallet and enter a valid amount");
       return;
     }
 
@@ -465,7 +466,7 @@ export default function SwapsPage() {
 
     // Pre-flight balance check
     if (tokens.fromBalance < Number(payAmount)) {
-      alert(
+      toast.error(
         `Insufficient ${
           tokens.from.name
         } balance. You have ${tokens.fromBalance.toFixed(
@@ -660,7 +661,7 @@ export default function SwapsPage() {
             "⚠️ Transaction submitted but confirmation failed. Check transaction manually:",
             response.hash
           );
-          alert(
+          toast.error(
             `Transaction submitted (${response.hash}) but confirmation failed. Please check your wallet or explorer manually.`
           );
           return; // Exit without throwing error
@@ -682,7 +683,7 @@ export default function SwapsPage() {
         );
       }
 
-      alert("Swap successful!");
+      toast.success("Swap successful! 🎉");
       setPayAmount("");
       setReceiveAmount("");
       await fetchBalances(); // Refresh balances
@@ -746,7 +747,7 @@ export default function SwapsPage() {
         cause: error?.cause,
       });
 
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading((prev) => ({ ...prev, swap: false }));
     }
@@ -817,7 +818,7 @@ export default function SwapsPage() {
   // Create liquidity pool if it doesn't exist
   const createPool = async () => {
     if (!account) {
-      alert("Please connect wallet first");
+      toast.error("Please connect wallet first");
       return;
     }
 
@@ -850,15 +851,15 @@ export default function SwapsPage() {
       console.log("🎉 Pool created successfully!", confirmedTx);
 
       if (confirmedTx.success) {
-        alert(
-          "Liquidity pool created successfully! You can now add liquidity or swap tokens."
+        toast.success(
+          "Liquidity pool created successfully! You can now add liquidity or swap tokens. 🎉"
         );
       } else {
         throw new Error(`Pool creation failed: ${confirmedTx.vm_status}`);
       }
     } catch (error: any) {
       console.error("❌ Pool creation failed:", error);
-      alert(
+      toast.error(
         `Failed to create pool: ${
           error.message || "Please check console for details"
         }`
@@ -869,7 +870,7 @@ export default function SwapsPage() {
   // Test swap function specifically
   const testSwapFunction = async () => {
     if (!account) {
-      alert("Please connect wallet first");
+      toast.error("Please connect wallet first");
       return;
     }
 
@@ -901,8 +902,8 @@ export default function SwapsPage() {
       console.log("✅ Transaction building successful:", testTx);
       console.log("🎯 Swap function is working correctly!");
 
-      alert(
-        "Swap function test passed! The function exists and can build transactions."
+      toast.success(
+        "Swap function test passed! The function exists and can build transactions. ✅"
       );
     } catch (error: any) {
       console.error("❌ Swap function test failed:", error);
@@ -913,7 +914,7 @@ export default function SwapsPage() {
         fullError: error,
       });
 
-      alert(
+      toast.error(
         `Swap function test failed: ${
           error.message || "Please check console for details"
         }`
@@ -1159,37 +1160,7 @@ export default function SwapsPage() {
               </div>
 
               {/* Debug Section */}
-              {account && (
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() => fetchTokenPairPrice()}
-                      disabled={isLoading.price}
-                      className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-                    >
-                      {isLoading.price ? "Fetching..." : "Refresh Prices"}
-                    </button>
-                    <button
-                      onClick={testContract}
-                      className="px-3 py-1.5 text-xs bg-gray-600 text-white rounded hover:bg-gray-700"
-                    >
-                      Test Contract
-                    </button>
-                    <button
-                      onClick={createPool}
-                      className="px-3 py-1.5 text-xs bg-green-600 text-white rounded hover:bg-green-700"
-                    >
-                      Create Pool
-                    </button>
-                    <button
-                      onClick={testSwapFunction}
-                      className="px-3 py-1.5 text-xs bg-purple-600 text-white rounded hover:bg-purple-700"
-                    >
-                      Test Swap
-                    </button>
-                  </div>
-                </div>
-              )}
+              
             </div>
           </div>
 
@@ -1313,26 +1284,7 @@ export default function SwapsPage() {
                     </div>
                   </div>
 
-                  {/* Liquidity Reserves */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-3">
-                      Liquidity Reserves
-                    </h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-black">
-                          {tokenPrices.abhishekBoson.reserves.formattedX.toLocaleString()}
-                        </div>
-                        <div className="text-xs text-gray-500">ABHISHEK</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-black">
-                          {tokenPrices.abhishekBoson.reserves.formattedY.toLocaleString()}
-                        </div>
-                        <div className="text-xs text-gray-500">BOSON</div>
-                      </div>
-                    </div>
-                  </div>
+                 
 
                   {/* Price Details */}
                   {receiveAmount && Number(receiveAmount) > 0 && (

@@ -33,7 +33,7 @@ export default function Home() {
         const account = await window.aptos.account();
         if (account?.address) {
           setAccountAddress(account.address);
-          router.replace("/tournaments");
+          router.replace("/my-teams");
         }
       } catch (_) {
         // silently ignore on first load
