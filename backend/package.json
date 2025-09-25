@@ -15,15 +15,22 @@
     "test:coverage": "jest --coverage",
     "test:integration": "node test-script.js",
     "test:all": "npm run test && npm run test:integration",
+
     "tournament:create-sample": "ts-node src/scripts/tournament.ts create-sample",
+
     "tournament:create-custom": "ts-node src/scripts/tournament.ts create-custom",
     "tournament:list": "ts-node src/scripts/tournament.ts list",
+
     "tournament:end": "ts-node src/scripts/tournament.ts end",
+    "tournament:end-all-ongoing": "ts-node src/scripts/tournament.ts end-all-ongoing",
+
     "tournament:cleanup": "ts-node src/scripts/tournament.ts cleanup",
     "tournament:end-and-cleanup": "ts-node src/scripts/tournament.ts end-and-cleanup",
     "tournament:update-scores": "ts-node src/scripts/tournament.ts update-scores",
     "tournament:update-scores-file": "ts-node src/scripts/tournament.ts update-scores-file",
+
     "tournament:update-sample-scores": "ts-node src/scripts/tournament.ts update-sample-scores",
+    
     "tournament:help": "ts-node src/scripts/tournament.ts --help"
   },
   "keywords": [],

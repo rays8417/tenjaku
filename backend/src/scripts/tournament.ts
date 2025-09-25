@@ -49,9 +49,9 @@ const sampleTournaments: TournamentData[] = [
       }
 ];
 
-// Sample player scores data
+// Sample player scores data - Uses the exact data provided by user
 const sampleScoresData: ScoresUpdateData = {
-  tournamentId: "0583f5d2-1e98-4a97-a41e-39f3ca99522f",
+  tournamentId: "056540e8-4706-45a9-a585-855367839599", // Original tournament ID from user's data
   playerScores: [
     {
       moduleName: "AbhishekSharma",
@@ -288,6 +288,40 @@ async function endTournament(tournamentId: string) {
     console.log(`   Ended at: ${new Date().toISOString()}`);
   } catch (error) {
     console.error('❌ Error ending tournament:', error);
+    throw error;
+  }
+}
+
+async function endAllOngoingTournaments() {
+  try {
+    console.log('\n🏁 Ending All Ongoing Tournaments');
+    console.log('==================================\n');
+
+    // Find all ongoing tournaments
+    const ongoingTournaments = await prisma.tournament.findMany({
+      where: { status: TournamentStatus.ONGOING },
+      select: { id: true, name: true, status: true }
+    });
+
+    if (ongoingTournaments.length === 0) {
+      console.log('No ongoing tournaments found.');
+      return;
+    }
+
+    console.log(`Found ${ongoingTournaments.length} ongoing tournaments:`);
+    ongoingTournaments.forEach((tournament, index) => {
+      console.log(`${index + 1}. ${tournament.name} (ID: ${tournament.id})`);
+    });
+    console.log('');
+
+    // End all ongoing tournaments
+    for (const tournament of ongoingTournaments) {
+      await endTournament(tournament.id);
+    }
+
+    console.log(`\n🎉 Successfully ended ${ongoingTournaments.length} tournaments!`);
+  } catch (error) {
+    console.error('❌ Error ending all ongoing tournaments:', error);
     throw error;
   }
 }
@@ -573,12 +607,17 @@ async function updateScoresFromFile(filePath: string) {
   }
 }
 
-async function updateSampleScores() {
+async function updateSampleScores(tournamentId?: string) {
   try {
     console.log('\n📊 Updating Sample Player Scores');
     console.log('=================================\n');
     
-    await updatePlayerScores(sampleScoresData);
+    // Use provided tournament ID or default sample data
+    const scoresData = tournamentId 
+      ? { ...sampleScoresData, tournamentId }
+      : sampleScoresData;
+    
+    await updatePlayerScores(scoresData);
   } catch (error) {
     console.error('❌ Error updating sample scores:', error);
     throw error;
@@ -673,6 +712,20 @@ async function main() {
     });
 
   program
+    .command('end-all-ongoing')
+    .description('End all ongoing tournaments by setting status to COMPLETED')
+    .action(async () => {
+      try {
+        await endAllOngoingTournaments();
+      } catch (error) {
+        console.error('Failed to end all ongoing tournaments:', error);
+        process.exit(1);
+      } finally {
+        await prisma.$disconnect();
+      }
+    });
+
+  program
     .command('cleanup')
     .description('Keep only one tournament and delete all others')
     .option('-k, --keep <tournament-id>', 'Tournament ID to keep (defaults to most recent)')
@@ -738,9 +791,10 @@ async function main() {
   program
     .command('update-sample-scores')
     .description('Update sample player scores for testing')
-    .action(async () => {
+    .argument('[tournament-id]', 'Tournament ID to update scores for (optional)')
+    .action(async (tournamentId?: string) => {
       try {
-        await updateSampleScores();
+        await updateSampleScores(tournamentId);
       } catch (error) {
         console.error('Failed to update sample scores:', error);
         process.exit(1);
@@ -783,6 +837,7 @@ export {
   listTournaments, 
   updateTournamentStatus,
   endTournament,
+  endAllOngoingTournaments,
   cleanupTournaments,
   endAndCleanupTournaments,
   updatePlayerScores,

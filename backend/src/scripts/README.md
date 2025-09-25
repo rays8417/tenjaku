@@ -46,6 +46,9 @@ npm run tournament:list
 # End a tournament
 npm run tournament:end <tournament-id>
 
+# End all ongoing tournaments
+npm run tournament:end-all-ongoing
+
 # Cleanup tournaments (keep only one)
 npm run tournament:cleanup [--keep <tournament-id>]
 
@@ -59,7 +62,7 @@ npm run tournament:update-scores <tournament-id> '<scores-json>'
 npm run tournament:update-scores-file <file-path>
 
 # Update sample scores
-npm run tournament:update-sample-scores
+npm run tournament:update-sample-scores [tournament-id]
 
 # Show help
 npm run tournament:help
@@ -129,7 +132,25 @@ Example:
 npx ts-node src/scripts/tournament.ts end abc123
 ```
 
-#### 6. Cleanup Tournaments
+#### 6. End All Ongoing Tournaments
+End all tournaments with ONGOING status by setting them to COMPLETED:
+
+```bash
+npx ts-node src/scripts/tournament.ts end-all-ongoing
+```
+
+This command will:
+- Find all tournaments with ONGOING status
+- Display the list of tournaments to be ended
+- End each tournament by setting status to COMPLETED
+- Show summary of how many tournaments were ended
+
+Example:
+```bash
+npx ts-node src/scripts/tournament.ts end-all-ongoing
+```
+
+#### 7. Cleanup Tournaments
 Keep only one tournament and delete all others:
 
 ```bash
@@ -148,7 +169,7 @@ npx ts-node src/scripts/tournament.ts cleanup
 npx ts-node src/scripts/tournament.ts cleanup --keep abc123
 ```
 
-#### 7. End and Cleanup
+#### 8. End and Cleanup
 End all ongoing tournaments and keep only one tournament:
 
 ```bash
@@ -162,7 +183,7 @@ Example:
 npx ts-node src/scripts/tournament.ts end-and-cleanup --keep abc123
 ```
 
-#### 8. Update Player Scores
+#### 9. Update Player Scores
 Update player scores for a tournament using JSON data:
 
 ```bash
@@ -174,7 +195,7 @@ Example:
 npx ts-node src/scripts/tournament.ts update-scores abc123 '{"playerScores":[{"moduleName":"ViratKohli","runs":85,"ballsFaced":65,"wickets":0,"oversBowled":0,"runsConceded":0,"catches":2,"stumpings":0,"runOuts":1}]}'
 ```
 
-#### 9. Update Scores from File
+#### 10. Update Scores from File
 Update player scores from a JSON file:
 
 ```bash
@@ -186,12 +207,32 @@ Example:
 npx ts-node src/scripts/tournament.ts update-scores-file ./scores.json
 ```
 
-#### 10. Update Sample Scores
-Update sample player scores for testing:
+#### 11. Update Sample Scores
+Update sample player scores for testing with predefined data:
 
 ```bash
-npx ts-node src/scripts/tournament.ts update-sample-scores
+npx ts-node src/scripts/tournament.ts update-sample-scores [tournament-id]
 ```
+
+**Usage:**
+- **Without tournament ID**: Uses the default sample tournament ID (`056540e8-4706-45a9-a585-855367839599`)
+- **With tournament ID**: Updates scores for the specified tournament using the same sample player data
+
+**Examples:**
+```bash
+# Use default sample tournament ID
+npx ts-node src/scripts/tournament.ts update-sample-scores
+
+# Update scores for a specific tournament
+npx ts-node src/scripts/tournament.ts update-sample-scores abc123-def456-ghi789
+```
+
+**Sample Data Used:**
+- AbhishekSharma: 85 runs, 2 catches, 1 run out
+- ViratKohli: 42 runs, 3 wickets, 1 catch  
+- RohitSharma: 120 runs (century)
+- MSDhoni: 15 runs, 2 wickets, 1 stumping
+- HardikPandya: 35 runs, 1 wicket, 1 catch
 
 ### Sample Output
 
