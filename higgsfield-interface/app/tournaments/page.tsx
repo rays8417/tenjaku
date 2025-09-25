@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { use, useEffect, useMemo, useState } from "react";
+import axios from "axios";
 
 type Role = "Overview" | "Batsmen" | "Bowlers" | "All-rounders" | "Wicketkeepers";
 
@@ -15,53 +16,44 @@ interface PlayerRow {
   strikeRate?: number;
 }
 
-interface Fixture {
+interface Tournament {
   id: string;
-  teamA: string;
-  teamB: string;
-  date: string;
-  time: string;
-  venue: string;
-  status: "upcoming" | "live" | "completed";
-  result?: string;
+  name: string;
+  description: string | null;
+  matchDate: string;
+  team1: string;
+  team2: string;
+  venue: string | null;
+  status: "UPCOMING" | "LIVE" | "COMPLETED";
+  entryFee: string;
+  maxParticipants: number | null;
+  currentParticipants: number;
+  participantCount: number;
+  rewardPools: any[];
+  createdAt: string;
 }
+
 
 export default function TournamentsPage() {
   const [activeTab, setActiveTab] = useState<Role>("Overview");
   const [query, setQuery] = useState("");
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
 
-  const fixtures = useMemo<Fixture[]>(
-    () => [
-      {
-        id: "f1",
-        teamA: "IND",
-        teamB: "PAK", 
-        date: "Oct 15",
-        time: "2:30 PM",
-        venue: "Dubai International Stadium",
-        status: "upcoming"
-      },
-      {
-        id: "f2", 
-        teamA: "BAN",
-        teamB: "SRI",
-        date: "Oct 17",
-        time: "7:30 PM", 
-        venue: "Sharjah Cricket Stadium",
-        status: "upcoming"
-      },
-      {
-        id: "f3",
-        teamA: "AFG", 
-        teamB: "NEP",
-        date: "Oct 19",
-        time: "2:30 PM",
-        venue: "Dubai International Stadium", 
-        status: "upcoming"
+
+  useEffect(() => {
+    const fetchTournaments = async () => {
+      try {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/tournaments`)
+        console.log("tournaments data on client side", response.data.tournaments)
+        setTournaments(response.data.tournaments || [])
+      } catch (error) {
+        console.error("Error fetching tournaments:", error)
+        setTournaments([])
       }
-    ],
-    []
-  );
+    }
+
+    fetchTournaments()
+  }, [])
 
   const players = useMemo<PlayerRow[]>(
     () => [
@@ -135,40 +127,55 @@ export default function TournamentsPage() {
     </div>
   );
 
-  const FixtureItem = ({ fixture }: { fixture: Fixture }) => (
-    <div className="flex flex-col gap-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50/50 transition-colors">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="h-6 w-6 bg-gradient-to-br from-orange-500 to-red-600 rounded text-white text-xs font-bold flex items-center justify-center">
-              {fixture.teamA}
+  const TournamentItem = ({ tournament }: { tournament: Tournament }) => {
+    const matchDate = new Date(tournament.matchDate)
+    const dateStr = matchDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    const timeStr = matchDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+    
+    return (
+      <div className="flex flex-col gap-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50/50 transition-colors">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <div className="h-6 w-6 bg-gradient-to-br from-orange-500 to-red-600 rounded text-white text-xs font-bold flex items-center justify-center">
+                {tournament.team1.substring(0, 3).toUpperCase()}
+              </div>
+              <span className="text-sm font-medium text-black">{tournament.team1}</span>
             </div>
-            <span className="text-sm font-medium text-black">{fixture.teamA}</span>
-          </div>
-          <span className="text-xs text-gray-400 font-medium">VS</span>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-black">{fixture.teamB}</span>
-            <div className="h-6 w-6 bg-gradient-to-br from-green-500 to-blue-600 rounded text-white text-xs font-bold flex items-center justify-center">
-              {fixture.teamB}
+            <span className="text-xs text-gray-400 font-medium">VS</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-black">{tournament.team2}</span>
+              <div className="h-6 w-6 bg-gradient-to-br from-green-500 to-blue-600 rounded text-white text-xs font-bold flex items-center justify-center">
+                {tournament.team2.substring(0, 3).toUpperCase()}
+              </div>
             </div>
           </div>
+        </div>
+        <div className="flex items-center justify-between text-xs">
+          <div className="text-gray-600">
+            <div className="font-medium">{dateStr} • {timeStr}</div>
+            <div className="text-gray-500 mt-1">{tournament.venue || 'Venue TBD'}</div>
+            {tournament.description && (
+              <div className="text-gray-500 mt-1 text-xs">{tournament.description}</div>
+            )}
+          </div>
+          <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+            tournament.status === 'UPCOMING' ? 'bg-blue-100 text-blue-700' :
+            tournament.status === 'LIVE' ? 'bg-red-100 text-red-700' :
+            'bg-green-100 text-green-700'
+          }`}>
+            {tournament.status}
+          </div>
+        </div>
+        <div className="flex items-center justify-between text-xs mt-2 pt-2 border-t border-gray-100">
+          <div className="text-gray-500">
+            Entry Fee: {tournament.entryFee === '0' ? 'Free' : `₹${tournament.entryFee}`}
+          </div>
+         
         </div>
       </div>
-      <div className="flex items-center justify-between text-xs">
-        <div className="text-gray-600">
-          <div className="font-medium">{fixture.date} • {fixture.time}</div>
-          <div className="text-gray-500 mt-1">{fixture.venue}</div>
-        </div>
-        <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-          fixture.status === 'upcoming' ? 'bg-blue-100 text-blue-700' :
-          fixture.status === 'live' ? 'bg-red-100 text-red-700' :
-          'bg-green-100 text-green-700'
-        }`}>
-          {fixture.status.toUpperCase()}
-        </div>
-      </div>
-    </div>
-  );
+    )
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -223,13 +230,21 @@ export default function TournamentsPage() {
             {/* Fixtures */}
             <div className="border border-gray-200 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-black">Upcoming Matches</h2>
+                <h2 className="text-lg font-bold text-black">Matches</h2>
                 <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse" />
               </div>
               <div className="space-y-3">
-                {fixtures.map((fixture) => (
-                  <FixtureItem key={fixture.id} fixture={fixture} />
-                ))}
+                {tournaments.length > 0 ? (
+                  tournaments.map((tournament) => (
+                    <TournamentItem key={tournament.id} tournament={tournament} />
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <div className="text-4xl mb-2">🏏</div>
+                    <div className="font-medium">No tournaments available</div>
+                    <div className="text-sm">Check back later for upcoming matches</div>
+                  </div>
+                )}
               </div>
             </div>
           </aside>
