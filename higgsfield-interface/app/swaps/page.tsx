@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 import debounce from "lodash/debounce";
+import { useWallet } from "../../contexts/WalletContext";
 
 // Extend Window interface for Aptos wallet
 declare global {
@@ -56,13 +57,15 @@ const DECIMAL_MULTIPLIER = Math.pow(10, TOKEN_DECIMALS);
 const SLIPPAGE_TOLERANCE = 0.9;
 
 export default function SwapsPage() {
+  // Get wallet state from context
+  const { account } = useWallet();
+  
   // UI State
   const [payAmount, setPayAmount] = useState("");
   const [receiveAmount, setReceiveAmount] = useState("");
   const [isSwapped, setIsSwapped] = useState(false);
 
   // Web3 State
-  const [account, setAccount] = useState<any>(null);
   const [balances, setBalances] = useState({
     boson: 0,
     kohli: 0,
@@ -99,47 +102,6 @@ export default function SwapsPage() {
   };
 
   // ===== WEB3 FUNCTIONS =====
-
-  // Connect to Aptos wallet (like Petra)
-  const connectWallet = async () => {
-    try {
-      if (!window.aptos) {
-        alert("Please install Petra wallet or another Aptos wallet extension");
-        return;
-      }
-
-      const response = await window.aptos.connect();
-      setAccount(response);
-      console.log("Connected account:", response);
-    } catch (error) {
-      console.error("Failed to connect wallet:", error);
-      alert("Failed to connect wallet. Please try again.");
-    }
-  };
-
-  // Disconnect from Aptos wallet
-  const disconnectWallet = async () => {
-    try {
-      if (window.aptos && window.aptos.disconnect) {
-        await window.aptos.disconnect();
-      }
-
-      // Clear local state
-      setAccount(null);
-      setBalances({ boson: 0, kohli: 0, abhishek: 0 });
-      setPayAmount("");
-      setReceiveAmount("");
-
-      console.log("Wallet disconnected");
-    } catch (error) {
-      console.error("Failed to disconnect wallet:", error);
-      // Still clear local state even if disconnect call fails
-      setAccount(null);
-      setBalances({ boson: 0, kohli: 0, abhishek: 0 });
-      setPayAmount("");
-      setReceiveAmount("");
-    }
-  };
 
   // Fetch token pair price from Aptos fullnode API
   const fetchTokenPairPrice = async (tokenA?: string, tokenB?: string) => {
@@ -1016,15 +978,8 @@ export default function SwapsPage() {
             </p>
           </div>
 
-          {/* Wallet Connection */}
-          {!account ? (
-            <button
-              onClick={connectWallet}
-              className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors font-medium"
-            >
-              Connect Wallet
-            </button>
-          ) : (
+          {/* Wallet Status */}
+          {account ? (
             <div className="flex items-center gap-4">
               <div className="text-right">
                 <div className="text-sm font-semibold text-black">
@@ -1032,12 +987,11 @@ export default function SwapsPage() {
                 </div>
                 <div className="text-xs text-gray-500">Aptos Devnet</div>
               </div>
-              <button
-                onClick={disconnectWallet}
-                className="text-sm text-red-600 hover:text-red-800 transition-colors font-medium px-3 py-1.5 border border-red-200 rounded-lg hover:bg-red-50"
-              >
-                Disconnect
-              </button>
+            </div>
+          ) : (
+            <div className="text-center">
+              <p className="text-sm text-gray-500 mb-2">Connect your wallet to start swapping</p>
+              <p className="text-xs text-gray-400">Use the Connect Wallet button in the navbar</p>
             </div>
           )}
         </div>
@@ -1195,7 +1149,7 @@ export default function SwapsPage() {
                   }`}
                 >
                   {!account
-                    ? "Connect Wallet"
+                    ? "Connect Wallet First"
                     : isLoading.swap
                     ? "Swapping..."
                     : payAmount && Number(payAmount) > 0

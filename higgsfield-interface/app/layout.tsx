@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Navbar from "../components/Navbar";
+import { WalletProvider } from "../contexts/WalletContext";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -29,8 +30,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Navbar />
-        <main className="min-h-[calc(100vh-64px)]">{children}</main>
+        <WalletProvider>
+          <Navbar />
+          <main className="min-h-[calc(100vh-64px)]">{children}</main>
+        </WalletProvider>
       </body>
     </html>
   );
