@@ -12,11 +12,25 @@ export const aptos = new Aptos(aptosConfig);
 // Contract configuration - Update these with your actual contract details
 export const CONTRACT_CONFIG = {
   // Update this with your actual contract address
-  CONTRACT_ADDRESS: process.env.APTOS_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000',
+  CONTRACT_ADDRESS: process.env.APTOS_CONTRACT_ADDRESS || '0xaf230e3024e92da6a3a15f5a6a3f201c886891268717bf8a21157bb73a1c027b',
   
   // Update these with your actual function names
   GET_TOKEN_HOLDERS_FUNCTION: 'get_token_holders',
   BALANCE_FUNCTION: 'balance',
+  
+  // Array of module names to fetch data from
+  MODULE_NAMES: [
+    'AbhishekSharma',
+    'BenStokes',
+    'Boson',
+    'GlenMaxwell',
+    'HardikPandya',
+    'JaspreetBumhrah',
+    'KaneWilliamson',
+    'ShubhamDube',
+    'ShubhmanGill',
+    'ViratKohli'
+  ],
   
   // Default module name (can be overridden per player)
   DEFAULT_MODULE_NAME: 'AbhishekSharma',
@@ -36,12 +50,14 @@ export interface TokenHolderBalance {
 }
 
 /**
- * Get all token holders from the smart contract
+ * Get all token holders from the smart contract for a specific module
  * This calls the get_token_holders function in your contract
  */
 export async function getTokenHolders(moduleName: string): Promise<string[]> {
   try {
-    console.log(`Fetching token holders from ${moduleName} module...`);
+    console.log(`[DEBUG] Fetching token holders from ${moduleName} module...`);
+    console.log(`[DEBUG] Contract address: ${CONTRACT_CONFIG.CONTRACT_ADDRESS}`);
+    console.log(`[DEBUG] Function: ${CONTRACT_CONFIG.GET_TOKEN_HOLDERS_FUNCTION}`);
     
     const payload = {
       function: `${CONTRACT_CONFIG.CONTRACT_ADDRESS}::${moduleName}::${CONTRACT_CONFIG.GET_TOKEN_HOLDERS_FUNCTION}` as const,
@@ -49,19 +65,63 @@ export async function getTokenHolders(moduleName: string): Promise<string[]> {
       type_arguments: [],
     };
 
+    console.log(`[DEBUG] Payload for ${moduleName}:`, JSON.stringify(payload, null, 2));
+
     const response = await aptos.view({
       payload,
     });
+
+    console.log(`[DEBUG] Raw response for ${moduleName}:`, response);
 
     // The response format depends on your contract's return type
     // Assuming it returns an array of addresses
     const holders = response[0] as string[];
     
-    console.log(`Found ${holders.length} token holders in ${moduleName} module`);
+    console.log(`[DEBUG] Found ${holders.length} token holders in ${moduleName} module:`, holders);
     return holders;
   } catch (error) {
-    console.error(`Error fetching token holders from ${moduleName}:`, error);
+    console.error(`[ERROR] Error fetching token holders from ${moduleName}:`, error);
     throw new Error(`Failed to fetch token holders from ${moduleName}: ${error}`);
+  }
+}
+
+/**
+ * Get all token holders from all modules
+ * This maps through CONTRACT_CONFIG.MODULE_NAMES and fetches data from each module
+ */
+export async function getAllTokenHolders(): Promise<{ moduleName: string; holders: string[] }[]> {
+  try {
+    console.log(`[DEBUG] Starting to fetch token holders from all modules...`);
+    console.log(`[DEBUG] Module names to process:`, CONTRACT_CONFIG.MODULE_NAMES);
+    
+    const results = await Promise.allSettled(
+      CONTRACT_CONFIG.MODULE_NAMES.map(async (moduleName) => {
+        try {
+          console.log(`[DEBUG] Processing module: ${moduleName}`);
+          const holders = await getTokenHolders(moduleName);
+          return { moduleName, holders };
+        } catch (error) {
+          console.error(`[ERROR] Failed to fetch holders for module ${moduleName}:`, error);
+          return { moduleName, holders: [] };
+        }
+      })
+    );
+
+    const successfulResults = results
+      .filter((result): result is PromiseFulfilledResult<{ moduleName: string; holders: string[] }> => 
+        result.status === 'fulfilled'
+      )
+      .map(result => result.value);
+
+    console.log(`[DEBUG] Successfully processed ${successfulResults.length} modules`);
+    successfulResults.forEach(result => {
+      console.log(`[DEBUG] Module ${result.moduleName}: ${result.holders.length} holders`);
+    });
+
+    return successfulResults;
+  } catch (error) {
+    console.error(`[ERROR] Error in getAllTokenHolders:`, error);
+    throw new Error(`Failed to get all token holders: ${error}`);
   }
 }
 
@@ -71,35 +131,158 @@ export async function getTokenHolders(moduleName: string): Promise<string[]> {
  */
 export async function getTokenBalance(address: string, moduleName: string): Promise<bigint> {
   try {
-    const payload = {
-      function: `${CONTRACT_CONFIG.CONTRACT_ADDRESS}::${moduleName}::${CONTRACT_CONFIG.BALANCE_FUNCTION}` as const,
-      arguments: [address],
-      type_arguments: [],
-    };
+    console.log(`[DEBUG] Fetching balance for address ${address} from ${moduleName} module...`);
+    console.log(`[DEBUG] Contract address: ${CONTRACT_CONFIG.CONTRACT_ADDRESS}`);
+    console.log(`[DEBUG] Function: ${CONTRACT_CONFIG.BALANCE_FUNCTION}`);
+    console.log(`[DEBUG] Address type: ${typeof address}, Address length: ${address.length}`);
+    console.log(`[DEBUG] Address value: "${address}"`);
+    
+    // Validate address format
+    if (!address || address.length === 0) {
+      console.error(`[ERROR] Invalid address provided: "${address}"`);
+      return BigInt(0);
+    }
+    
+    // Try using the REST API directly
+    const functionName = `${CONTRACT_CONFIG.CONTRACT_ADDRESS}::${moduleName}::${CONTRACT_CONFIG.BALANCE_FUNCTION}`;
+    
+    console.log(`[DEBUG] Function name: ${functionName}`);
+    console.log(`[DEBUG] Address argument: ${address}`);
 
-    const response = await aptos.view({
-      payload,
-    });
+    // First, let's check if the module exists
+    try {
+      const accountResources = await aptos.getAccountResources({
+        accountAddress: CONTRACT_CONFIG.CONTRACT_ADDRESS,
+      });
+      console.log(`[DEBUG] Account resources for ${CONTRACT_CONFIG.CONTRACT_ADDRESS}:`, accountResources.length);
+      
+      const moduleResource = accountResources.find(resource => 
+        resource.type.includes(`::${moduleName}::`)
+      );
+      console.log(`[DEBUG] Module resource found:`, moduleResource ? 'Yes' : 'No');
+    } catch (error) {
+      if (error instanceof Error) {
+        console.log(`[DEBUG] Error checking account resources: ${error.message}`);
+      } else {
+        console.log(`[DEBUG] Error checking account resources:`, error);
+      }
+    }
+
+    let response;
+    try {
+      // Try using the REST API directly
+      const baseUrl = 'https://fullnode.devnet.aptoslabs.com';
+      const fetchResponse = await fetch(`${baseUrl}/v1/view`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          function: functionName,
+          arguments: [address],
+          type_arguments: [],
+        }),
+      });
+
+      if (!fetchResponse.ok) {
+        throw new Error(`HTTP error! status: ${fetchResponse.status}`);
+      }
+
+      const data = await fetchResponse.json();
+      console.log(`[DEBUG] REST API response:`, data);
+      response = data;
+    } catch (error) {
+      if (error instanceof Error) {
+        console.log(`[DEBUG] REST API method failed: ${error.message}`);
+      } else {
+        console.log(`[DEBUG] REST API method failed:`, error);
+      }
+      
+      // Fallback to SDK method
+      try {
+        response = await aptos.view({
+          payload: {
+            function: functionName as `${string}::${string}::${string}`,
+            functionArguments: [address],
+            typeArguments: [],
+          },
+        });
+      } catch (sdkError) {
+        if (sdkError instanceof Error) {
+          console.log(`[DEBUG] SDK method also failed: ${sdkError.message}`);
+        } else {
+          console.log(`[DEBUG] SDK method also failed:`, sdkError);
+        }
+        throw sdkError;
+      }
+    }
+
+    console.log(`[DEBUG] Raw response for ${address} in ${moduleName}:`, response);
 
     // Assuming the balance is returned as a string or number
     const balance = response[0];
     
     if (balance === null || balance === undefined) {
+      console.log(`[DEBUG] Balance is null/undefined for ${address} in ${moduleName}, returning 0`);
       return BigInt(0);
     }
     
     // Convert to bigint for consistency
+    let bigintBalance: bigint;
     if (typeof balance === 'string') {
-      return BigInt(balance);
+      bigintBalance = BigInt(balance);
     } else if (typeof balance === 'number') {
-      return BigInt(balance);
+      bigintBalance = BigInt(balance);
     } else {
-      return BigInt(balance.toString());
+      bigintBalance = BigInt(balance.toString());
     }
+    
+    console.log(`[DEBUG] Balance for ${address} in ${moduleName}: ${bigintBalance.toString()}`);
+    return bigintBalance;
   } catch (error) {
-    console.error(`Error fetching balance for ${address} from ${moduleName}:`, error);
+    console.error(`[ERROR] Error fetching balance for ${address} from ${moduleName}:`, error);
     // Return 0 balance for addresses that might not be in the system
     return BigInt(0);
+  }
+}
+
+/**
+ * Get balance for a specific address from all modules
+ * This maps through CONTRACT_CONFIG.MODULE_NAMES and fetches balance from each module
+ */
+export async function getTokenBalanceFromAllModules(address: string): Promise<{ moduleName: string; balance: bigint }[]> {
+  try {
+    console.log(`[DEBUG] Starting to fetch balance for address ${address} from all modules...`);
+    console.log(`[DEBUG] Module names to process:`, CONTRACT_CONFIG.MODULE_NAMES);
+    
+    const results = await Promise.allSettled(
+      CONTRACT_CONFIG.MODULE_NAMES.map(async (moduleName) => {
+        try {
+          console.log(`[DEBUG] Processing balance for ${address} in module: ${moduleName}`);
+          const balance = await getTokenBalance(address, moduleName);
+          return { moduleName, balance };
+        } catch (error) {
+          console.error(`[ERROR] Failed to fetch balance for ${address} in module ${moduleName}:`, error);
+          return { moduleName, balance: BigInt(0) };
+        }
+      })
+    );
+
+    const successfulResults = results
+      .filter((result): result is PromiseFulfilledResult<{ moduleName: string; balance: bigint }> => 
+        result.status === 'fulfilled'
+      )
+      .map(result => result.value);
+
+    console.log(`[DEBUG] Successfully processed balance for ${address} in ${successfulResults.length} modules`);
+    successfulResults.forEach(result => {
+      console.log(`[DEBUG] Module ${result.moduleName}: balance ${result.balance.toString()}`);
+    });
+
+    return successfulResults;
+  } catch (error) {
+    console.error(`[ERROR] Error in getTokenBalanceFromAllModules for ${address}:`, error);
+    throw new Error(`Failed to get balance from all modules for ${address}: ${error}`);
   }
 }
 
@@ -108,31 +291,36 @@ export async function getTokenBalance(address: string, moduleName: string): Prom
  */
 export async function getTokenHoldersWithBalancesForPlayer(moduleName: string, playerId?: string): Promise<TokenHolderBalance[]> {
   try {
-    console.log(`Starting snapshot process for ${moduleName} module...`);
+    console.log(`[DEBUG] Starting snapshot process for ${moduleName} module...`);
+    console.log(`[DEBUG] Player ID: ${playerId || 'N/A'}`);
     
     // Step 1: Get all token holders for this player module
     const holders = await getTokenHolders(moduleName);
     
     if (holders.length === 0) {
-      console.log(`No token holders found for ${moduleName}`);
+      console.log(`[DEBUG] No token holders found for ${moduleName}`);
       return [];
     }
 
-    console.log(`Fetching balances for ${holders.length} holders in ${moduleName}...`);
+    console.log(`[DEBUG] Fetching balances for ${holders.length} holders in ${moduleName}...`);
+    console.log(`[DEBUG] Holder addresses:`, holders);
     
     // Step 2: Get balances for each holder
-    const balancePromises = holders.map(async (address) => {
+    const balancePromises = holders.map(async (address, index) => {
       try {
+        console.log(`[DEBUG] Processing holder ${index + 1}/${holders.length}: ${address}`);
         const balance = await getTokenBalance(address, moduleName);
-        return {
+        const result = {
           address,
           balance,
           formattedBalance: balance.toString(),
           playerId,
           moduleName,
         } as TokenHolderBalance;
+        console.log(`[DEBUG] Balance result for ${address}:`, result);
+        return result;
       } catch (error) {
-        console.error(`Failed to get balance for ${address} in ${moduleName}:`, error);
+        console.error(`[ERROR] Failed to get balance for ${address} in ${moduleName}:`, error);
         return {
           address,
           balance: BigInt(0),
@@ -143,7 +331,10 @@ export async function getTokenHoldersWithBalancesForPlayer(moduleName: string, p
       }
     });
 
+    console.log(`[DEBUG] Waiting for all balance promises to resolve...`);
     const results = await Promise.allSettled(balancePromises);
+    
+    console.log(`[DEBUG] Balance promises resolved. Processing results...`);
     
     // Filter out failed requests and zero balances
     const validHolders = results
@@ -153,11 +344,12 @@ export async function getTokenHoldersWithBalancesForPlayer(moduleName: string, p
       .map(result => result.value)
       .filter(holder => holder.balance > 0); // Only include holders with actual balance
 
-    console.log(`Successfully processed ${validHolders.length} token holders for ${moduleName}`);
+    console.log(`[DEBUG] Successfully processed ${validHolders.length} token holders for ${moduleName}`);
+    console.log(`[DEBUG] Valid holders summary:`, validHolders.map(h => ({ address: h.address, balance: h.formattedBalance })));
     
     return validHolders;
   } catch (error) {
-    console.error(`Error in getTokenHoldersWithBalancesForPlayer for ${moduleName}:`, error);
+    console.error(`[ERROR] Error in getTokenHoldersWithBalancesForPlayer for ${moduleName}:`, error);
     throw new Error(`Failed to get token holders with balances for ${moduleName}: ${error}`);
   }
 }
@@ -168,42 +360,33 @@ export async function getTokenHoldersWithBalancesForPlayer(moduleName: string, p
  */
 export async function getTokenHoldersWithBalances(): Promise<TokenHolderBalance[]> {
   try {
-    console.log('Starting snapshot process for all player modules...');
+    console.log('[DEBUG] Starting snapshot process for all player modules...');
+    console.log('[DEBUG] Using CONTRACT_CONFIG.MODULE_NAMES:', CONTRACT_CONFIG.MODULE_NAMES);
     
-    // Hardcoded list of player module names
-    const players = [
-      { id: '1', name: 'AbhishekSharma', moduleName: 'AbhishekSharma' },
-      { id: '2', name: 'BenStokes', moduleName: 'BenStokes' },
-      { id: '3', name: 'Boson', moduleName: 'Boson' },
-      { id: '4', name: 'GlenMaxwell', moduleName: 'GlenMaxwell' },
-      { id: '5', name: 'HardikPandya', moduleName: 'HardikPandya' },
-      { id: '6', name: 'JaspreetBumhrah', moduleName: 'JaspreetBumhrah' },
-      { id: '7', name: 'KaneWilliamson', moduleName: 'KaneWilliamson' },
-      { id: '8', name: 'ShubhamDube', moduleName: 'ShubhamDube' },
-      { id: '9', name: 'ShubhmanGill', moduleName: 'ShubhmanGill' },
-      { id: '10', name: 'ViratKohli', moduleName: 'ViratKohli' }
-    ];
-
-    console.log("players-----------", players)
+    const moduleNames = CONTRACT_CONFIG.MODULE_NAMES;
     
-    if (players.length === 0) {
-      console.log('No players with Aptos modules found');
+    if (moduleNames.length === 0) {
+      console.log('[DEBUG] No module names found in CONTRACT_CONFIG');
       return [];
     }
 
-    console.log(`Processing ${players.length} player modules...`);
+    console.log(`[DEBUG] Processing ${moduleNames.length} player modules...`);
     
     // Fetch data from all player modules in parallel
-    const playerPromises = players.map(async (player) => {
+    const modulePromises = moduleNames.map(async (moduleName, index) => {
       try {
-        return await getTokenHoldersWithBalancesForPlayer(player.moduleName, player.id);
+        console.log(`[DEBUG] Processing module ${index + 1}/${moduleNames.length}: ${moduleName}`);
+        return await getTokenHoldersWithBalancesForPlayer(moduleName, (index + 1).toString());
       } catch (error) {
-        console.error(`Failed to fetch data for player ${player.name} (${player.moduleName}):`, error);
+        console.error(`[ERROR] Failed to fetch data for module ${moduleName}:`, error);
         return [];
       }
     });
 
-    const results = await Promise.allSettled(playerPromises);
+    console.log(`[DEBUG] Waiting for all module promises to resolve...`);
+    const results = await Promise.allSettled(modulePromises);
+    
+    console.log(`[DEBUG] Module promises resolved. Processing results...`);
     
     // Combine all results
     const allHolders = results
@@ -212,11 +395,17 @@ export async function getTokenHoldersWithBalances(): Promise<TokenHolderBalance[
       )
       .flatMap(result => result.value);
 
-    console.log(`Successfully processed ${allHolders.length} total token holders across all modules`);
+    console.log(`[DEBUG] Successfully processed ${allHolders.length} total token holders across all modules`);
+    console.log(`[DEBUG] Summary by module:`, 
+      moduleNames.map((moduleName, index) => {
+        const moduleHolders = allHolders.filter(h => h.moduleName === moduleName);
+        return { moduleName, count: moduleHolders.length };
+      })
+    );
     
     return allHolders;
   } catch (error) {
-    console.error('Error in getTokenHoldersWithBalances:', error);
+    console.error('[ERROR] Error in getTokenHoldersWithBalances:', error);
     throw new Error(`Failed to get token holders with balances: ${error}`);
   }
 }
@@ -256,6 +445,39 @@ export async function getPlayersWithModules() {
   } catch (error) {
     console.error('Error fetching players with modules:', error);
     throw new Error(`Failed to get players with modules: ${error}`);
+  }
+}
+
+/**
+ * Test function to debug balance fetching with a single module
+ * This helps isolate issues with specific modules
+ */
+export async function testSingleModuleBalance(moduleName: string, testAddress?: string): Promise<void> {
+  try {
+    console.log(`[TEST] Testing balance function for module: ${moduleName}`);
+    console.log(`[TEST] Contract address: ${CONTRACT_CONFIG.CONTRACT_ADDRESS}`);
+    
+    // First, try to get token holders
+    console.log(`[TEST] Step 1: Getting token holders for ${moduleName}`);
+    const holders = await getTokenHolders(moduleName);
+    console.log(`[TEST] Found ${holders.length} holders:`, holders);
+    
+    if (holders.length === 0) {
+      console.log(`[TEST] No holders found for ${moduleName}, skipping balance test`);
+      return;
+    }
+    
+    // Use provided test address or first holder
+    const addressToTest = testAddress || holders[0];
+    console.log(`[TEST] Step 2: Testing balance for address: ${addressToTest}`);
+    
+    const balance = await getTokenBalance(addressToTest, moduleName);
+    console.log(`[TEST] Balance result: ${balance.toString()}`);
+    
+    console.log(`[TEST] Test completed successfully for ${moduleName}`);
+  } catch (error) {
+    console.error(`[TEST] Error testing module ${moduleName}:`, error);
+    throw error;
   }
 }
 
