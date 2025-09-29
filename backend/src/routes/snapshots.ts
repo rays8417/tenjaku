@@ -1,6 +1,13 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
-import { createComprehensiveSnapshot, compareAptosWithDatabase, comparePrePostMatchSnapshots } from '../services/snapshotService';
+import { 
+  createContractSnapshot, 
+  getContractSnapshot, 
+  getTournamentSnapshots,
+  comparePrePostMatchSnapshots,
+  getUserHoldingsFromSnapshot,
+  calculateRewardEligibility
+} from '../services/contractSnapshotService';
 import { getTokenHoldersWithBalances } from '../services/aptosService';
 
 const prisma = new PrismaClient();
@@ -21,96 +28,17 @@ router.post('/create', async (req, res) => {
       return res.status(400).json({ error: 'Snapshot type must be PRE_MATCH or POST_MATCH' });
     }
 
-    let result;
-    
-    if (useAptosData) {
-      // Create comprehensive snapshot using Aptos contract data
-      result = await createComprehensiveSnapshot(
-        tournamentId,
-        snapshotType as 'PRE_MATCH' | 'POST_MATCH',
-        contractAddress
-      );
-    } else {
-      // Fallback to original database-only approach
-      const tournament = await prisma.tournament.findUnique({
-        where: { id: tournamentId }
-      });
-
-      if (!tournament) {
-        return res.status(404).json({ error: 'Tournament not found' });
-      }
-
-      const userHoldings = await prisma.userHolding.findMany({
-        include: {
-          user: {
-            select: {
-              id: true,
-              walletAddress: true,
-              displayName: true
-            }
-          },
-          player: {
-            select: {
-              id: true,
-              name: true,
-              team: true,
-              role: true,
-              tokenPrice: true
-            }
-          }
-        }
-      });
-
-      const snapshotData = {
-        tournamentId,
-        snapshotType,
-        timestamp: new Date().toISOString(),
-        totalUsers: userHoldings.length > 0 ? new Set(userHoldings.map(h => h.userId)).size : 0,
-        totalHoldings: userHoldings.length,
-        holdings: userHoldings.map(holding => ({
-          userId: holding.user.id,
-          walletAddress: holding.user.walletAddress,
-          displayName: holding.user.displayName,
-          playerId: holding.player.id,
-          playerName: holding.player.name,
-          playerTeam: holding.player.team,
-          playerRole: holding.player.role,
-          tokenAmount: holding.tokenAmount,
-          avgBuyPrice: holding.avgBuyPrice,
-          totalInvested: holding.totalInvested,
-          currentPrice: holding.player.tokenPrice,
-          currentValue: Number(holding.player.tokenPrice) * Number(holding.tokenAmount)
-        }))
-      };
-
-      const snapshot = await prisma.contractSnapshot.create({
-        data: {
-          contractType: 'AMM_CONTRACT',
-          contractAddress: contractAddress || '0x0000000000000000000000000000000000000000',
-          blockNumber: BigInt(0), // No block number for database-only snapshots
-          data: snapshotData as any // Type assertion for Prisma JSON field
-        }
-      });
-
-      result = {
-        snapshotId: snapshot.id,
-        tournamentId,
-        snapshotType,
-        blockNumber: '0',
-        contractAddress: contractAddress || '0x0000000000000000000000000000000000000000',
-        timestamp: snapshotData.timestamp,
-        totalUsers: snapshotData.totalUsers,
-        totalHoldings: snapshotData.totalHoldings,
-        aptosHolders: 0,
-        databaseHoldings: snapshotData.totalHoldings,
-        mergedHoldings: snapshotData.totalHoldings
-      };
-    }
+    // Create contract-only snapshot
+    const result = await createContractSnapshot(
+      tournamentId,
+      snapshotType as 'PRE_MATCH' | 'POST_MATCH',
+      contractAddress
+    );
 
     res.json({
       success: true,
-      snapshot: result,
-      message: useAptosData ? 'Snapshot created with Aptos contract data' : 'Snapshot created with database data only'
+      message: `${snapshotType} snapshot created successfully`,
+      snapshot: result
     });
   } catch (error) {
     console.error('Snapshot creation error:', error);
@@ -126,28 +54,19 @@ router.get('/tournament/:tournamentId', async (req, res) => {
   try {
     const { tournamentId } = req.params;
 
-    const snapshots = await prisma.contractSnapshot.findMany({
-      where: {
-        data: {
-          path: ['tournamentId'],
-          equals: tournamentId
-        }
-      },
-      orderBy: { createdAt: 'asc' }
-    });
+    const snapshots = await getTournamentSnapshots(tournamentId);
 
     res.json({
       success: true,
-      snapshots: snapshots.map((snapshot: any) => ({
-        id: snapshot.id,
-        tournamentId: snapshot.data.tournamentId,
-        snapshotType: snapshot.data.snapshotType,
-        blockNumber: snapshot.blockNumber.toString(),
+      snapshots: snapshots.map(snapshot => ({
+        tournamentId: snapshot.tournamentId,
+        snapshotType: snapshot.snapshotType,
+        timestamp: snapshot.timestamp,
+        blockNumber: snapshot.blockNumber,
         contractAddress: snapshot.contractAddress,
-        timestamp: snapshot.data.timestamp,
-        totalUsers: snapshot.data.totalUsers,
-        totalHoldings: snapshot.data.totalHoldings,
-        createdAt: snapshot.createdAt
+        totalHolders: snapshot.totalHolders,
+        totalTokens: snapshot.totalTokens,
+        uniqueAddresses: snapshot.uniqueAddresses
       }))
     });
   } catch (error) {
@@ -309,6 +228,70 @@ router.get('/user/:userId/holdings', async (req, res) => {
   }
 });
 
+// POST /api/snapshots/compare-pre-post - Compare pre and post match snapshots
+router.post('/compare-pre-post', async (req, res) => {
+  try {
+    const { tournamentId } = req.body;
+
+    if (!tournamentId) {
+      return res.status(400).json({ error: 'Tournament ID is required' });
+    }
+
+    const comparison = await comparePrePostMatchSnapshots(tournamentId);
+
+    res.json({
+      success: true,
+      comparison
+    });
+  } catch (error) {
+    console.error('Snapshot comparison error:', error);
+    res.status(500).json({ error: 'Failed to compare snapshots' });
+  }
+});
+
+// GET /api/snapshots/user/:address/holdings/:tournamentId - Get user holdings from snapshot
+router.get('/user/:address/holdings/:tournamentId', async (req, res) => {
+  try {
+    const { address, tournamentId } = req.params;
+    const { snapshotType = 'PRE_MATCH' } = req.query;
+
+    const holdings = await getUserHoldingsFromSnapshot(
+      tournamentId,
+      snapshotType as 'PRE_MATCH' | 'POST_MATCH',
+      address
+    );
+
+    res.json({
+      success: true,
+      holdings
+    });
+  } catch (error) {
+    console.error('User holdings error:', error);
+    res.status(500).json({ error: 'Failed to fetch user holdings' });
+  }
+});
+
+// POST /api/snapshots/validate-eligibility - Validate reward eligibility
+router.post('/validate-eligibility', async (req, res) => {
+  try {
+    const { tournamentId, address } = req.body;
+
+    if (!tournamentId || !address) {
+      return res.status(400).json({ error: 'Tournament ID and address are required' });
+    }
+
+    const eligibility = await calculateRewardEligibility(tournamentId, address);
+
+    res.json({
+      success: true,
+      eligibility
+    });
+  } catch (error) {
+    console.error('Eligibility validation error:', error);
+    res.status(500).json({ error: 'Failed to validate eligibility' });
+  }
+});
+
 // POST /api/snapshots/compare - Compare two snapshots
 router.post('/compare', async (req, res) => {
   try {
@@ -428,20 +411,20 @@ router.post('/compare-aptos', async (req, res) => {
     // Get Aptos token holders
     const aptosHolders = await getTokenHoldersWithBalances();
     
-    // Compare with database
-    const comparison = await compareAptosWithDatabase(aptosHolders);
-    
     res.json({
       success: true,
       comparison: {
         summary: {
           totalAptosHolders: aptosHolders.length,
-          aptosOnlyHolders: comparison.aptosOnlyHolders.length,
-          databaseOnlyHolders: comparison.databaseOnlyHolders.length,
-          matchingHolders: comparison.matchingHolders.length,
-          discrepancies: comparison.discrepancies.length
+          message: 'Contract-only approach - no database comparison needed'
         },
-        details: comparison
+        details: {
+          holders: aptosHolders.map(h => ({
+            address: h.address,
+            balance: h.balance.toString(),
+            moduleName: h.moduleName
+          }))
+        }
       }
     });
   } catch (error) {
@@ -593,33 +576,9 @@ router.post('/compare-pre-post', async (req, res) => {
     res.json({
       success: true,
       comparison: {
-        tournamentId: comparison.tournamentId,
-        preMatchSnapshotId: comparison.preMatchSnapshotId,
-        postMatchSnapshotId: comparison.postMatchSnapshotId,
-        preMatchBlock: comparison.preMatchBlock,
-        postMatchBlock: comparison.postMatchBlock,
-        timeSpanMs: comparison.timeSpan,
-        timeSpanHours: Math.round(comparison.timeSpan / (1000 * 60 * 60) * 100) / 100,
-        
-        summary: comparison.summary,
-        
-        playerChanges: Array.from(comparison.playerChanges.values()),
-        
-        rewardEligibility: comparison.rewardEligibility,
-        totalEligibleUsers: comparison.rewardEligibility.length,
-        
-        userChanges: comparison.userChanges.map(user => ({
-          userId: user.userId,
-          walletAddress: user.walletAddress,
-          displayName: user.displayName,
-          preMatchValue: user.preMatch.totalValue,
-          postMatchValue: user.postMatch.totalValue,
-          valueChange: user.changes.valueChange,
-          tradingActivity: user.changes.tradingActivity,
-          isEligible: user.eligibility.isEligible,
-          eligibilityReasons: user.eligibility.reasons,
-          maintainedHoldings: user.eligibility.maintainedHoldings
-        }))
+        preMatch: comparison.preMatch,
+        postMatch: comparison.postMatch,
+        comparison: comparison.comparison
       }
     });
   } catch (error) {
