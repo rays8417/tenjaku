@@ -15,18 +15,7 @@ router.get("/", async (req, res) => {
     const tournaments = await prisma.tournament.findMany({
       where: whereClause,
       include: {
-        teams: {
-          select: {
-            id: true,
-            teamName: true,
-            user: {
-              select: {
-                displayName: true,
-                walletAddress: true,
-              },
-            },
-          },
-        },
+       
         rewardPools: {
           select: {
             id: true,
@@ -35,11 +24,7 @@ router.get("/", async (req, res) => {
             distributedAmount: true,
           },
         },
-        _count: {
-          select: {
-            teams: true,
-          },
-        },
+      
       },
       orderBy: { matchDate: "desc" },
       take: Number(limit),
@@ -79,55 +64,13 @@ router.get("/:id", async (req, res) => {
     const tournament = await prisma.tournament.findUnique({
       where: { id },
       include: {
-        teams: {
-          include: {
-            user: {
-              select: {
-                displayName: true,
-                walletAddress: true,
-              },
-            },
-            scores: true,
-            players: {
-              include: {
-                player: true,
-              },
-            },
-          },
-        },
+       
         rewardPools: {
           include: {
-            rewards: {
-              include: {
-                userTeam: {
-                  include: {
-                    user: {
-                      select: {
-                        displayName: true,
-                        walletAddress: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
+            rewards: true,
           },
         },
-        leaderboard: {
-          include: {
-            userTeam: {
-              include: {
-                user: {
-                  select: {
-                    displayName: true,
-                    walletAddress: true,
-                  },
-                },
-              },
-            },
-          },
-          orderBy: { rank: "asc" },
-        },
+       
         playerScores: {
           include: {
             player: true,
@@ -154,10 +97,6 @@ router.get("/:id", async (req, res) => {
         entryFee: tournament.entryFee,
         maxParticipants: tournament.maxParticipants,
         currentParticipants: tournament.currentParticipants,
-        teams: tournament.teams,
-        rewardPools: tournament.rewardPools,
-        leaderboard: tournament.leaderboard,
-        playerScores: tournament.playerScores,
         createdAt: tournament.createdAt,
       },
     });
@@ -167,45 +106,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// GET /api/tournaments/:id/leaderboard - Get tournament leaderboard
-router.get("/:id/leaderboard", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { limit = 50 } = req.query;
 
-    const leaderboard = await prisma.leaderboardEntry.findMany({
-      where: { tournamentId: id },
-      include: {
-        userTeam: {
-          include: {
-            user: {
-              select: {
-                displayName: true,
-                walletAddress: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: { rank: "asc" },
-      take: Number(limit),
-    });
-
-    res.json({
-      success: true,
-      leaderboard: leaderboard.map((entry: any) => ({
-        rank: entry.rank,
-        totalScore: entry.totalScore,
-        matchesPlayed: entry.matchesPlayed,
-        teamName: entry.userTeam.teamName,
-        user: entry.userTeam.user,
-      })),
-    });
-  } catch (error) {
-    console.error("Leaderboard fetch error:", error);
-    res.status(500).json({ error: "Failed to fetch leaderboard" });
-  }
-});
 
 // GET /api/tournaments/:id/players - Get available players for tournament
 router.get("/:id/players", async (req, res) => {

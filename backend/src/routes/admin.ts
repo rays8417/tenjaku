@@ -122,24 +122,14 @@ router.delete("/tournaments/:id", async (req, res) => {
     // Check if tournament has participants
     const tournament = await prisma.tournament.findUnique({
       where: { id },
-      include: {
-        _count: {
-          select: {
-            teams: true,
-          },
-        },
-      },
+      
     });
 
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
 
-    if (tournament._count.teams > 0) {
-      return res
-        .status(400)
-        .json({ error: "Cannot delete tournament with participants" });
-    }
+  
 
     await prisma.tournament.delete({
       where: { id },
@@ -227,39 +217,25 @@ router.put("/players/:id", async (req, res) => {
 router.get("/stats", async (req, res) => {
   try {
     const [
-      totalUsers,
       totalTournaments,
-      totalTeams,
       totalRewards,
       activeTournaments,
       completedTournaments,
-      totalEarnings,
-      totalSpent,
     ] = await Promise.all([
-      prisma.user.count(),
       prisma.tournament.count(),
-      prisma.userTeam.count(),
       prisma.userReward.count(),
       prisma.tournament.count({ where: { status: "ONGOING" } }),
       prisma.tournament.count({ where: { status: "COMPLETED" } }),
-      prisma.user.aggregate({ _sum: { totalEarnings: true } }),
-      prisma.user.aggregate({ _sum: { totalSpent: true } }),
     ]);
 
     const stats = {
-      users: {
-        total: totalUsers,
-        totalEarnings: totalEarnings._sum.totalEarnings || 0,
-        totalSpent: totalSpent._sum.totalSpent || 0,
-      },
+     
       tournaments: {
         total: totalTournaments,
         active: activeTournaments,
         completed: completedTournaments,
       },
-      teams: {
-        total: totalTeams,
-      },
+     
       rewards: {
         total: totalRewards,
       },
@@ -285,12 +261,7 @@ router.get("/tournaments", async (req, res) => {
     const tournaments = await prisma.tournament.findMany({
       where: whereClause,
       include: {
-        _count: {
-          select: {
-            teams: true,
-            rewardPools: true,
-          },
-        },
+       
         rewardPools: {
           select: {
             id: true,
@@ -332,43 +303,6 @@ router.get("/tournaments", async (req, res) => {
   }
 });
 
-// GET /api/admin/users - Get all users (Admin only)
-router.get("/users", async (req, res) => {
-  try {
-    const { limit = 50, offset = 0 } = req.query;
 
-    const users = await prisma.user.findMany({
-      include: {
-        _count: {
-          select: {
-            teams: true,
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-      take: Number(limit),
-      skip: Number(offset),
-    });
-
-    res.json({
-      success: true,
-      users: users.map((user: any) => ({
-        id: user.id,
-        walletAddress: user.walletAddress,
-        displayName: user.displayName,
-        avatar: user.avatar,
-        totalEarnings: user.totalEarnings,
-        totalSpent: user.totalSpent,
-        joinDate: user.joinDate,
-        lastActive: user.lastActive,
-        isActive: user.isActive,
-        teamCount: user._count.teams,
-      })),
-    });
-  } catch (error) {
-    console.error("Admin users fetch error:", error);
-    res.status(500).json({ error: "Failed to fetch users" });
-  }
-});
 
 export default router;

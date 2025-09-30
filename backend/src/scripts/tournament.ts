@@ -377,47 +377,13 @@ async function cleanupTournaments(keepTournamentId?: string) {
       console.log(`   Deleting: ${tournament.name} (${tournament.id})`);
       
       // Delete related data first (due to foreign key constraints)
-      await prisma.userReward.deleteMany({
-        where: {
-          userTeam: {
-            tournamentId: tournament.id
-          }
-        }
-      });
-
-      await prisma.userScore.deleteMany({
-        where: { tournamentId: tournament.id }
-      });
-
-      await prisma.leaderboardEntry.deleteMany({
-        where: { tournamentId: tournament.id }
-      });
+    
 
       await prisma.playerScore.deleteMany({
         where: { tournamentId: tournament.id }
       });
 
       await prisma.rewardPool.deleteMany({
-        where: { tournamentId: tournament.id }
-      });
-
-      await prisma.matchSnapshot.deleteMany({
-        where: { tournamentId: tournament.id }
-      });
-
-      await prisma.tournamentEntry.deleteMany({
-        where: { tournamentId: tournament.id }
-      });
-
-      await prisma.userTeamPlayer.deleteMany({
-        where: {
-          userTeam: {
-            tournamentId: tournament.id
-          }
-        }
-      });
-
-      await prisma.userTeam.deleteMany({
         where: { tournamentId: tournament.id }
       });
 

@@ -25,60 +25,60 @@ const REWARD_CONFIG = {
 /**
  * Calculate proportional rewards based on user scores and token holdings
  */
-async function calculateProportionalRewards(tournamentId: string, totalRewardAmount: number) {
-  try {
-    console.log(`Calculating proportional rewards for tournament ${tournamentId}...`);
+// async function calculateProportionalRewards(tournamentId: string, totalRewardAmount: number) {
+//   try {
+//     console.log(`Calculating proportional rewards for tournament ${tournamentId}...`);
     
-    // Get user scores from the tournament
-    const userScores = await prisma.userScore.findMany({
-      where: { tournamentId },
-      include: {
-        userTeam: {
-          include: {
-            user: true
-          }
-        }
-      },
-      orderBy: { totalScore: 'desc' }
-    });
+//     // Get user scores from the tournament
+//     const userScores = await prisma.userScore.findMany({
+//       where: { tournamentId },
+//       include: {
+//         userTeam: {
+//           include: {
+//             user: true
+//           }
+//         }
+//       },
+//       orderBy: { totalScore: 'desc' }
+//     });
 
-    if (userScores.length === 0) {
-      throw new Error('No user scores found for tournament');
-    }
+//     if (userScores.length === 0) {
+//       throw new Error('No user scores found for tournament');
+//     }
 
-    // Calculate total score for proportional distribution
-    const totalScore = userScores.reduce((sum, score) => sum + Number(score.totalScore), 0);
+//     // Calculate total score for proportional distribution
+//     const totalScore = userScores.reduce((sum, score) => sum + Number(score.totalScore), 0);
     
-    if (totalScore === 0) {
-      throw new Error('Total score is zero - cannot distribute rewards proportionally');
-    }
+//     if (totalScore === 0) {
+//       throw new Error('Total score is zero - cannot distribute rewards proportionally');
+//     }
 
-    // Calculate rewards for each user
-    const rewardCalculations = userScores.map((userScore, index) => {
-      const scorePercentage = Number(userScore.totalScore) / totalScore;
-      const rewardAmount = totalRewardAmount * scorePercentage;
+//     // Calculate rewards for each user
+//     const rewardCalculations = userScores.map((userScore, index) => {
+//       const scorePercentage = Number(userScore.totalScore) / totalScore;
+//       const rewardAmount = totalRewardAmount * scorePercentage;
       
-      return {
-        rank: index + 1,
-        userId: userScore.userTeam.userId,
-        userTeamId: userScore.userTeamId,
-        walletAddress: userScore.userTeam.user.walletAddress,
-        displayName: userScore.userTeam.user.displayName,
-        totalScore: Number(userScore.totalScore),
-        scorePercentage: scorePercentage * 100,
-        rewardAmount: rewardAmount,
-        teamName: userScore.userTeam.teamName
-      };
-    });
+//       return {
+//         rank: index + 1,
+//         userId: userScore.userTeam.userId,
+//         userTeamId: userScore.userTeamId,
+//         walletAddress: userScore.userTeam.user.walletAddress,
+//         displayName: userScore.userTeam.user.displayName,
+//         totalScore: Number(userScore.totalScore),
+//         scorePercentage: scorePercentage * 100,
+//         rewardAmount: rewardAmount,
+//         teamName: userScore.userTeam.teamName
+//       };
+//     });
 
-    console.log(`Calculated rewards for ${rewardCalculations.length} users`);
-    return rewardCalculations;
+//     console.log(`Calculated rewards for ${rewardCalculations.length} users`);
+//     return rewardCalculations;
     
-  } catch (error) {
-    console.error('Error calculating proportional rewards:', error);
-    throw new Error(`Failed to calculate proportional rewards: ${error}`);
-  }
-}
+//   } catch (error) {
+//     console.error('Error calculating proportional rewards:', error);
+//     throw new Error(`Failed to calculate proportional rewards: ${error}`);
+//   }
+// }
 
 /**
  * Transfer APT tokens to user accounts using real Aptos SDK
@@ -218,30 +218,45 @@ router.post("/distribute-contract-based", async (req, res) => {
     // Step 2: Transfer rewards to users via Aptos
     const transferResults = await transferRewardsToUsers(rewardDistribution.rewardCalculations);
 
-    // Step 3: Store reward records in database
-    const rewardRecords = [];
-    for (const result of transferResults) {
-      if (result.status === 'success') {
-        // Create a simple reward record with address instead of userTeamId
-        const rewardRecord = {
-          id: `reward_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          address: result.address,
-          rank: result.rank,
-          amount: result.rewardAmount,
-          status: 'COMPLETED',
-          aptosTransactionId: result.transactionId,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
-        rewardRecords.push(rewardRecord);
-      }
-    }
-
     // Calculate summary statistics
     const successfulTransfers = transferResults.filter(r => r.status === 'success');
     const failedTransfers = transferResults.filter(r => r.status === 'failed');
     const skippedTransfers = transferResults.filter(r => r.status === 'skipped');
     const totalDistributed = successfulTransfers.reduce((sum, r) => sum + r.rewardAmount, 0);
+
+    // Step 3: Create reward pool and store reward records in database
+    const rewardPool = await prisma.rewardPool.create({
+      data: {
+        tournamentId,
+        name: `Tournament ${tournamentId} Rewards`,
+        totalAmount: totalRewardAmount,
+        distributedAmount: totalDistributed,
+        distributionType: 'PERCENTAGE',
+        distributionRules: {
+          type: 'snapshot_based',
+          totalUsers: transferResults.length,
+          successfulTransfers: successfulTransfers.length
+        }
+      }
+    });
+
+    // Store individual reward records
+    const rewardRecords = [];
+    for (const result of transferResults) {
+      if (result.status === 'success') {
+        const userReward = await prisma.userReward.create({
+          data: {
+            address: result.address,
+            rewardPoolId: rewardPool.id,
+            rank: result.rank,
+            amount: result.rewardAmount,
+            status: 'COMPLETED',
+            aptosTransactionId: result.transactionId
+          }
+        });
+        rewardRecords.push(userReward);
+      }
+    }
 
     console.log(`Reward distribution completed:`);
     console.log(`- Successful: ${successfulTransfers.length}`);
@@ -424,18 +439,7 @@ router.get("/tournament/:tournamentId", async (req, res) => {
       where: { tournamentId },
       include: {
         rewards: {
-          include: {
-            userTeam: {
-              include: {
-                user: {
-                  select: {
-                    displayName: true,
-                    walletAddress: true,
-                  },
-                },
-              },
-            },
-          },
+         
           orderBy: { rank: "asc" },
         },
       },
@@ -452,12 +456,14 @@ router.get("/tournament/:tournamentId", async (req, res) => {
         distributionRules: pool.distributionRules,
         rewards: pool.rewards.map((reward: any) => ({
           id: reward.id,
+          address: reward.address,
           rank: reward.rank,
           amount: reward.amount,
           percentage: reward.percentage,
           status: reward.status,
-          user: reward.userTeam.user,
-          teamName: reward.userTeam.teamName,
+          aptosTransactionId: reward.aptosTransactionId,
+          createdAt: reward.createdAt,
+          updatedAt: reward.updatedAt,
         })),
       })),
     });
@@ -467,136 +473,12 @@ router.get("/tournament/:tournamentId", async (req, res) => {
   }
 });
 
-// POST /api/rewards/distribute - Distribute rewards based on leaderboard
+// POST /api/rewards/distribute - Legacy endpoint (use distribute-contract-based instead)
 router.post("/distribute", async (req, res) => {
-  try {
-    const { tournamentId, rewardPoolId } = req.body;
-
-    if (!tournamentId || !rewardPoolId) {
-      return res
-        .status(400)
-        .json({ error: "Tournament ID and Reward Pool ID are required" });
-    }
-
-    // Get reward pool
-    const rewardPool = await prisma.rewardPool.findUnique({
-      where: { id: rewardPoolId },
-    });
-
-    if (!rewardPool) {
-      return res.status(404).json({ error: "Reward pool not found" });
-    }
-
-    // Get leaderboard
-    const leaderboard = await prisma.leaderboardEntry.findMany({
-      where: { tournamentId },
-      include: {
-        userTeam: {
-          include: {
-            user: true,
-          },
-        },
-      },
-      orderBy: { rank: "asc" },
-    });
-
-    if (leaderboard.length === 0) {
-      return res
-        .status(400)
-        .json({ error: "No participants found for reward distribution" });
-    }
-
-    // Parse distribution rules
-    const distributionRules = rewardPool.distributionRules as any;
-    const totalAmount = Number(rewardPool.totalAmount);
-    const distributedRewards = [];
-
-    // Distribute rewards based on rules
-    for (const rule of distributionRules.rules) {
-      const { rank, percentage } = rule;
-      const rewardAmount = (totalAmount * percentage) / 100;
-
-      if (typeof rank === "number") {
-        // Single rank
-        const leaderboardEntry = leaderboard.find(
-          (entry: any) => entry.rank === rank
-        );
-        if (leaderboardEntry) {
-          const userReward = await prisma.userReward.create({
-            data: {
-              userTeamId: leaderboardEntry.userTeamId,
-              rewardPoolId,
-              rank,
-              amount: rewardAmount,
-              percentage,
-              status: "PENDING",
-            },
-          });
-
-          distributedRewards.push({
-            rank,
-            amount: rewardAmount,
-            percentage,
-            user: leaderboardEntry.userTeam.user,
-            teamName: leaderboardEntry.userTeam.teamName,
-          });
-        }
-      } else if (typeof rank === "string" && rank.includes("-")) {
-        // Rank range (e.g., "4-10")
-        const [startRank, endRank] = rank.split("-").map(Number);
-        const eligibleEntries = leaderboard.filter(
-          (entry: any) => entry.rank >= startRank! && entry.rank <= endRank!
-        );
-
-        if (eligibleEntries.length > 0) {
-          const amountPerUser = rewardAmount / eligibleEntries.length;
-
-          for (const entry of eligibleEntries) {
-            const userReward = await prisma.userReward.create({
-              data: {
-                userTeamId: entry.userTeamId,
-                rewardPoolId,
-                rank: entry.rank,
-                amount: amountPerUser,
-                percentage: percentage / eligibleEntries.length,
-                status: "PENDING",
-              },
-            });
-
-            distributedRewards.push({
-              rank: entry.rank,
-              amount: amountPerUser,
-              percentage: percentage / eligibleEntries.length,
-              user: entry.userTeam.user,
-              teamName: entry.userTeam.teamName,
-            });
-          }
-        }
-      }
-    }
-
-    // Update reward pool distributed amount
-    const totalDistributed = distributedRewards.reduce(
-      (sum, reward) => sum + reward.amount,
-      0
-    );
-    await prisma.rewardPool.update({
-      where: { id: rewardPoolId },
-      data: {
-        distributedAmount: totalDistributed,
-      },
-    });
-
-    res.json({
-      success: true,
-      message: "Rewards distributed successfully",
-      totalDistributed,
-      rewards: distributedRewards,
-    });
-  } catch (error) {
-    console.error("Reward distribution error:", error);
-    res.status(500).json({ error: "Failed to distribute rewards" });
-  }
+  res.status(410).json({ 
+    error: "This endpoint is deprecated. Use /api/rewards/distribute-contract-based instead.",
+    message: "The old leaderboard-based distribution has been replaced with contract-based snapshot distribution."
+  });
 });
 
 // POST /api/rewards/process/:rewardId - Process individual reward (Admin only)
@@ -608,11 +490,6 @@ router.post("/process/:rewardId", async (req, res) => {
     const reward = await prisma.userReward.findUnique({
       where: { id: rewardId },
       include: {
-        userTeam: {
-          include: {
-            user: true,
-          },
-        },
         rewardPool: true,
       },
     });
@@ -626,27 +503,12 @@ router.post("/process/:rewardId", async (req, res) => {
     }
 
     // Update reward status
-    const updatedReward = await prisma.$transaction(async (tx: any) => {
-      // Update reward
-      const updatedReward = await tx.userReward.update({
-        where: { id: rewardId },
-        data: {
-          status: "PROCESSING",
-          aptosTransactionId: aptosTransactionId || null,
-        },
-      });
-
-      // Update user total earnings
-      await tx.user.update({
-        where: { id: reward.userTeam.user.id },
-        data: {
-          totalEarnings: {
-            increment: reward.amount,
-          },
-        },
-      });
-
-      return updatedReward;
+    const updatedReward = await prisma.userReward.update({
+      where: { id: rewardId },
+      data: {
+        status: "PROCESSING",
+        aptosTransactionId: aptosTransactionId || null,
+      },
     });
 
     res.json({
@@ -708,11 +570,7 @@ router.get("/user/:walletAddress", async (req, res) => {
     const { status } = req.query;
 
     const whereClause: any = {
-      userTeam: {
-        user: {
-          walletAddress,
-        },
-      },
+      address: walletAddress,
     };
 
     if (status) {
@@ -722,7 +580,7 @@ router.get("/user/:walletAddress", async (req, res) => {
     const rewards = await prisma.userReward.findMany({
       where: whereClause,
       include: {
-        userTeam: {
+        rewardPool: {
           include: {
             tournament: {
               select: {
@@ -733,12 +591,6 @@ router.get("/user/:walletAddress", async (req, res) => {
                 team2: true,
               },
             },
-          },
-        },
-        rewardPool: {
-          select: {
-            name: true,
-            distributionType: true,
           },
         },
       },
@@ -754,7 +606,7 @@ router.get("/user/:walletAddress", async (req, res) => {
         percentage: reward.percentage,
         status: reward.status,
         aptosTransactionId: reward.aptosTransactionId,
-        tournament: reward.userTeam.tournament,
+        tournament: reward.rewardPool.tournament,
         rewardPool: reward.rewardPool,
         createdAt: reward.createdAt,
       })),

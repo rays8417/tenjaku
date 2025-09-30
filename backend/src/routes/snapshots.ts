@@ -436,74 +436,7 @@ router.post('/compare-aptos', async (req, res) => {
   }
 });
 
-// POST /api/snapshots/sync-aptos - Sync Aptos holders to database (creates new users if needed)
-router.post('/sync-aptos', async (req, res) => {
-  try {
-    const { createMissingUsers = false } = req.body;
-    
-    console.log('Syncing Aptos holders with database...');
-    
-    // Get Aptos token holders
-    const aptosHolders = await getTokenHoldersWithBalances();
-    
-    // Get existing users
-    const walletAddresses = aptosHolders.map(holder => holder.address);
-    const existingUsers = await prisma.user.findMany({
-      where: {
-        walletAddress: {
-          in: walletAddresses
-        }
-      }
-    });
 
-    const existingWallets = new Set(existingUsers.map(user => user.walletAddress));
-    const missingWallets = walletAddresses.filter(addr => !existingWallets.has(addr));
-
-    let createdUsers: any[] = [];
-    
-    if (createMissingUsers && missingWallets.length > 0) {
-      console.log(`Creating ${missingWallets.length} new users...`);
-      
-      const newUsers = await Promise.all(
-        missingWallets.map(async (walletAddress) => {
-          return await prisma.user.create({
-            data: {
-              walletAddress,
-              displayName: `User_${walletAddress.slice(-6)}`, // Temporary display name
-              isActive: true
-            }
-          });
-        })
-      );
-      
-      createdUsers = newUsers;
-    }
-
-    const syncResult = {
-      totalAptosHolders: aptosHolders.length,
-      existingUsers: existingUsers.length,
-      missingWallets: missingWallets.length,
-      createdUsers: createdUsers.length,
-      createdUserDetails: createdUsers.map(user => ({
-        id: user.id,
-        walletAddress: user.walletAddress,
-        displayName: user.displayName
-      }))
-    };
-
-    res.json({
-      success: true,
-      sync: syncResult,
-      message: `Sync completed. ${createdUsers.length} users created.`
-    });
-  } catch (error) {
-    console.error('Aptos sync error:', error);
-    res.status(500).json({ 
-      error: 'Failed to sync Aptos holders with database',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
 
 // GET /api/snapshots/aptos-holders - Get current Aptos token holders
 router.get('/aptos-holders', async (req, res) => {

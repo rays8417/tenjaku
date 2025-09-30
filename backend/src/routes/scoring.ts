@@ -170,79 +170,7 @@ router.post("/calculate-user-scores", async (req, res) => {
   }
 });
 
-// POST /api/scoring/update-leaderboard - Update tournament leaderboard
-router.post("/update-leaderboard", async (req, res) => {
-  try {
-    const { tournamentId } = req.body;
 
-    if (!tournamentId) {
-      return res.status(400).json({ error: "Tournament ID is required" });
-    }
-
-    // Get all user scores for this tournament
-    const userScores = await prisma.userScore.findMany({
-      where: { tournamentId },
-      include: {
-        userTeam: {
-          include: {
-            user: {
-              select: {
-                displayName: true,
-                walletAddress: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: { totalScore: "desc" },
-    });
-
-    // Update leaderboard entries
-    const leaderboardEntries = [];
-
-    for (let i = 0; i < userScores.length; i++) {
-      const userScore = userScores[i];
-      const rank = i + 1;
-
-      const leaderboardEntry = await prisma.leaderboardEntry.upsert({
-        where: {
-          tournamentId_userTeamId: {
-            tournamentId,
-            userTeamId: userScore.userTeamId,
-          },
-        },
-        update: {
-          totalScore: userScore.totalScore,
-          rank,
-          matchesPlayed: 1, // Since it's one match per tournament
-        },
-        create: {
-          tournamentId,
-          userTeamId: userScore.userTeamId,
-          totalScore: userScore.totalScore,
-          rank,
-          matchesPlayed: 1,
-        },
-      });
-
-      leaderboardEntries.push({
-        rank: leaderboardEntry.rank,
-        teamName: userScore.userTeam.teamName,
-        user: userScore.userTeam.user,
-        totalScore: leaderboardEntry.totalScore,
-      });
-    }
-
-    res.json({
-      success: true,
-      message: "Leaderboard updated successfully",
-      leaderboard: leaderboardEntries,
-    });
-  } catch (error) {
-    console.error("Leaderboard update error:", error);
-    res.status(500).json({ error: "Failed to update leaderboard" });
-  }
-});
 
 // GET /api/scoring/tournament/:tournamentId/scores - Get all scores for a tournament
 router.get("/tournament/:tournamentId/scores", async (req, res) => {
@@ -257,21 +185,7 @@ router.get("/tournament/:tournamentId/scores", async (req, res) => {
             player: true,
           },
         },
-        userScores: {
-          include: {
-            userTeam: {
-              include: {
-                user: {
-                  select: {
-                    displayName: true,
-                    walletAddress: true,
-                  },
-                },
-              },
-            },
-          },
-          orderBy: { totalScore: "desc" },
-        },
+       
       },
     });
 
@@ -298,13 +212,7 @@ router.get("/tournament/:tournamentId/scores", async (req, res) => {
           runOuts: ps.runOuts,
           fantasyPoints: ps.fantasyPoints,
         })),
-        userScores: tournament.userScores.map((us: any) => ({
-          teamName: us.userTeam.teamName,
-          user: us.userTeam.user,
-          totalScore: us.totalScore,
-          captainMultiplier: us.captainMultiplier,
-          viceCaptainMultiplier: us.viceCaptainMultiplier,
-        })),
+       
       },
     });
   } catch (error) {
