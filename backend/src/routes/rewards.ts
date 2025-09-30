@@ -2,6 +2,12 @@ import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { aptos, CONTRACT_CONFIG } from "../services/aptosService";
 import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Account } from "@aptos-labs/ts-sdk";
+import { 
+  calculateRewardsFromSnapshots, 
+  getRewardEligibility, 
+  getRewardSummary,
+  RewardCalculation
+} from "../services/rewardCalculationService";
 
 const prisma = new PrismaClient();
 
@@ -110,7 +116,7 @@ async function transferRewardsToUsers(rewardCalculations: any[]) {
       try {
         // Skip if reward amount is too small
         if (reward.rewardAmount < REWARD_CONFIG.MIN_REWARD_AMOUNT) {
-          console.log(`Skipping ${reward.walletAddress} - reward too small: ${reward.rewardAmount}`);
+          console.log(`Skipping ${reward.address} - reward too small: ${reward.rewardAmount}`);
           transferResults.push({
             ...reward,
             status: 'skipped',
@@ -123,12 +129,12 @@ async function transferRewardsToUsers(rewardCalculations: any[]) {
         // Convert APT to octas (1 APT = 100,000,000 octas)
         const amountInOctas = Math.floor(reward.rewardAmount * 100000000);
         
-        console.log(`Transferring ${reward.rewardAmount} APT (${amountInOctas} octas) to ${reward.walletAddress}...`);
+        console.log(`Transferring ${reward.rewardAmount} APT (${amountInOctas} octas) to ${reward.address}...`);
         
         // Create transfer transaction
         const transferTransaction = await aptos.transferCoinTransaction({
           sender: adminAccountAddress.toString(),
-          recipient: reward.walletAddress,
+          recipient: reward.address,
           amount: amountInOctas,
           coinType: REWARD_CONFIG.APTOS_COIN_TYPE as `${string}::${string}::${string}`,
         });
@@ -206,20 +212,20 @@ router.post("/distribute-contract-based", async (req, res) => {
     console.log(`Starting contract-based reward distribution for tournament ${tournamentId}...`);
     console.log(`Total reward amount: ${totalRewardAmount} APT`);
 
-    // Step 1: Calculate proportional rewards based on user scores
-    const rewardCalculations = await calculateProportionalRewards(tournamentId, totalRewardAmount);
+    // Step 1: Calculate rewards based on snapshot data
+    const rewardDistribution = await calculateRewardsFromSnapshots(tournamentId, totalRewardAmount);
 
     // Step 2: Transfer rewards to users via Aptos
-    const transferResults = await transferRewardsToUsers(rewardCalculations);
+    const transferResults = await transferRewardsToUsers(rewardDistribution.rewardCalculations);
 
     // Step 3: Store reward records in database
     const rewardRecords = [];
     for (const result of transferResults) {
       if (result.status === 'success') {
-        // Create a simple reward record without foreign key constraints
+        // Create a simple reward record with address instead of userTeamId
         const rewardRecord = {
           id: `reward_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          userTeamId: result.userTeamId,
+          address: result.address,
           rank: result.rank,
           amount: result.rewardAmount,
           status: 'COMPLETED',
@@ -756,6 +762,121 @@ router.get("/user/:walletAddress", async (req, res) => {
   } catch (error) {
     console.error("User rewards fetch error:", error);
     res.status(500).json({ error: "Failed to fetch user rewards" });
+  }
+});
+
+// POST /api/rewards/calculate-snapshot-based - Calculate rewards using snapshot data (no distribution)
+router.post("/calculate-snapshot-based", async (req, res) => {
+  try {
+    const { tournamentId, totalRewardAmount } = req.body;
+
+    if (!tournamentId || !totalRewardAmount) {
+      return res.status(400).json({ 
+        error: "Tournament ID and total reward amount are required" 
+      });
+    }
+
+    // Validate tournament exists
+    const tournament = await prisma.tournament.findUnique({
+      where: { id: tournamentId }
+    });
+
+    if (!tournament) {
+      return res.status(404).json({ error: "Tournament not found" });
+    }
+
+    console.log(`Calculating snapshot-based rewards for tournament ${tournamentId}...`);
+
+    // Calculate rewards based on snapshot data
+    const rewardDistribution = await calculateRewardsFromSnapshots(tournamentId, totalRewardAmount);
+
+    res.json({
+      success: true,
+      message: "Reward calculation completed successfully",
+      rewardDistribution
+    });
+  } catch (error) {
+    console.error('Snapshot-based reward calculation error:', error);
+    res.status(500).json({ 
+      error: 'Failed to calculate snapshot-based rewards',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// GET /api/rewards/eligibility/:tournamentId/:address - Check reward eligibility for an address
+router.get("/eligibility/:tournamentId/:address", async (req, res) => {
+  try {
+    const { tournamentId, address } = req.params;
+
+    if (!tournamentId || !address) {
+      return res.status(400).json({ 
+        error: "Tournament ID and address are required" 
+      });
+    }
+
+    // Validate tournament exists
+    const tournament = await prisma.tournament.findUnique({
+      where: { id: tournamentId }
+    });
+
+    if (!tournament) {
+      return res.status(404).json({ error: "Tournament not found" });
+    }
+
+    console.log(`Checking reward eligibility for ${address} in tournament ${tournamentId}...`);
+
+    // Get reward eligibility
+    const eligibility = await getRewardEligibility(tournamentId, address);
+
+    res.json({
+      success: true,
+      eligibility
+    });
+  } catch (error) {
+    console.error('Reward eligibility check error:', error);
+    res.status(500).json({ 
+      error: 'Failed to check reward eligibility',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// GET /api/rewards/summary/:tournamentId - Get reward summary for a tournament
+router.get("/summary/:tournamentId", async (req, res) => {
+  try {
+    const { tournamentId } = req.params;
+
+    if (!tournamentId) {
+      return res.status(400).json({ 
+        error: "Tournament ID is required" 
+      });
+    }
+
+    // Validate tournament exists
+    const tournament = await prisma.tournament.findUnique({
+      where: { id: tournamentId }
+    });
+
+    if (!tournament) {
+      return res.status(404).json({ error: "Tournament not found" });
+    }
+
+    console.log(`Getting reward summary for tournament ${tournamentId}...`);
+
+    // Get reward summary
+    const summary = await getRewardSummary(tournamentId);
+
+    res.json({
+      success: true,
+      summary
+    });
+  } catch (error) {
+    console.error('Reward summary error:', error);
+    res.status(500).json({ 
+      error: 'Failed to get reward summary',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 

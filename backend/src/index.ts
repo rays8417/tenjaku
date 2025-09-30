@@ -3,9 +3,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 
-import userRoutes from './routes/users';
+
 import tournamentRoutes from './routes/tournaments';
-import teamRoutes from './routes/teams';
+
 import scoringRoutes from './routes/scoring';
 import rewardRoutes from './routes/rewards';
 import adminRoutes from './routes/admin';
@@ -29,9 +29,7 @@ app.get("/health", (req, res) => {
 // Import route modules
 
 // Use routes
-app.use('/api/users', userRoutes);
 app.use('/api/tournaments', tournamentRoutes);
-app.use('/api/teams', teamRoutes);
 app.use('/api/scoring', scoringRoutes);
 app.use('/api/rewards', rewardRoutes);
 app.use('/api/admin', adminRoutes);
