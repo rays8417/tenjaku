@@ -3,6 +3,7 @@
 import { PrismaClient, TournamentStatus } from '@prisma/client';
 import { Command } from 'commander';
 import { createContractSnapshot, createSnapshotSummary } from '../services/contractSnapshotService';
+import { calculateRewardsFromSnapshots } from '../services/rewardCalculationService';
 
 const prisma = new PrismaClient();
 
@@ -142,25 +143,121 @@ async function endTournament(tournamentId: string) {
 }
 
 /**
- * Complete workflow: Take post-match snapshot and end tournament
+ * Calculate rewards for a tournament
  */
-async function endTournamentWithSnapshot(tournamentId: string) {
+async function calculateRewards(tournamentId: string, totalRewardAmount: number = 10) {
   try {
-    console.log(`\n🏁 ENDING TOURNAMENT WITH POST-MATCH SNAPSHOT`);
-    console.log('============================================');
-    console.log(`Tournament ID: ${tournamentId}\n`);
+    console.log(`\n💰 CALCULATING REWARDS`);
+    console.log('=====================');
+    console.log(`Tournament ID: ${tournamentId}`);
+    console.log(`Total Reward Amount: ${totalRewardAmount} APT\n`);
+
+    // Verify tournament exists
+    const tournament = await prisma.tournament.findUnique({
+      where: { id: tournamentId }
+    });
+
+    if (!tournament) {
+      throw new Error(`Tournament with ID ${tournamentId} not found`);
+    }
+
+    console.log(`✅ Tournament: ${tournament.name}`);
+    console.log(`   Teams: ${tournament.team1} vs ${tournament.team2}\n`);
+
+    // Calculate rewards based on snapshots
+    console.log('🔍 Calculating rewards based on snapshots...');
+    const rewardDistribution = await calculateRewardsFromSnapshots(tournamentId, totalRewardAmount);
+
+    console.log('\n📈 REWARD DISTRIBUTION RESULTS:');
+    console.log('===============================');
+    console.log(`Total Reward Pool: ${totalRewardAmount} APT`);
+    console.log(`Total Eligible Holders: ${rewardDistribution.totalEligibleHolders}`);
+    console.log(`Total Tokens: ${rewardDistribution.totalTokens}`);
+    console.log(`Total Distributed: ${rewardDistribution.summary.totalRewardsDistributed.toFixed(6)} APT\n`);
+
+    // Show detailed reward breakdown
+    console.log('🏆 DETAILED REWARD BREAKDOWN:');
+    console.log('=============================');
+    
+    // Sort by reward amount (descending)
+    const sortedRewards = rewardDistribution.rewardCalculations
+      .sort((a, b) => b.rewardAmount - a.rewardAmount);
+
+    // Show top 20 reward recipients
+    const topRewards = sortedRewards.slice(0, 20);
+    
+    topRewards.forEach((reward, index) => {
+      console.log(`\n${index + 1}. Address: ${reward.address}`);
+      console.log(`   Reward Amount: ${reward.rewardAmount.toFixed(6)} APT`);
+      console.log(`   Total Score: ${reward.totalScore.toFixed(2)}`);
+      console.log(`   Total Tokens: ${reward.totalTokens}`);
+      console.log(`   Eligibility: ${reward.eligibility.eligibilityPercentage.toFixed(1)}%`);
+      console.log(`   Holdings: ${reward.holdings.length} players`);
+      
+      // Show individual player holdings
+      if (reward.holdings.length > 0) {
+        console.log(`   Player Holdings:`);
+        reward.holdings.forEach((holding, hIndex) => {
+          const formattedBalance = (Number(holding.balance) / 1000000).toFixed(2);
+          console.log(`     ${hIndex + 1}. ${holding.moduleName}: ${formattedBalance} tokens (${holding.points.toFixed(2)} points)`);
+        });
+      }
+    });
+
+    // Show summary statistics
+    if (sortedRewards.length > 20) {
+      console.log(`\n... and ${sortedRewards.length - 20} more addresses`);
+    }
+
+    console.log('\n📊 REWARD STATISTICS:');
+    console.log('=====================');
+    const rewards = sortedRewards.map(r => r.rewardAmount);
+    const maxReward = Math.max(...rewards);
+    const minReward = Math.min(...rewards);
+    const medianReward = rewards.sort((a, b) => a - b)[Math.floor(rewards.length / 2)];
+    const totalDistributed = rewards.reduce((sum, r) => sum + r, 0);
+    
+    console.log(`Highest Reward: ${maxReward.toFixed(6)} APT`);
+    console.log(`Lowest Reward: ${minReward.toFixed(6)} APT`);
+    console.log(`Median Reward: ${medianReward.toFixed(6)} APT`);
+    console.log(`Average Reward: ${(totalDistributed / rewards.length).toFixed(6)} APT`);
+    console.log(`Reward Range: ${(maxReward - minReward).toFixed(6)} APT`);
+    console.log(`Total Distributed: ${totalDistributed.toFixed(6)} APT`);
+
+    return rewardDistribution;
+
+  } catch (error) {
+    console.error('❌ Error calculating rewards:', error);
+    throw error;
+  }
+}
+
+/**
+ * Complete workflow: Take post-match snapshot, calculate rewards, and end tournament
+ */
+async function endTournamentWithSnapshot(tournamentId: string, totalRewardAmount: number = 10) {
+  try {
+    console.log(`\n🏁 ENDING TOURNAMENT WITH POST-MATCH SNAPSHOT & REWARDS`);
+    console.log('=======================================================');
+    console.log(`Tournament ID: ${tournamentId}`);
+    console.log(`Total Reward Amount: ${totalRewardAmount} APT\n`);
 
     // Step 1: Take post-match snapshot
     console.log('📸 STEP 1: TAKING POST-MATCH SNAPSHOT');
     console.log('=====================================');
     const snapshot = await takePostMatchSnapshot(tournamentId);
 
-    // Step 2: End tournament
-    console.log('\n🏁 STEP 2: ENDING TOURNAMENT');
+    // Step 2: Calculate rewards
+    console.log('\n💰 STEP 2: CALCULATING REWARDS');
+    console.log('==============================');
+    const rewardDistribution = await calculateRewards(tournamentId, totalRewardAmount);
+
+    // Step 3: End tournament
+    console.log('\n🏁 STEP 3: ENDING TOURNAMENT');
     console.log('============================');
     const endedTournament = await endTournament(tournamentId);
 
-    // Step 3: Summary
+    // Step 4: Final Summary
     console.log('\n🎉 TOURNAMENT ENDED SUCCESSFULLY!');
     console.log('=================================');
     console.log(`Tournament ID: ${tournamentId}`);
@@ -170,18 +267,24 @@ async function endTournamentWithSnapshot(tournamentId: string) {
     console.log(`Ended at: ${endedTournament.updatedAt.toISOString()}`);
     
     if (snapshot) {
-      console.log(`Post-Match Snapshot: ${snapshot.snapshotId}`);
       console.log(`Snapshot Block: ${snapshot.blockNumber}`);
     }
 
+    console.log(`\n💰 REWARD SUMMARY:`);
+    console.log(`Total Reward Pool: ${totalRewardAmount} APT`);
+    console.log(`Eligible Holders: ${rewardDistribution.totalEligibleHolders}`);
+    console.log(`Total Distributed: ${rewardDistribution.summary.totalRewardsDistributed.toFixed(6)} APT`);
+
     console.log('\n✅ All Steps Completed:');
     console.log('   ✅ Post-match snapshot taken');
+    console.log('   ✅ Rewards calculated and displayed');
     console.log('   ✅ Tournament status updated to COMPLETED');
     console.log('   ✅ Tournament ended successfully\n');
 
     return {
       tournament: endedTournament,
-      snapshot: snapshot
+      snapshot: snapshot,
+      rewardDistribution: rewardDistribution
     };
 
   } catch (error) {
@@ -278,11 +381,13 @@ async function main() {
 
   program
     .command('end-with-snapshot')
-    .description('Take post-match snapshot and end tournament')
+    .description('Take post-match snapshot, calculate rewards, and end tournament')
     .argument('<tournament-id>', 'Tournament ID to end')
-    .action(async (tournamentId: string) => {
+    .option('-a, --amount <amount>', 'Total reward amount in APT', '10')
+    .action(async (tournamentId: string, options) => {
       try {
-        await endTournamentWithSnapshot(tournamentId);
+        const totalRewardAmount = parseFloat(options.amount) || 10;
+        await endTournamentWithSnapshot(tournamentId, totalRewardAmount);
       } catch (error) {
         console.error('Failed to end tournament with snapshot:', error);
         process.exit(1);
@@ -315,6 +420,23 @@ async function main() {
         await endTournament(tournamentId);
       } catch (error) {
         console.error('Failed to end tournament:', error);
+        process.exit(1);
+      } finally {
+        await prisma.$disconnect();
+      }
+    });
+
+  program
+    .command('calculate-rewards')
+    .description('Calculate rewards for a tournament')
+    .argument('<tournament-id>', 'Tournament ID to calculate rewards for')
+    .option('-a, --amount <amount>', 'Total reward amount in APT', '10')
+    .action(async (tournamentId: string, options) => {
+      try {
+        const totalRewardAmount = parseFloat(options.amount) || 10;
+        await calculateRewards(tournamentId, totalRewardAmount);
+      } catch (error) {
+        console.error('Failed to calculate rewards:', error);
         process.exit(1);
       } finally {
         await prisma.$disconnect();
@@ -368,5 +490,6 @@ export {
   endTournamentWithSnapshot,
   takePostMatchSnapshot,
   endTournament,
+  calculateRewards,
   getTournamentDetails
 };

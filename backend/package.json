@@ -32,6 +32,7 @@
     "end:with-snapshot": "ts-node src/scripts/end-tournament.ts end-with-snapshot",
     "end:snapshot-only": "ts-node src/scripts/end-tournament.ts snapshot-only",
     "end:end-only": "ts-node src/scripts/end-tournament.ts end-only",
+    "end:calculate-rewards": "ts-node src/scripts/end-tournament.ts calculate-rewards",
     "end:details": "ts-node src/scripts/end-tournament.ts details"
   },
   "keywords": [],

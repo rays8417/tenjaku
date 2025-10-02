@@ -15,7 +15,7 @@ declare global {
 
 // ===== CONFIGURATION =====
 // Initialize Aptos client for devnet
-const config = new AptosConfig({ network: Network.DEVNET });
+const config = new AptosConfig({ network: Network.TESTNET });
 const aptos = new Aptos(config);
 
 // TODO: Replace these placeholders with actual devnet deployed addresses
@@ -33,7 +33,7 @@ const ROUTER_ADDRESS =
 // - ${ROUTER_ADDRESS}::router::get_amount_in (get input needed for specific output - what we use for quotes)
 
 // API endpoint for fetching token pair prices
-const APTOS_FULLNODE_URL = "https://fullnode.devnet.aptoslabs.com/v1";
+const APTOS_FULLNODE_URL = "https://api.testnet.aptoslabs.com/v1";
 
 const BOSON_TOKEN = {
   name: "BOSON",

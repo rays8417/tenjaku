@@ -7,7 +7,7 @@ import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 
 // ===== CONFIGURATION =====
 // Initialize Aptos client for devnet
-const config = new AptosConfig({ network: Network.DEVNET });
+const config = new AptosConfig({ network: Network.TESTNET });
 const aptos = new Aptos(config);
 
 interface TokenPairReserve {
@@ -168,7 +168,7 @@ async function fetchTokenPairReserves(
 ): Promise<TokenPairReserve[]> {
   try {
     const response = await fetch(
-      `https://fullnode.devnet.aptoslabs.com/v1/accounts/0xaf230e3024e92da6a3a15f5a6a3f201c886891268717bf8a21157bb73a1c027b/resources`
+      `https://api.testnet.aptoslabs.com/v1/accounts/0xaf230e3024e92da6a3a15f5a6a3f201c886891268717bf8a21157bb73a1c027b/resources`
     );
     const data = await response.json();
 
