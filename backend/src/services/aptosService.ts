@@ -118,6 +118,22 @@ export async function getAllTokenHolders(): Promise<{ moduleName: string; holder
 }
 
 /**
+ * Get unified holder list sourced from Boson token module
+ */
+export async function getBosonTokenHolders(): Promise<string[]> {
+  try {
+    const bosonModule = 'Boson';
+    const holders = await getTokenHolders(bosonModule);
+    // Deduplicate in case contract returns duplicates
+    const unique = Array.from(new Set(holders.filter(Boolean)));
+    return unique;
+  } catch (error) {
+    console.error('[ERROR] Error fetching Boson token holders:', error);
+    return [];
+  }
+}
+
+/**
  * Get balance for a specific address from a specific player module
  * This calls the balance function in your contract
  */
@@ -330,44 +346,57 @@ export async function getTokenHoldersWithBalancesForPlayer(moduleName: string, p
  */
 export async function getTokenHoldersWithBalances(): Promise<TokenHolderBalance[]> {
   try {
-
-    
     const moduleNames = CONTRACT_CONFIG.MODULE_NAMES;
-    
     if (moduleNames.length === 0) {
       return [];
     }
 
-    
-    // Fetch data from all player modules in parallel
-    const modulePromises = moduleNames.map(async (moduleName, index) => {
-      try {
-        return await getTokenHoldersWithBalancesForPlayer(moduleName, (index + 1).toString());
-      } catch (error) {
-        console.error(`[ERROR] Failed to fetch data for module ${moduleName}:`, error);
-        return [];
-      }
-    });
+    // Step 1: Build the unified holder universe from Boson token
+    const bosonHolders = await getBosonTokenHolders();
+    if (bosonHolders.length === 0) {
+      return [];
+    }
 
-    const results = await Promise.allSettled(modulePromises);
-    
-    
-    // Combine all results
-    const allHolders = results
-      .filter((result): result is PromiseFulfilledResult<TokenHolderBalance[]> => 
-        result.status === 'fulfilled'
-      )
-      .flatMap(result => result.value);
+    // Step 2: For each holder, fetch balances across all modules
+    const balanceTasks: Promise<{
+      address: string;
+      moduleName: string;
+      playerId: string;
+      balance: bigint;
+    } | null>[] = [];
 
-    console.log(`[DEBUG] Successfully processed ${allHolders.length} total token holders across all modules`);
-    console.log(`[DEBUG] Summary by module:`, 
-      moduleNames.map((moduleName, index) => {
-        const moduleHolders = allHolders.filter(h => h.moduleName === moduleName);
-        return { moduleName, count: moduleHolders.length };
-      })
-    );
-    
-    return allHolders;
+    for (const address of bosonHolders) {
+      moduleNames.forEach((moduleName, index) => {
+        balanceTasks.push((async () => {
+          try {
+            const balance = await getTokenBalance(address, moduleName);
+            if (balance > 0n) {
+              return { address, moduleName, playerId: (index + 1).toString(), balance };
+            }
+            return null;
+          } catch (error) {
+            console.error(`[ERROR] Balance fetch failed for ${address} in ${moduleName}:`, error);
+            return null;
+          }
+        })());
+      });
+    }
+
+    const results = await Promise.allSettled(balanceTasks);
+
+    const balances: TokenHolderBalance[] = results
+      .filter((r): r is PromiseFulfilledResult<{ address: string; moduleName: string; playerId: string; balance: bigint } | null> => r.status === 'fulfilled')
+      .map(r => r.value)
+      .filter((v): v is { address: string; moduleName: string; playerId: string; balance: bigint } => !!v)
+      .map(v => ({
+        address: v.address,
+        balance: v.balance,
+        formattedBalance: v.balance.toString(),
+        playerId: v.playerId,
+        moduleName: v.moduleName,
+      }));
+
+    return balances;
   } catch (error) {
     console.error('[ERROR] Error in getTokenHoldersWithBalances:', error);
     throw new Error(`Failed to get token holders with balances: ${error}`);
