@@ -226,6 +226,57 @@ async function calculateRewards(tournamentId: string, totalRewardAmount: number 
     console.log(`Reward Range: ${(maxReward - minReward).toFixed(6)} BOSON`);
     console.log(`Total Distributed: ${totalDistributed.toFixed(6)} BOSON`);
 
+    // Save rewards to database
+    console.log('\n💾 SAVING REWARDS TO DATABASE');
+    console.log('=============================');
+    try {
+      // Create reward pool
+      const rewardPool = await prisma.rewardPool.create({
+        data: {
+          tournamentId,
+          name: `${tournament.name} - Rewards`,
+          totalAmount: totalRewardAmount,
+          distributedAmount: totalDistributed,
+          distributionType: 'PERCENTAGE',
+          distributionRules: {
+            type: 'snapshot_based',
+            totalEligibleHolders: rewardDistribution.totalEligibleHolders,
+            calculatedAt: new Date().toISOString()
+          }
+        }
+      });
+
+      console.log(`✅ Reward pool created: ${rewardPool.id}`);
+
+      // Save individual rewards
+      let savedCount = 0;
+      for (const reward of sortedRewards) {
+        await prisma.userReward.create({
+          data: {
+            rewardPoolId: rewardPool.id,
+            address: reward.address,
+            amount: reward.rewardAmount,
+            percentage: (reward.rewardAmount / totalRewardAmount) * 100,
+            status: 'COMPLETED',
+            metadata: {
+              totalScore: reward.totalScore,
+              totalTokens: reward.totalTokens,
+              eligibility: reward.eligibility,
+              holdings: reward.holdings
+            }
+          }
+        });
+        savedCount++;
+      }
+
+      console.log(`✅ Saved ${savedCount} reward records to database`);
+      console.log(`📊 Total rewards: ${totalDistributed.toFixed(6)} BOSON`);
+
+    } catch (dbError) {
+      console.error('❌ Error saving rewards to database:', dbError);
+      console.log('⚠️  Rewards calculated but not saved to database');
+    }
+
     return rewardDistribution;
 
   } catch (error) {

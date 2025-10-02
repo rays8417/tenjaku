@@ -5,11 +5,11 @@ import { PrismaClient } from '@prisma/client';
 
 
 import tournamentRoutes from './routes/tournaments';
-
 import scoringRoutes from './routes/scoring';
 import rewardRoutes from './routes/rewards';
 import adminRoutes from './routes/admin';
 import snapshotRoutes from './routes/snapshots';
+import userRewardsRoutes from './routes/user-rewards';
 
 // Load environment variables
 dotenv.config();
@@ -34,6 +34,7 @@ app.use('/api/scoring', scoringRoutes);
 app.use('/api/rewards', rewardRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/snapshots', snapshotRoutes);
+app.use('/api/user-rewards', userRewardsRoutes);
 
 // Error handling middleware
 app.use(

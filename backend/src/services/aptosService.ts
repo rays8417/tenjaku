@@ -271,8 +271,6 @@ export async function getTokenBalance(address: string, moduleName: string): Prom
  */
 export async function getTokenBalanceFromAllModules(address: string): Promise<{ moduleName: string; balance: bigint }[]> {
   try {
-
-    
     const results = await Promise.allSettled(
       CONTRACT_CONFIG.MODULE_NAMES.map(async (moduleName) => {
         try {
