@@ -2,7 +2,7 @@
 
 import { PrismaClient, TournamentStatus } from '@prisma/client';
 import { Command } from 'commander';
-import { createContractSnapshot } from '../services/contractSnapshotService';
+import { createContractSnapshot, createSnapshotSummary } from '../services/contractSnapshotService';
 
 const prisma = new PrismaClient();
 
@@ -151,6 +151,14 @@ async function createTournament(tournamentData: TournamentData, createSnapshot: 
         console.log(`   Block Number: ${snapshot.blockNumber}`);
         console.log(`   Total Holders: ${snapshot.totalHolders}`);
         console.log(`   Unique Addresses: ${snapshot.uniqueAddresses}`);
+        
+        // Get and display detailed snapshot summary
+        const snapshotData = await prisma.contractSnapshot.findUnique({
+          where: { id: snapshot.snapshotId }
+        });
+        if (snapshotData) {
+          console.log('\n' + createSnapshotSummary(snapshotData.data as any));
+        }
         console.log('');
       } catch (snapshotError) {
         console.error(`⚠️  Warning: Failed to create pre-match snapshot for tournament ${tournament.name}`);
@@ -631,6 +639,14 @@ async function updateScoresAndCreatePostMatchSnapshot(tournamentId: string) {
     console.log(`   Block Number: ${postMatchSnapshot.blockNumber}`);
     console.log(`   Total Holders: ${postMatchSnapshot.totalHolders}`);
     console.log(`   Unique Addresses: ${postMatchSnapshot.uniqueAddresses}`);
+    
+    // Get and display detailed snapshot summary
+    const snapshotData = await prisma.contractSnapshot.findUnique({
+      where: { id: postMatchSnapshot.snapshotId }
+    });
+    if (snapshotData) {
+      console.log('\n' + createSnapshotSummary(snapshotData.data as any));
+    }
 
     return postMatchSnapshot;
   } catch (error) {

@@ -160,7 +160,7 @@ async function transferRewardsToUsers(rewardCalculations: any[]) {
             ...reward,
             status: 'success',
             transactionId: committedTransaction.hash,
-            transactionUrl: `https://explorer.aptoslabs.com/txn/${committedTransaction.hash}?network=devnet`,
+            transactionUrl: `https://explorer.aptoslabs.com/txn/${committedTransaction.hash}?network=testnet`,
             gasUsed: transactionResult.gas_used,
             timestamp: new Date().toISOString()
           });

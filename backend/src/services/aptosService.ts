@@ -2,7 +2,7 @@ import { Aptos, AptosConfig, Network } from '@aptos-labs/ts-sdk';
 
 // Aptos SDK configuration
 const aptosConfig = new AptosConfig({
-  network: Network.DEVNET, // Change to MAINNET for production
+  network: Network.TESTNET, // Using testnet for development
 });
 
 export const aptos = new Aptos(aptosConfig);
@@ -61,6 +61,7 @@ export async function getTokenHolders(moduleName: string): Promise<string[]> {
       function: `${CONTRACT_CONFIG.CONTRACT_ADDRESS}::${moduleName}::${CONTRACT_CONFIG.GET_TOKEN_HOLDERS_FUNCTION}` as const,
       arguments: [], // Add any required arguments here
       type_arguments: [],
+      testnet: true,
     };
 
 
@@ -154,7 +155,7 @@ export async function getTokenBalance(address: string, moduleName: string): Prom
     let response;
     try {
       // Try using the REST API directly
-      const baseUrl = 'https://fullnode.devnet.aptoslabs.com';
+      const baseUrl = 'https://api.testnet.aptoslabs.com';
       const fetchResponse = await fetch(`${baseUrl}/v1/view`, {
         method: 'POST',
         headers: {

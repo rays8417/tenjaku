@@ -152,6 +152,81 @@ export async function createContractSnapshot(
       uniqueAddresses: statistics.uniqueAddresses
     });
 
+    // Enhanced logging: Show detailed holdings breakdown
+    console.log(`\n📊 DETAILED SNAPSHOT BREAKDOWN - ${snapshotType}`);
+    console.log('='.repeat(80));
+    console.log(`Tournament ID: ${tournamentId}`);
+    console.log(`Block Number: ${currentBlockNumber}`);
+    console.log(`Contract Address: ${snapshotData.contractAddress}`);
+    console.log(`Timestamp: ${snapshotData.timestamp}`);
+    console.log(`Total Unique Addresses: ${statistics.uniqueAddresses}`);
+    console.log(`Total Holdings: ${statistics.totalHolders}`);
+    console.log(`Total Tokens: ${statistics.totalTokens}`);
+    console.log('='.repeat(80));
+
+    // Group and display holdings by address
+    console.log('\n🏠 ADDRESS HOLDINGS BREAKDOWN:');
+    console.log('-'.repeat(80));
+    
+    // Sort holders by total token count (descending)
+    const sortedHolders = groupedHolders.sort((a, b) => {
+      const aTotal = a.holdings.reduce((sum, h) => sum + BigInt(h.balance), BigInt(0));
+      const bTotal = b.holdings.reduce((sum, h) => sum + BigInt(h.balance), BigInt(0));
+      return Number(bTotal - aTotal);
+    });
+
+    // Display top 20 holders with detailed breakdown
+    const topHolders = sortedHolders.slice(0, 20);
+    
+    topHolders.forEach((holder, index) => {
+      const totalTokens = holder.holdings.reduce((sum, h) => sum + BigInt(h.balance), BigInt(0));
+      const formattedTotal = (Number(totalTokens) / 1000000).toFixed(2); // Convert to readable format
+      
+      console.log(`\n${index + 1}. Address: ${holder.address}`);
+      console.log(`   Total Tokens: ${formattedTotal} (${totalTokens.toString()})`);
+      console.log(`   Holdings Count: ${holder.holdings.length}`);
+      
+      // Show individual holdings
+      holder.holdings.forEach((holding, hIndex) => {
+        const formattedBalance = (Number(holding.balance) / 1000000).toFixed(2);
+        console.log(`   ${hIndex + 1}. ${holding.moduleName}: ${formattedBalance} tokens (${holding.balance})`);
+      });
+    });
+
+    // Show summary statistics
+    if (sortedHolders.length > 20) {
+      console.log(`\n... and ${sortedHolders.length - 20} more addresses`);
+    }
+
+    // Show holdings distribution by player/module
+    console.log('\n🎯 HOLDINGS BY PLAYER/MODULE:');
+    console.log('-'.repeat(80));
+    
+    const moduleStats = new Map<string, { holders: number; totalTokens: bigint }>();
+    
+    groupedHolders.forEach(holder => {
+      holder.holdings.forEach(holding => {
+        const moduleName = holding.moduleName;
+        if (!moduleStats.has(moduleName)) {
+          moduleStats.set(moduleName, { holders: 0, totalTokens: BigInt(0) });
+        }
+        const stats = moduleStats.get(moduleName)!;
+        stats.holders++;
+        stats.totalTokens += BigInt(holding.balance);
+      });
+    });
+
+    // Sort modules by total tokens
+    const sortedModules = Array.from(moduleStats.entries())
+      .sort((a, b) => Number(b[1].totalTokens - a[1].totalTokens));
+
+    sortedModules.forEach(([moduleName, stats]) => {
+      const formattedTokens = (Number(stats.totalTokens) / 1000000).toFixed(2);
+      console.log(`   ${moduleName}: ${stats.holders} holders, ${formattedTokens} total tokens`);
+    });
+
+    console.log('\n' + '='.repeat(80));
+
     // Step 5: Store snapshot in database
     const snapshot = await prisma.contractSnapshot.create({
       data: {
@@ -281,6 +356,41 @@ export async function comparePrePostMatchSnapshots(tournamentId: string): Promis
 
     console.log(`[CONTRACT_SNAPSHOT] Comparison completed:`, comparison);
 
+    // Enhanced logging for snapshot comparison
+    console.log(`\n📈 SNAPSHOT COMPARISON RESULTS`);
+    console.log('='.repeat(80));
+    console.log(`Tournament ID: ${tournamentId}`);
+    console.log(`Pre-Match Block: ${preMatch.blockNumber}`);
+    console.log(`Post-Match Block: ${postMatch.blockNumber}`);
+    console.log('='.repeat(80));
+    
+    console.log('\n📊 SUMMARY CHANGES:');
+    console.log(`   Total Holders: ${preMatch.totalHolders} → ${postMatch.totalHolders} (${comparison.totalHoldersChange >= 0 ? '+' : ''}${comparison.totalHoldersChange})`);
+    console.log(`   Total Tokens: ${preMatch.totalTokens} → ${postMatch.totalTokens} (${comparison.totalTokensChange})`);
+    console.log(`   Unique Addresses: ${preMatch.uniqueAddresses} → ${postMatch.uniqueAddresses} (${comparison.uniqueAddressesChange >= 0 ? '+' : ''}${comparison.uniqueAddressesChange})`);
+    
+    if (comparison.newHolders.length > 0) {
+      console.log(`\n🆕 NEW ADDRESSES (${comparison.newHolders.length}):`);
+      comparison.newHolders.slice(0, 10).forEach((address, index) => {
+        console.log(`   ${index + 1}. ${address}`);
+      });
+      if (comparison.newHolders.length > 10) {
+        console.log(`   ... and ${comparison.newHolders.length - 10} more`);
+      }
+    }
+    
+    if (comparison.holdersWhoLeft.length > 0) {
+      console.log(`\n👋 ADDRESSES WHO LEFT (${comparison.holdersWhoLeft.length}):`);
+      comparison.holdersWhoLeft.slice(0, 10).forEach((address, index) => {
+        console.log(`   ${index + 1}. ${address}`);
+      });
+      if (comparison.holdersWhoLeft.length > 10) {
+        console.log(`   ... and ${comparison.holdersWhoLeft.length - 10} more`);
+      }
+    }
+    
+    console.log('\n' + '='.repeat(80));
+
     return {
       preMatch,
       postMatch,
@@ -313,6 +423,60 @@ export async function getUserHoldingsFromSnapshot(
     console.error('[CONTRACT_SNAPSHOT] Error getting user holdings:', error);
     throw new Error(`Failed to get user holdings: ${error}`);
   }
+}
+
+/**
+ * Create a readable summary of snapshot data
+ */
+export function createSnapshotSummary(snapshotData: ContractSnapshotData): string {
+  const lines: string[] = [];
+  
+  lines.push(`📊 SNAPSHOT SUMMARY - ${snapshotData.snapshotType}`);
+  lines.push('='.repeat(60));
+  lines.push(`Tournament: ${snapshotData.tournamentId}`);
+  lines.push(`Block: ${snapshotData.blockNumber}`);
+  lines.push(`Addresses: ${snapshotData.uniqueAddresses}`);
+  lines.push(`Total Holdings: ${snapshotData.totalHolders}`);
+  lines.push(`Total Tokens: ${snapshotData.totalTokens}`);
+  lines.push('='.repeat(60));
+  
+  // Top 5 holders
+  const sortedHolders = snapshotData.holders.sort((a, b) => {
+    const aTotal = a.holdings.reduce((sum, h) => sum + BigInt(h.balance), BigInt(0));
+    const bTotal = b.holdings.reduce((sum, h) => sum + BigInt(h.balance), BigInt(0));
+    return Number(bTotal - aTotal);
+  });
+  
+  lines.push('\n🏆 TOP 5 HOLDERS:');
+  sortedHolders.slice(0, 5).forEach((holder, index) => {
+    const totalTokens = holder.holdings.reduce((sum, h) => sum + BigInt(h.balance), BigInt(0));
+    const formattedTotal = (Number(totalTokens) / 1000000).toFixed(2);
+    lines.push(`${index + 1}. ${holder.address}: ${formattedTotal} tokens`);
+  });
+  
+  // Module distribution
+  const moduleStats = new Map<string, { holders: number; totalTokens: bigint }>();
+  snapshotData.holders.forEach(holder => {
+    holder.holdings.forEach(holding => {
+      const moduleName = holding.moduleName;
+      if (!moduleStats.has(moduleName)) {
+        moduleStats.set(moduleName, { holders: 0, totalTokens: BigInt(0) });
+      }
+      const stats = moduleStats.get(moduleName)!;
+      stats.holders++;
+      stats.totalTokens += BigInt(holding.balance);
+    });
+  });
+  
+  lines.push('\n🎯 BY PLAYER/MODULE:');
+  Array.from(moduleStats.entries())
+    .sort((a, b) => Number(b[1].totalTokens - a[1].totalTokens))
+    .forEach(([moduleName, stats]) => {
+      const formattedTokens = (Number(stats.totalTokens) / 1000000).toFixed(2);
+      lines.push(`   ${moduleName}: ${stats.holders} holders, ${formattedTokens} tokens`);
+    });
+  
+  return lines.join('\n');
 }
 
 /**
