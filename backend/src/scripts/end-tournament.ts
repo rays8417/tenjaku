@@ -1,9 +1,11 @@
 #!/usr/bin/env ts-node
 
-import { PrismaClient, TournamentStatus } from '@prisma/client';
+import { PrismaClient, TournamentStatus, ContractType } from '@prisma/client';
 import { Command } from 'commander';
 import { createContractSnapshot, createSnapshotSummary } from '../services/contractSnapshotService';
-import { calculateRewardsFromSnapshots } from '../services/rewardCalculationService';
+import { calculateRewardsFromSnapshots, RewardCalculation } from '../services/rewardCalculationService';
+import { aptos } from '../services/aptosService';
+import { Ed25519PrivateKey, Ed25519Account } from '@aptos-labs/ts-sdk';
 
 const prisma = new PrismaClient();
 
@@ -48,7 +50,7 @@ async function takePostMatchSnapshot(tournamentId: string) {
     const existingSnapshot = await prisma.contractSnapshot.findFirst({
       where: {
         data: { path: ['tournamentId'], equals: tournamentId },
-        contractType: 'POST_MATCH'
+        contractType: 'POST_MATCH' as ContractType
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -235,6 +237,125 @@ async function calculateRewards(tournamentId: string, totalRewardAmount: number 
 /**
  * Complete workflow: Take post-match snapshot, calculate rewards, and end tournament
  */
+async function distributeBosonRewards(rewardCalculations: RewardCalculation[], totalRewardAmount: number) {
+  try {
+    const BOSON_COIN_TYPE = process.env.BOSON_COIN_TYPE || '0xaf230e3024e92da6a3a15f5a6a3f201c886891268717bf8a21157bb73a1c027b::Boson::Boson';
+    const BOSON_DECIMALS = Number(process.env.BOSON_DECIMALS || 8);
+    const ADMIN_PRIVATE_KEY = process.env.ADMIN_PRIVATE_KEY;
+    const ADMIN_ACCOUNT_ADDRESS = process.env.ADMIN_ACCOUNT_ADDRESS;
+
+    if (!ADMIN_PRIVATE_KEY || !ADMIN_ACCOUNT_ADDRESS) {
+      throw new Error('ADMIN_PRIVATE_KEY and ADMIN_ACCOUNT_ADDRESS must be set in environment');
+    }
+
+    function hexToBytes(hex: string): Uint8Array {
+      const clean = hex.startsWith('0x') ? hex.slice(2) : hex;
+      if (clean.length % 2 !== 0) {
+        throw new Error('Invalid hex private key');
+      }
+      const out = new Uint8Array(clean.length / 2);
+      for (let i = 0; i < clean.length; i += 2) {
+        out[i / 2] = parseInt(clean.slice(i, i + 2), 16);
+      }
+      return out;
+    }
+
+    function parseAdminPrivateKey(raw: string): Uint8Array {
+      const trimmed = raw.trim();
+      // 1) comma-separated decimal bytes
+      if (trimmed.includes(',')) {
+        const parts = trimmed.split(',').map(v => parseInt(v.trim(), 10));
+        if (parts.some(n => Number.isNaN(n) || n < 0 || n > 255)) {
+          throw new Error('Invalid ADMIN_PRIVATE_KEY byte list');
+        }
+        let bytes = new Uint8Array(parts);
+        if (bytes.length === 64) {
+          bytes = bytes.slice(0, 32);
+        }
+        if (bytes.length !== 32) {
+          throw new Error(`Invalid ADMIN_PRIVATE_KEY length: ${bytes.length} bytes (expected 32)`);
+        }
+        return bytes;
+      }
+      // 2) hex (with or without 0x)
+      if (/^(0x)?[0-9a-fA-F]+$/.test(trimmed)) {
+        let bytes = hexToBytes(trimmed);
+        if (bytes.length === 64) {
+          bytes = bytes.slice(0, 32);
+        }
+        if (bytes.length !== 32) {
+          throw new Error(`Invalid hex private key length: ${bytes.length} bytes (expected 32 or 64)`);
+        }
+        return bytes;
+      }
+      // 3) base64
+      try {
+        const buf = Buffer.from(trimmed, 'base64');
+        let bytes = new Uint8Array(buf);
+        if (bytes.length === 64) {
+          bytes = bytes.slice(0, 32);
+        }
+        if (bytes.length !== 32) {
+          throw new Error(`Invalid base64 private key length: ${bytes.length} bytes (expected 32 or 64)`);
+        }
+        return bytes;
+      } catch (_e) {
+        // fallthrough
+      }
+      throw new Error('Unsupported ADMIN_PRIVATE_KEY format. Use comma-separated bytes, 0x-hex, or base64');
+    }
+
+    const privateKey = new Ed25519PrivateKey(parseAdminPrivateKey(ADMIN_PRIVATE_KEY));
+    const adminAccount = new Ed25519Account({ privateKey });
+
+    // Double-check derived address matches expected
+    const derivedAddress = adminAccount.accountAddress.toString();
+    if (derivedAddress !== ADMIN_ACCOUNT_ADDRESS) {
+      console.warn(`Admin address mismatch. Expected ${ADMIN_ACCOUNT_ADDRESS}, derived ${derivedAddress}`);
+    }
+
+    const multiplier = Math.pow(10, BOSON_DECIMALS);
+
+    console.log(`\n🚚 DISTRIBUTING ${totalRewardAmount} BOSON TO WINNERS (${BOSON_DECIMALS} decimals)`);
+
+    const results: { address: string; amount: number; hash?: string; status: 'success'|'failed'; error?: string }[] = [];
+
+    for (const reward of rewardCalculations) {
+      const amountInBaseUnits = Math.floor(reward.rewardAmount * multiplier);
+      if (amountInBaseUnits <= 0) {
+        results.push({ address: reward.address, amount: reward.rewardAmount, status: 'failed', error: 'Zero amount' });
+        continue;
+      }
+
+      try {
+        const transferTx = await aptos.transferCoinTransaction({
+          sender: ADMIN_ACCOUNT_ADDRESS,
+          recipient: reward.address,
+          amount: amountInBaseUnits,
+          coinType: BOSON_COIN_TYPE as `${string}::${string}::${string}`,
+        });
+
+        const committed = await aptos.signAndSubmitTransaction({ signer: adminAccount, transaction: transferTx });
+        await aptos.waitForTransaction({ transactionHash: committed.hash });
+        console.log(`✅ Sent ${reward.rewardAmount} BOSON to ${reward.address} (tx: ${committed.hash})`);
+        results.push({ address: reward.address, amount: reward.rewardAmount, status: 'success', hash: committed.hash });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error(`❌ Failed sending to ${reward.address}: ${message}`);
+        results.push({ address: reward.address, amount: reward.rewardAmount, status: 'failed', error: message });
+      }
+    }
+
+    const successes = results.filter(r => r.status === 'success').length;
+    const failures = results.filter(r => r.status === 'failed').length;
+    console.log(`\n📦 Distribution complete: ${successes} success, ${failures} failed`);
+    return results;
+  } catch (error) {
+    console.error('❌ Error during BOSON distribution:', error);
+    throw error;
+  }
+}
+
 async function endTournamentWithSnapshot(tournamentId: string, totalRewardAmount: number = 10) {
   try {
     console.log(`\n🏁 ENDING TOURNAMENT WITH POST-MATCH SNAPSHOT & REWARDS`);
@@ -252,12 +373,17 @@ async function endTournamentWithSnapshot(tournamentId: string, totalRewardAmount
     console.log('==============================');
     const rewardDistribution = await calculateRewards(tournamentId, totalRewardAmount);
 
-    // Step 3: End tournament
-    console.log('\n🏁 STEP 3: ENDING TOURNAMENT');
+    // Step 3: Distribute rewards on-chain
+    console.log('\n🚚 STEP 3: DISTRIBUTING BOSON REWARDS ON-CHAIN');
+    console.log('==============================================');
+    await distributeBosonRewards(rewardDistribution.rewardCalculations, totalRewardAmount);
+
+    // Step 4: End tournament
+    console.log('\n🏁 STEP 4: ENDING TOURNAMENT');
     console.log('============================');
     const endedTournament = await endTournament(tournamentId);
 
-    // Step 4: Final Summary
+    // Step 5: Final Summary
     console.log('\n🎉 TOURNAMENT ENDED SUCCESSFULLY!');
     console.log('=================================');
     console.log(`Tournament ID: ${tournamentId}`);
