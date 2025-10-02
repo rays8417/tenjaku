@@ -6,6 +6,20 @@ import {
   ContractSnapshotData,
   ContractHolder
 } from './contractSnapshotService';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+function parseIgnoredAddresses(): Set<string> {
+  const raw = process.env.IGNORED_HOLDER_ADDRESSES;
+  if (!raw) return new Set();
+  return new Set(
+    raw
+      .split(',')
+      .map(v => v.trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
 
 const prisma = new PrismaClient();
 
@@ -134,7 +148,9 @@ export async function calculateRewardsFromSnapshots(
       throw new Error('Pre-match snapshot not found');
     }
 
-    console.log(`[REWARD_CALC] Pre-match snapshot: ${preMatchSnapshot.uniqueAddresses} addresses, ${preMatchSnapshot.totalHolders} holdings`);
+    const ignored = parseIgnoredAddresses();
+    const displayUnique = preMatchSnapshot.uniqueAddresses;
+    console.log(`[REWARD_CALC] Pre-match snapshot: ${displayUnique} addresses, ${preMatchSnapshot.totalHolders} holdings`);
 
     // Step 3: Calculate rewards for each holder
     console.log('[REWARD_CALC] Calculating rewards for each holder...');
@@ -142,6 +158,9 @@ export async function calculateRewardsFromSnapshots(
     let totalScore = 0;
 
     for (const holder of preMatchSnapshot.holders) {
+      if (ignored.has(holder.address.toLowerCase())) {
+        continue;
+      }
       try {
         // Calculate user score based on holdings
         const { totalScore: userScore, detailedScores } = calculateUserScore(

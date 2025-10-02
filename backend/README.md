@@ -26,10 +26,20 @@ npm install
 ```
 
 2. **Set up environment variables:**
-Create a `.env` file in the root directory:
+Create a `.env` file in the backend directory:
 ```env
+# Database
 DATABASE_URL="postgresql://username:password@localhost:5432/cricket_fantasy_db"
+
+# Server
 PORT=3000
+
+# Aptos
+APTOS_CONTRACT_ADDRESS=0xYOUR_CONTRACT_ADDRESS_HERE
+
+# Ignore list for holder addresses (comma-separated only)
+# Example:
+IGNORED_HOLDER_ADDRESSES=0x11111111111111111111111111111111,0x22222222222222222222222222222222
 ```
 
 3. **Set up database:**

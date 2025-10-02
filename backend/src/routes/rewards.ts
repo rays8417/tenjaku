@@ -1,4 +1,5 @@
 import express from "express";
+import dotenv from 'dotenv';
 import { PrismaClient, ContractType } from "@prisma/client";
 import { aptos, CONTRACT_CONFIG } from "../services/aptosService";
 import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Account } from "@aptos-labs/ts-sdk";
@@ -9,7 +10,19 @@ import {
   RewardCalculation
 } from "../services/rewardCalculationService";
 
+dotenv.config();
 const prisma = new PrismaClient();
+
+function parseIgnoredAddresses(): Set<string> {
+  const raw = process.env.IGNORED_HOLDER_ADDRESSES;
+  if (!raw) return new Set();
+  return new Set(
+    raw
+      .split(',')
+      .map(v => v.trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
 
 const router = express.Router();
 
@@ -777,6 +790,10 @@ router.post("/calculate-simple", async (req, res) => {
     }
 
     const snapshotData = postMatchSnapshot.data as any;
+    const ignored = parseIgnoredAddresses();
+    if (ignored.size > 0) {
+      snapshotData.holders = snapshotData.holders.filter((h: any) => !ignored.has(String(h.address).toLowerCase()));
+    }
     console.log(`[SIMPLE_REWARDS] Found ${snapshotData.holders.length} holders in post-match snapshot`);
 
     // Step 2: Get player performance scores

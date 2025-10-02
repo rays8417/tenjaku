@@ -1,5 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { getTokenHoldersWithBalances, getCurrentBlockNumber, TokenHolderBalance } from './aptosService';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const prisma = new PrismaClient();
 
@@ -71,6 +74,17 @@ function groupHoldersByAddress(aptosHolders: TokenHolderBalance[]): ContractHold
   return groupedHolders;
 }
 
+function parseIgnoredAddresses(): Set<string> {
+  const raw = process.env.IGNORED_HOLDER_ADDRESSES;
+  if (!raw) return new Set();
+  return new Set(
+    raw
+      .split(',')
+      .map(v => v.trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
+
 /**
  * Calculate statistics from grouped holders
  */
@@ -118,13 +132,19 @@ export async function createContractSnapshot(
     // Step 1: Get Aptos contract data
     console.log('[CONTRACT_SNAPSHOT] Fetching data from Aptos contract...');
     const aptosHolders = await getTokenHoldersWithBalances();
+    const ignored = parseIgnoredAddresses();
+    const filteredAptosHolders = aptosHolders.filter(h => !ignored.has(h.address.toLowerCase()));
     const currentBlockNumber = await getCurrentBlockNumber();
 
     console.log(`[CONTRACT_SNAPSHOT] Found ${aptosHolders.length} token holders from contract`);
+    if (ignored.size > 0) {
+      console.log(`[CONTRACT_SNAPSHOT] Ignoring ${ignored.size} address(es) via IGNORED_HOLDER_ADDRESSES`);
+      console.log(`[CONTRACT_SNAPSHOT] Holders after ignore filter: ${filteredAptosHolders.length}`);
+    }
 
     // Step 2: Group holders by address
     console.log('[CONTRACT_SNAPSHOT] Grouping holders by address...');
-    const groupedHolders = groupHoldersByAddress(aptosHolders);
+    const groupedHolders = groupHoldersByAddress(filteredAptosHolders);
 
     // Step 3: Calculate statistics
     const statistics = calculateStatistics(groupedHolders);

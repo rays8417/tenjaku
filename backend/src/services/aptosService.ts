@@ -1,4 +1,8 @@
 import { Aptos, AptosConfig, Network } from '@aptos-labs/ts-sdk';
+import dotenv from 'dotenv';
+
+// Ensure environment variables are loaded for both server and scripts
+dotenv.config();
 
 // Aptos SDK configuration
 const aptosConfig = new AptosConfig({
@@ -36,6 +40,20 @@ export const CONTRACT_CONFIG = {
   DEFAULT_MODULE_NAME: 'AbhishekSharma',
 };
 
+// Build a normalized ignore-set from env
+function parseIgnoredAddressesFromEnv(): Set<string> {
+  const raw = process.env.IGNORED_HOLDER_ADDRESSES;
+  if (!raw) return new Set();
+  // Only comma-separated values are supported
+  const tokens = raw
+    .split(',')
+    .map(v => v.trim().toLowerCase())
+    .filter(Boolean);
+  return new Set(tokens);
+}
+
+const IGNORED_ADDRESS_SET = parseIgnoredAddressesFromEnv();
+
 export interface TokenHolder {
   address: string;
   balance: string;
@@ -72,9 +90,13 @@ export async function getTokenHolders(moduleName: string): Promise<string[]> {
 
     // The response format depends on your contract's return type
     // Assuming it returns an array of addresses
-    const holders = response[0] as string[];
-    
-    return holders;
+    const holders = (response[0] as string[]) || [];
+    // Filter ignored addresses (case-insensitive)
+    const filtered = holders.filter(addr => {
+      if (!addr) return false;
+      return !IGNORED_ADDRESS_SET.has(addr.toLowerCase());
+    });
+    return filtered;
   } catch (error) {
     console.error(`[ERROR] Error fetching token holders from ${moduleName}:`, error);
     throw new Error(`Failed to fetch token holders from ${moduleName}: ${error}`);
