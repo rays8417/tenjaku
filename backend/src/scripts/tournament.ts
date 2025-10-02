@@ -16,6 +16,7 @@ interface TournamentData {
   status: TournamentStatus;
   entryFee: number;
   maxParticipants?: number;
+  matchId?: number;
 }
 
 interface PlayerScoreData {
@@ -38,14 +39,15 @@ interface ScoresUpdateData {
 // Sample tournament data
 const sampleTournaments: TournamentData[] = [
     {
-        "name": "India vs England - T20 World Cup",
-        "description": "Semi-final match between India and Australia",
-        "matchDate": new Date("2024-03-15T19:00:00Z"),
+        "name": "India vs Pakistan - Asia Cup 2025",
+        "description": "final match between India and Australia",
+        "matchDate": new Date("2025-09-28T19:30:00.000Z"),
         "team1": "India",
-        "team2": "Australia", 
-        "venue": "Melbourne Cricket Ground",
+        "team2": "Pakistan", 
+        "venue": "Dubai International Cricket Stadium",
         "entryFee": 0,
-        "status": TournamentStatus.ONGOING
+        "status": TournamentStatus.ONGOING,
+        "matchId": 130179
 
       }
 ];

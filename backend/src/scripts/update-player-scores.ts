@@ -2,6 +2,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import { Command } from 'commander';
+import { parseScorecard } from '../services/cricketApiService';
 
 const prisma = new PrismaClient();
 
@@ -339,6 +340,95 @@ async function main() {
         await updatePlayerScores(tournamentId);
       } catch (error) {
         console.error('Failed to update player scores:', error);
+        process.exit(1);
+      } finally {
+        await prisma.$disconnect();
+      }
+    });
+
+  program
+    .command('fetch-from-api')
+    .description('Fetch and update player scores from Cricket API')
+    .argument('<tournament-id>', 'Tournament ID to update scores for')
+    .argument('<match-id>', 'Cricket match ID from Cricbuzz')
+    .action(async (tournamentId: string, matchId: string) => {
+      try {
+        const matchIdNum = parseInt(matchId);
+        if (isNaN(matchIdNum)) {
+          throw new Error('Invalid match ID. Must be a number.');
+        }
+        
+        console.log(`\n🏏 FETCHING SCORES FROM CRICKET API`);
+        console.log('===================================');
+        console.log(`Tournament ID: ${tournamentId}`);
+        console.log(`Match ID: ${matchIdNum}\n`);
+        
+        // Fetch scores from API
+        const playerScores = await parseScorecard(matchIdNum);
+        
+        if (playerScores.length === 0) {
+          console.log('⚠️  No player scores found from API');
+          return;
+        }
+        
+        // Update tournament with these scores
+        console.log(`\n💾 Updating database with ${playerScores.length} player scores...`);
+        
+        // Calculate fantasy points for each player
+        const scoresWithPoints = playerScores.map(player => ({
+          ...player,
+          fantasyPoints: calculateFantasyPoints(player)
+        }));
+        
+        // Update database
+        for (const playerScore of scoresWithPoints) {
+          await prisma.playerScore.upsert({
+            where: {
+              tournamentId_moduleName: {
+                tournamentId: tournamentId,
+                moduleName: playerScore.moduleName
+              }
+            },
+            update: {
+              runs: playerScore.runs,
+              ballsFaced: playerScore.ballsFaced,
+              wickets: playerScore.wickets,
+              oversBowled: playerScore.oversBowled,
+              runsConceded: playerScore.runsConceded,
+              catches: playerScore.catches,
+              stumpings: playerScore.stumpings,
+              runOuts: playerScore.runOuts,
+              fantasyPoints: playerScore.fantasyPoints
+            },
+            create: {
+              tournamentId: tournamentId,
+              moduleName: playerScore.moduleName,
+              runs: playerScore.runs,
+              ballsFaced: playerScore.ballsFaced,
+              wickets: playerScore.wickets,
+              oversBowled: playerScore.oversBowled,
+              runsConceded: playerScore.runsConceded,
+              catches: playerScore.catches,
+              stumpings: playerScore.stumpings,
+              runOuts: playerScore.runOuts,
+              fantasyPoints: playerScore.fantasyPoints
+            }
+          });
+        }
+        
+        console.log(`✅ Successfully updated ${scoresWithPoints.length} player scores!`);
+        console.log(`\n📊 FANTASY POINTS SUMMARY:`);
+        console.log('==========================');
+        
+        // Sort by fantasy points
+        scoresWithPoints.sort((a, b) => b.fantasyPoints! - a.fantasyPoints!);
+        
+        scoresWithPoints.forEach((player, index) => {
+          console.log(`${index + 1}. ${player.moduleName}: ${player.fantasyPoints?.toFixed(2)} points`);
+        });
+        
+      } catch (error) {
+        console.error('Failed to fetch and update scores from API:', error);
         process.exit(1);
       } finally {
         await prisma.$disconnect();

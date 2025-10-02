@@ -29,6 +29,7 @@
     "tournament:help": "ts-node src/scripts/tournament.ts --help",
     "scores:update": "ts-node src/scripts/update-player-scores.ts update",
     "scores:get": "ts-node src/scripts/update-player-scores.ts get",
+    "scores:fetch-api": "ts-node src/scripts/update-player-scores.ts fetch-from-api",
     "end:with-snapshot": "ts-node src/scripts/end-tournament.ts end-with-snapshot",
     "end:snapshot-only": "ts-node src/scripts/end-tournament.ts snapshot-only",
     "end:end-only": "ts-node src/scripts/end-tournament.ts end-only",
