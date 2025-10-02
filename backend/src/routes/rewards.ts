@@ -32,8 +32,8 @@ const REWARD_CONFIG = {
   ADMIN_ACCOUNT_ADDRESS: process.env.ADMIN_ACCOUNT_ADDRESS, // Admin account address that holds rewards
   // BOSON coin type. Allow override via env; default to contract Boson coin type
   BOSON_COIN_TYPE: (process.env.BOSON_COIN_TYPE as string) || `${CONTRACT_CONFIG.CONTRACT_ADDRESS}::Boson::Boson`,
-  // BOSON decimals. Allow override via env; default 6 (matches app usage)
-  BOSON_DECIMALS: Number(process.env.BOSON_DECIMALS || 6),//TODO: Check this
+  // BOSON decimals. Allow override via env; default 8 (matches contract)
+  BOSON_DECIMALS: Number(process.env.BOSON_DECIMALS || 8),
   MIN_REWARD_AMOUNT: 0.001, // Minimum reward amount in BOSON to avoid dust
   GAS_LIMIT: 100000, // Gas limit for transactions
 };
@@ -829,7 +829,7 @@ router.post("/calculate-simple", async (req, res) => {
         if (playerScore) {
           // Simple calculation: token amount * player fantasy points
           const tokenAmount = BigInt(holding.balance);
-          const normalizedTokens = Number(tokenAmount) / 1000000; // Normalize to avoid overflow
+          const normalizedTokens = Number(tokenAmount) / 100000000; // Normalize to avoid overflow
           const points = normalizedTokens * Number(playerScore.fantasyPoints);
           
           userScore += points;
@@ -901,7 +901,7 @@ router.post("/calculate-simple", async (req, res) => {
       totalScore: reward.totalScore,
       playerHoldings: reward.holdings.map(holding => ({
         player: holding.moduleName,
-        tokensHeld: (BigInt(holding.tokenAmount) / BigInt(1000000)).toString(),
+        tokensHeld: (BigInt(holding.tokenAmount) / BigInt(100000000)).toString(),
         playerPerformance: holding.playerScore,
         contributionToScore: holding.points
       }))

@@ -139,7 +139,7 @@ router.post("/calculate-user-scores", async (req, res) => {
         if (playerScoreData) {
           // Calculate points based on token amount (proportional to holdings)
           const points = Number(playerScoreData.fantasyPoints);
-          const tokenRatio = Number(holder.balance) / 1000000; // Normalize token amount
+          const tokenRatio = Number(holder.balance) / 100000000; // Normalize token amount
           const weightedPoints = points * tokenRatio;
           
           totalScore += weightedPoints;

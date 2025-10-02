@@ -102,7 +102,7 @@ function calculateUserScore(
     if (playerScore) {
       // Calculate points based on token amount (proportional to holdings)
       const tokenAmount = BigInt(holding.balance);
-      const tokenRatio = Number(tokenAmount) / 1000000; // Normalize token amount
+      const tokenRatio = Number(tokenAmount) / 100000000; // Normalize token amount
       const weightedPoints = playerScore.fantasyPoints * tokenRatio;
       
       totalScore += weightedPoints;

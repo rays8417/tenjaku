@@ -200,7 +200,7 @@ export async function createContractSnapshot(
     
     topHolders.forEach((holder, index) => {
       const totalTokens = holder.holdings.reduce((sum, h) => sum + BigInt(h.balance), BigInt(0));
-      const formattedTotal = (Number(totalTokens) / 1000000).toFixed(2); // Convert to readable format
+      const formattedTotal = (Number(totalTokens) / 100000000).toFixed(2); // Convert to readable format
       
       console.log(`\n${index + 1}. Address: ${holder.address}`);
       console.log(`   Total Tokens: ${formattedTotal} (${totalTokens.toString()})`);
@@ -208,7 +208,7 @@ export async function createContractSnapshot(
       
       // Show individual holdings
       holder.holdings.forEach((holding, hIndex) => {
-        const formattedBalance = (Number(holding.balance) / 1000000).toFixed(2);
+        const formattedBalance = (Number(holding.balance) / 100000000).toFixed(2);
         console.log(`   ${hIndex + 1}. ${holding.moduleName}: ${formattedBalance} tokens (${holding.balance})`);
       });
     });
@@ -241,7 +241,7 @@ export async function createContractSnapshot(
       .sort((a, b) => Number(b[1].totalTokens - a[1].totalTokens));
 
     sortedModules.forEach(([moduleName, stats]) => {
-      const formattedTokens = (Number(stats.totalTokens) / 1000000).toFixed(2);
+      const formattedTokens = (Number(stats.totalTokens) / 100000000).toFixed(2);
       console.log(`   ${moduleName}: ${stats.holders} holders, ${formattedTokens} total tokens`);
     });
 
@@ -470,7 +470,7 @@ export function createSnapshotSummary(snapshotData: ContractSnapshotData): strin
   lines.push('\n🏆 TOP 5 HOLDERS:');
   sortedHolders.slice(0, 5).forEach((holder, index) => {
     const totalTokens = holder.holdings.reduce((sum, h) => sum + BigInt(h.balance), BigInt(0));
-    const formattedTotal = (Number(totalTokens) / 1000000).toFixed(2);
+    const formattedTotal = (Number(totalTokens) / 100000000).toFixed(2);
     lines.push(`${index + 1}. ${holder.address}: ${formattedTotal} tokens`);
   });
   
@@ -492,7 +492,7 @@ export function createSnapshotSummary(snapshotData: ContractSnapshotData): strin
   Array.from(moduleStats.entries())
     .sort((a, b) => Number(b[1].totalTokens - a[1].totalTokens))
     .forEach(([moduleName, stats]) => {
-      const formattedTokens = (Number(stats.totalTokens) / 1000000).toFixed(2);
+      const formattedTokens = (Number(stats.totalTokens) / 100000000).toFixed(2);
       lines.push(`   ${moduleName}: ${stats.holders} holders, ${formattedTokens} tokens`);
     });
   

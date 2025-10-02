@@ -198,7 +198,7 @@ async function calculateRewards(tournamentId: string, totalRewardAmount: number 
       if (reward.holdings.length > 0) {
         console.log(`   Player Holdings:`);
         reward.holdings.forEach((holding, hIndex) => {
-          const formattedBalance = (Number(holding.balance) / 1000000).toFixed(2);
+          const formattedBalance = (Number(holding.balance) / 100000000).toFixed(2);
           console.log(`     ${hIndex + 1}. ${holding.moduleName}: ${formattedBalance} tokens (${holding.points.toFixed(2)} points)`);
         });
       }
