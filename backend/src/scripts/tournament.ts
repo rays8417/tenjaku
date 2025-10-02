@@ -2,6 +2,7 @@
 
 import { PrismaClient, TournamentStatus } from '@prisma/client';
 import { Command } from 'commander';
+import { createContractSnapshot } from '../services/contractSnapshotService';
 
 const prisma = new PrismaClient();
 
@@ -111,7 +112,7 @@ const sampleScoresData: ScoresUpdateData = {
   ]
 };
 
-async function createTournament(tournamentData: TournamentData) {
+async function createTournament(tournamentData: TournamentData, createSnapshot: boolean = true) {
   try {
     console.log(`Creating tournament: ${tournamentData.name}`);
     
@@ -139,6 +140,25 @@ async function createTournament(tournamentData: TournamentData) {
     console.log(`   Entry Fee: ${tournament.entryFee} APT`);
     console.log(`   Max Participants: ${tournament.maxParticipants || 'Unlimited'}`);
     console.log('');
+
+    // Create pre-match snapshot if requested
+    if (createSnapshot) {
+      try {
+        console.log(`📸 Creating pre-match snapshot for tournament: ${tournament.name}`);
+        const snapshot = await createContractSnapshot(tournament.id, 'PRE_MATCH');
+        console.log(`✅ Pre-match snapshot created successfully!`);
+        console.log(`   Snapshot ID: ${snapshot.snapshotId}`);
+        console.log(`   Block Number: ${snapshot.blockNumber}`);
+        console.log(`   Total Holders: ${snapshot.totalHolders}`);
+        console.log(`   Unique Addresses: ${snapshot.uniqueAddresses}`);
+        console.log('');
+      } catch (snapshotError) {
+        console.error(`⚠️  Warning: Failed to create pre-match snapshot for tournament ${tournament.name}`);
+        console.error(snapshotError);
+        console.log('   Tournament was created successfully, but snapshot creation failed.');
+        console.log('');
+      }
+    }
 
     return tournament;
   } catch (error) {
@@ -194,7 +214,7 @@ async function createCustomTournament() {
       maxParticipants
     };
 
-    await createTournament(tournamentData);
+    await createTournament(tournamentData, true);
   } catch (error) {
     console.error('❌ Error in custom tournament creation:', error);
   } finally {
@@ -207,10 +227,10 @@ async function createSampleTournaments() {
   console.log('==============================\n');
 
   for (const tournamentData of sampleTournaments) {
-    await createTournament(tournamentData);
+    await createTournament(tournamentData, true);
   }
 
-  console.log(`✅ Created ${sampleTournaments.length} sample tournaments!`);
+  console.log(`✅ Created ${sampleTournaments.length} sample tournaments with pre-match snapshots!`);
 }
 
 async function listTournaments() {
@@ -590,6 +610,115 @@ async function updateSampleScores(tournamentId?: string) {
   }
 }
 
+async function updateScoresAndCreatePostMatchSnapshot(tournamentId: string) {
+  try {
+    console.log('\n🏆 Complete Tournament Workflow');
+    console.log('================================\n');
+    console.log(`Tournament ID: ${tournamentId}\n`);
+
+    // Step 1: Update player scores
+    console.log('📊 Step 1: Updating Player Scores');
+    console.log('----------------------------------');
+    const scoresData = { ...sampleScoresData, tournamentId };
+    await updatePlayerScores(scoresData);
+
+    // Step 2: Create post-match snapshot
+    console.log('\n📸 Step 2: Creating Post-Match Snapshot');
+    console.log('---------------------------------------');
+    const postMatchSnapshot = await createContractSnapshot(tournamentId, 'POST_MATCH');
+    console.log(`✅ Post-match snapshot created successfully!`);
+    console.log(`   Snapshot ID: ${postMatchSnapshot.snapshotId}`);
+    console.log(`   Block Number: ${postMatchSnapshot.blockNumber}`);
+    console.log(`   Total Holders: ${postMatchSnapshot.totalHolders}`);
+    console.log(`   Unique Addresses: ${postMatchSnapshot.uniqueAddresses}`);
+
+    return postMatchSnapshot;
+  } catch (error) {
+    console.error('❌ Error in complete tournament workflow:', error);
+    throw error;
+  }
+}
+
+async function calculateSimpleRewards(tournamentId: string, totalRewardAmount: number = 10) {
+  try {
+    console.log('\n💰 Step 3: Calculating Simple Rewards');
+    console.log('====================================');
+    console.log(`Tournament ID: ${tournamentId}`);
+    console.log(`Total Reward Amount: ${totalRewardAmount} APT\n`);
+
+    // Import the reward calculation service
+    const { calculateRewardsFromSnapshots } = await import('../services/rewardCalculationService');
+    
+    console.log('🔍 Calculating rewards based on snapshots...');
+    const rewardDistribution = await calculateRewardsFromSnapshots(tournamentId, totalRewardAmount);
+
+    console.log('\n📈 Reward Distribution Results:');
+    console.log('===============================');
+    console.log(`Total Reward Pool: ${totalRewardAmount} APT`);
+    console.log(`Total Eligible Holders: ${rewardDistribution.totalEligibleHolders}`);
+    console.log(`Total Tokens: ${rewardDistribution.totalTokens}`);
+    console.log(`Total Distributed: ${rewardDistribution.summary.totalRewardsDistributed.toFixed(6)} APT\n`);
+
+    console.log('🏆 Top 5 Reward Recipients:');
+    console.log('---------------------------');
+    const topRewards = rewardDistribution.rewardCalculations
+      .sort((a, b) => b.rewardAmount - a.rewardAmount)
+      .slice(0, 5);
+
+    topRewards.forEach((reward, index) => {
+      console.log(`${index + 1}. Address: ${reward.address}`);
+      console.log(`   Reward: ${reward.rewardAmount.toFixed(6)} APT`);
+      console.log(`   Score: ${reward.totalScore.toFixed(2)}`);
+      console.log(`   Tokens: ${reward.totalTokens}`);
+      console.log(`   Eligibility: ${reward.eligibility.eligibilityPercentage.toFixed(1)}%`);
+      console.log('');
+    });
+
+    return rewardDistribution;
+  } catch (error) {
+    console.error('❌ Error calculating simple rewards:', error);
+    throw error;
+  }
+}
+
+async function runCompleteTournamentWorkflow() {
+  try {
+    console.log('\n🚀 Complete Tournament Workflow');
+    console.log('================================\n');
+    console.log('This workflow will:');
+    console.log('1. Create a new tournament with pre-match snapshot');
+    console.log('2. Update player scores with sample data');
+    console.log('3. Create post-match snapshot');
+    console.log('4. Calculate and display rewards\n');
+
+    // Step 1: Create tournament with pre-match snapshot
+    console.log('🏏 Step 1: Creating Tournament with Pre-Match Snapshot');
+    console.log('------------------------------------------------------');
+    const tournament = await createTournament(sampleTournaments[0], true);
+    const tournamentId = tournament.id;
+
+    // Step 2: Update scores and create post-match snapshot
+    await updateScoresAndCreatePostMatchSnapshot(tournamentId);
+
+    // Step 3: Calculate rewards
+    await calculateSimpleRewards(tournamentId, 10);
+
+    console.log('\n🎉 Complete Tournament Workflow Finished Successfully!');
+    console.log('======================================================');
+    console.log(`Tournament ID: ${tournamentId}`);
+    console.log('All steps completed:');
+    console.log('✅ Tournament created');
+    console.log('✅ Pre-match snapshot taken');
+    console.log('✅ Player scores updated');
+    console.log('✅ Post-match snapshot taken');
+    console.log('✅ Rewards calculated\n');
+
+  } catch (error) {
+    console.error('❌ Error in complete tournament workflow:', error);
+    throw error;
+  }
+}
+
 async function main() {
   const program = new Command();
 
@@ -600,7 +729,7 @@ async function main() {
 
   program
     .command('create-sample')
-    .description('Create sample tournaments with ongoing status')
+    .description('Create sample tournaments with ongoing status and pre-match snapshots')
     .action(async () => {
       try {
         await createSampleTournaments();
@@ -614,7 +743,7 @@ async function main() {
 
   program
     .command('create-custom')
-    .description('Create a custom tournament with ongoing status')
+    .description('Create a custom tournament with ongoing status and pre-match snapshot')
     .action(async () => {
       try {
         await createCustomTournament();
@@ -769,6 +898,52 @@ async function main() {
       }
     });
 
+  program
+    .command('update-scores-and-snapshot')
+    .description('Update player scores and create post-match snapshot')
+    .argument('<tournament-id>', 'Tournament ID to update scores for')
+    .action(async (tournamentId: string) => {
+      try {
+        await updateScoresAndCreatePostMatchSnapshot(tournamentId);
+      } catch (error) {
+        console.error('Failed to update scores and create post-match snapshot:', error);
+        process.exit(1);
+      } finally {
+        await prisma.$disconnect();
+      }
+    });
+
+  program
+    .command('calculate-rewards')
+    .description('Calculate rewards for a tournament')
+    .argument('<tournament-id>', 'Tournament ID to calculate rewards for')
+    .option('-a, --amount <amount>', 'Total reward amount in APT', '10')
+    .action(async (tournamentId: string, options) => {
+      try {
+        const totalRewardAmount = parseFloat(options.amount) || 10;
+        await calculateSimpleRewards(tournamentId, totalRewardAmount);
+      } catch (error) {
+        console.error('Failed to calculate rewards:', error);
+        process.exit(1);
+      } finally {
+        await prisma.$disconnect();
+      }
+    });
+
+  program
+    .command('run-complete-workflow')
+    .description('Run the complete tournament workflow: create tournament, update scores, create snapshots, and calculate rewards')
+    .action(async () => {
+      try {
+        await runCompleteTournamentWorkflow();
+      } catch (error) {
+        console.error('Failed to run complete workflow:', error);
+        process.exit(1);
+      } finally {
+        await prisma.$disconnect();
+      }
+    });
+
   // If no command is provided, show help
   if (process.argv.length <= 2) {
     program.help();
@@ -809,5 +984,10 @@ export {
   updatePlayerScores,
   updateScoresFromFile,
   updateSampleScores,
-  calculateFantasyPoints
+  updateScoresAndCreatePostMatchSnapshot,
+  calculateSimpleRewards,
+  runCompleteTournamentWorkflow,
+  calculateFantasyPoints,
+  sampleTournaments,
+  sampleScoresData
 };

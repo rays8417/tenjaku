@@ -194,11 +194,9 @@ export async function getContractSnapshot(
       where: {
         data: {
           path: ['tournamentId'],
-          equals: tournamentId,
-
-          
-
-        }
+          equals: tournamentId
+        },
+        contractType: snapshotType
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -208,12 +206,6 @@ export async function getContractSnapshot(
     }
 
     const snapshotData = snapshot.data as any;
-    
-    // Filter by snapshot type if specified
-    if (snapshotData.contractType !== snapshotType) {
-      return null;
-    }
-
     return snapshotData as unknown as ContractSnapshotData;
   } catch (error) {
     console.error('[CONTRACT_SNAPSHOT] Error getting contract snapshot:', error);

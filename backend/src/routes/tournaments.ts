@@ -45,7 +45,6 @@ router.get("/", async (req, res) => {
         entryFee: tournament.entryFee,
         maxParticipants: tournament.maxParticipants,
         currentParticipants: tournament.currentParticipants,
-        participantCount: tournament._count.teams,
         rewardPools: tournament.rewardPools,
         createdAt: tournament.createdAt,
       })),
