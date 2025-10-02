@@ -732,4 +732,193 @@ router.get("/summary/:tournamentId", async (req, res) => {
   }
 });
 
+// POST /api/rewards/calculate-simple - Simplified reward calculation based on post-match snapshot
+router.post("/calculate-simple", async (req, res) => {
+  try {
+    const { tournamentId, totalRewardAmount } = req.body;
+
+    if (!tournamentId || !totalRewardAmount) {
+      return res.status(400).json({ 
+        error: "Tournament ID and total reward amount are required" 
+      });
+    }
+
+    // Validate tournament exists
+    const tournament = await prisma.tournament.findUnique({
+      where: { id: tournamentId }
+    });
+
+    if (!tournament) {
+      return res.status(404).json({ error: "Tournament not found" });
+    }
+
+    console.log(`[SIMPLE_REWARDS] Calculating simplified rewards for tournament ${tournamentId}...`);
+    console.log(`[SIMPLE_REWARDS] Total reward amount: ${totalRewardAmount} APT`);
+
+    // Step 1: Get post-match snapshot (who holds what shares)
+    console.log('[SIMPLE_REWARDS] Getting post-match snapshot...');
+    const postMatchSnapshot = await prisma.contractSnapshot.findFirst({
+      where: {
+        data: {
+          path: ['tournamentId'],
+          equals: tournamentId
+        },
+        contractType: 'POST_MATCH'
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    if (!postMatchSnapshot) {
+      return res.status(404).json({ error: "Post-match snapshot not found" });
+    }
+
+    const snapshotData = postMatchSnapshot.data as any;
+    console.log(`[SIMPLE_REWARDS] Found ${snapshotData.holders.length} holders in post-match snapshot`);
+
+    // Step 2: Get player performance scores
+    console.log('[SIMPLE_REWARDS] Getting player performance scores...');
+    const playerScores = await prisma.playerScore.findMany({
+      where: { tournamentId },
+      select: {
+        moduleName: true,
+        fantasyPoints: true,
+        playerId: true
+      }
+    });
+
+    if (playerScores.length === 0) {
+      return res.status(404).json({ error: "No player scores found for tournament" });
+    }
+
+    console.log(`[SIMPLE_REWARDS] Found ${playerScores.length} player scores`);
+
+    // Step 3: Calculate user scores based on holdings and player performance
+    console.log('[SIMPLE_REWARDS] Calculating user scores...');
+    const userRewards = [];
+    let totalScore = 0;
+
+    for (const holder of snapshotData.holders) {
+      let userScore = 0;
+      const holdings = [];
+
+      // Calculate score for each holding
+      for (const holding of holder.holdings) {
+        const playerScore = playerScores.find(ps => ps.moduleName === holding.moduleName);
+        
+        if (playerScore) {
+          // Simple calculation: token amount * player fantasy points
+          const tokenAmount = BigInt(holding.balance);
+          const normalizedTokens = Number(tokenAmount) / 1000000; // Normalize to avoid overflow
+          const points = normalizedTokens * Number(playerScore.fantasyPoints);
+          
+          userScore += points;
+          
+          holdings.push({
+            moduleName: holding.moduleName,
+            tokenAmount: holding.balance,
+            playerScore: Number(playerScore.fantasyPoints),
+            points: points
+          });
+        }
+      }
+
+      if (userScore > 0) {
+        totalScore += userScore;
+        userRewards.push({
+          address: holder.address,
+          totalScore: userScore,
+          holdings: holdings,
+          rewardAmount: 0 // Will calculate after we know total score
+        });
+      }
+    }
+
+    if (totalScore === 0) {
+      return res.status(400).json({ error: "No eligible users found for rewards" });
+    }
+
+    console.log(`[SIMPLE_REWARDS] Found ${userRewards.length} eligible users with total score: ${totalScore}`);
+
+    // Step 4: Distribute rewards proportionally
+    console.log('[SIMPLE_REWARDS] Distributing rewards proportionally...');
+    const finalRewards = userRewards.map(user => {
+      const scorePercentage = user.totalScore / totalScore;
+      const rewardAmount = totalRewardAmount * scorePercentage;
+      
+      return {
+        address: user.address,
+        totalScore: user.totalScore,
+        scorePercentage: scorePercentage * 100,
+        rewardAmount: rewardAmount,
+        holdings: user.holdings,
+        rank: 0 // Will be set after sorting
+      };
+    });
+
+    // Sort by reward amount (highest first)
+    finalRewards.sort((a, b) => b.rewardAmount - a.rewardAmount);
+
+    // Add rank
+    finalRewards.forEach((reward, index) => {
+      reward.rank = index + 1;
+    });
+
+    const totalDistributed = finalRewards.reduce((sum, reward) => sum + reward.rewardAmount, 0);
+
+    console.log(`[SIMPLE_REWARDS] Reward calculation completed:`);
+    console.log(`- Total users: ${finalRewards.length}`);
+    console.log(`- Total distributed: ${totalDistributed} APT`);
+    console.log(`- Highest reward: ${finalRewards[0]?.rewardAmount || 0} APT`);
+
+    // Format rewards in a more understandable way
+    const formattedRewards = finalRewards.map(reward => ({
+      address: reward.address,
+      rank: reward.rank,
+      rewardAmount: reward.rewardAmount,
+      rewardAmountFormatted: `${reward.rewardAmount.toFixed(6)} APT`,
+      scorePercentage: reward.scorePercentage,
+      totalScore: reward.totalScore,
+      playerHoldings: reward.holdings.map(holding => ({
+        player: holding.moduleName,
+        tokensHeld: (BigInt(holding.tokenAmount) / BigInt(1000000)).toString(),
+        playerPerformance: holding.playerScore,
+        contributionToScore: holding.points
+      }))
+    }));
+
+    res.json({
+      success: true,
+      message: "Simplified reward calculation completed successfully",
+      tournament: {
+        id: tournamentId,
+        name: tournament.name,
+        matchDate: tournament.matchDate,
+        teams: `${tournament.team1} vs ${tournament.team2}`
+      },
+      rewardPool: {
+        totalAmount: totalRewardAmount,
+        totalAmountFormatted: `${totalRewardAmount} APT`,
+        totalDistributed: totalDistributed,
+        totalDistributedFormatted: `${totalDistributed.toFixed(6)} APT`
+      },
+      participants: {
+        totalUsers: finalRewards.length,
+        totalScore: totalScore,
+        averageReward: totalDistributed / finalRewards.length,
+        highestReward: finalRewards[0]?.rewardAmount || 0
+      },
+      rewardDistribution: formattedRewards,
+      // Keep original format for backward compatibility
+      rewards: finalRewards
+    });
+
+  } catch (error) {
+    console.error('[SIMPLE_REWARDS] Error calculating simplified rewards:', error);
+    res.status(500).json({ 
+      error: 'Failed to calculate simplified rewards',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;

@@ -55,9 +55,7 @@ export interface TokenHolderBalance {
  */
 export async function getTokenHolders(moduleName: string): Promise<string[]> {
   try {
-    console.log(`[DEBUG] Fetching token holders from ${moduleName} module...`);
-    console.log(`[DEBUG] Contract address: ${CONTRACT_CONFIG.CONTRACT_ADDRESS}`);
-    console.log(`[DEBUG] Function: ${CONTRACT_CONFIG.GET_TOKEN_HOLDERS_FUNCTION}`);
+
     
     const payload = {
       function: `${CONTRACT_CONFIG.CONTRACT_ADDRESS}::${moduleName}::${CONTRACT_CONFIG.GET_TOKEN_HOLDERS_FUNCTION}` as const,
@@ -65,19 +63,16 @@ export async function getTokenHolders(moduleName: string): Promise<string[]> {
       type_arguments: [],
     };
 
-    console.log(`[DEBUG] Payload for ${moduleName}:`, JSON.stringify(payload, null, 2));
 
     const response = await aptos.view({
       payload,
     });
 
-    console.log(`[DEBUG] Raw response for ${moduleName}:`, response);
 
     // The response format depends on your contract's return type
     // Assuming it returns an array of addresses
     const holders = response[0] as string[];
     
-    console.log(`[DEBUG] Found ${holders.length} token holders in ${moduleName} module:`, holders);
     return holders;
   } catch (error) {
     console.error(`[ERROR] Error fetching token holders from ${moduleName}:`, error);
@@ -91,13 +86,11 @@ export async function getTokenHolders(moduleName: string): Promise<string[]> {
  */
 export async function getAllTokenHolders(): Promise<{ moduleName: string; holders: string[] }[]> {
   try {
-    console.log(`[DEBUG] Starting to fetch token holders from all modules...`);
-    console.log(`[DEBUG] Module names to process:`, CONTRACT_CONFIG.MODULE_NAMES);
+   
     
     const results = await Promise.allSettled(
       CONTRACT_CONFIG.MODULE_NAMES.map(async (moduleName) => {
         try {
-          console.log(`[DEBUG] Processing module: ${moduleName}`);
           const holders = await getTokenHolders(moduleName);
           return { moduleName, holders };
         } catch (error) {
@@ -113,9 +106,7 @@ export async function getAllTokenHolders(): Promise<{ moduleName: string; holder
       )
       .map(result => result.value);
 
-    console.log(`[DEBUG] Successfully processed ${successfulResults.length} modules`);
     successfulResults.forEach(result => {
-      console.log(`[DEBUG] Module ${result.moduleName}: ${result.holders.length} holders`);
     });
 
     return successfulResults;
@@ -131,11 +122,7 @@ export async function getAllTokenHolders(): Promise<{ moduleName: string; holder
  */
 export async function getTokenBalance(address: string, moduleName: string): Promise<bigint> {
   try {
-    console.log(`[DEBUG] Fetching balance for address ${address} from ${moduleName} module...`);
-    console.log(`[DEBUG] Contract address: ${CONTRACT_CONFIG.CONTRACT_ADDRESS}`);
-    console.log(`[DEBUG] Function: ${CONTRACT_CONFIG.BALANCE_FUNCTION}`);
-    console.log(`[DEBUG] Address type: ${typeof address}, Address length: ${address.length}`);
-    console.log(`[DEBUG] Address value: "${address}"`);
+   
     
     // Validate address format
     if (!address || address.length === 0) {
@@ -145,21 +132,17 @@ export async function getTokenBalance(address: string, moduleName: string): Prom
     
     // Try using the REST API directly
     const functionName = `${CONTRACT_CONFIG.CONTRACT_ADDRESS}::${moduleName}::${CONTRACT_CONFIG.BALANCE_FUNCTION}`;
-    
-    console.log(`[DEBUG] Function name: ${functionName}`);
-    console.log(`[DEBUG] Address argument: ${address}`);
+   
 
     // First, let's check if the module exists
     try {
       const accountResources = await aptos.getAccountResources({
         accountAddress: CONTRACT_CONFIG.CONTRACT_ADDRESS,
       });
-      console.log(`[DEBUG] Account resources for ${CONTRACT_CONFIG.CONTRACT_ADDRESS}:`, accountResources.length);
       
       const moduleResource = accountResources.find(resource => 
         resource.type.includes(`::${moduleName}::`)
       );
-      console.log(`[DEBUG] Module resource found:`, moduleResource ? 'Yes' : 'No');
     } catch (error) {
       if (error instanceof Error) {
         console.log(`[DEBUG] Error checking account resources: ${error.message}`);
@@ -189,7 +172,6 @@ export async function getTokenBalance(address: string, moduleName: string): Prom
       }
 
       const data = await fetchResponse.json();
-      console.log(`[DEBUG] REST API response:`, data);
       response = data;
     } catch (error) {
       if (error instanceof Error) {
@@ -217,7 +199,6 @@ export async function getTokenBalance(address: string, moduleName: string): Prom
       }
     }
 
-    console.log(`[DEBUG] Raw response for ${address} in ${moduleName}:`, response);
 
     // Assuming the balance is returned as a string or number
     const balance = response[0];
@@ -237,7 +218,6 @@ export async function getTokenBalance(address: string, moduleName: string): Prom
       bigintBalance = BigInt(balance.toString());
     }
     
-    console.log(`[DEBUG] Balance for ${address} in ${moduleName}: ${bigintBalance.toString()}`);
     return bigintBalance;
   } catch (error) {
     console.error(`[ERROR] Error fetching balance for ${address} from ${moduleName}:`, error);
@@ -252,13 +232,11 @@ export async function getTokenBalance(address: string, moduleName: string): Prom
  */
 export async function getTokenBalanceFromAllModules(address: string): Promise<{ moduleName: string; balance: bigint }[]> {
   try {
-    console.log(`[DEBUG] Starting to fetch balance for address ${address} from all modules...`);
-    console.log(`[DEBUG] Module names to process:`, CONTRACT_CONFIG.MODULE_NAMES);
+
     
     const results = await Promise.allSettled(
       CONTRACT_CONFIG.MODULE_NAMES.map(async (moduleName) => {
         try {
-          console.log(`[DEBUG] Processing balance for ${address} in module: ${moduleName}`);
           const balance = await getTokenBalance(address, moduleName);
           return { moduleName, balance };
         } catch (error) {
@@ -274,7 +252,6 @@ export async function getTokenBalanceFromAllModules(address: string): Promise<{ 
       )
       .map(result => result.value);
 
-    console.log(`[DEBUG] Successfully processed balance for ${address} in ${successfulResults.length} modules`);
     successfulResults.forEach(result => {
       console.log(`[DEBUG] Module ${result.moduleName}: balance ${result.balance.toString()}`);
     });
@@ -291,24 +268,20 @@ export async function getTokenBalanceFromAllModules(address: string): Promise<{ 
  */
 export async function getTokenHoldersWithBalancesForPlayer(moduleName: string, playerId?: string): Promise<TokenHolderBalance[]> {
   try {
-    console.log(`[DEBUG] Starting snapshot process for ${moduleName} module...`);
-    console.log(`[DEBUG] Player ID: ${playerId || 'N/A'}`);
+   
     
     // Step 1: Get all token holders for this player module
     const holders = await getTokenHolders(moduleName);
     
     if (holders.length === 0) {
-      console.log(`[DEBUG] No token holders found for ${moduleName}`);
       return [];
     }
 
-    console.log(`[DEBUG] Fetching balances for ${holders.length} holders in ${moduleName}...`);
-    console.log(`[DEBUG] Holder addresses:`, holders);
+
     
     // Step 2: Get balances for each holder
     const balancePromises = holders.map(async (address, index) => {
       try {
-        console.log(`[DEBUG] Processing holder ${index + 1}/${holders.length}: ${address}`);
         const balance = await getTokenBalance(address, moduleName);
         const result = {
           address,
@@ -317,7 +290,6 @@ export async function getTokenHoldersWithBalancesForPlayer(moduleName: string, p
           playerId,
           moduleName,
         } as TokenHolderBalance;
-        console.log(`[DEBUG] Balance result for ${address}:`, result);
         return result;
       } catch (error) {
         console.error(`[ERROR] Failed to get balance for ${address} in ${moduleName}:`, error);
@@ -331,10 +303,8 @@ export async function getTokenHoldersWithBalancesForPlayer(moduleName: string, p
       }
     });
 
-    console.log(`[DEBUG] Waiting for all balance promises to resolve...`);
     const results = await Promise.allSettled(balancePromises);
     
-    console.log(`[DEBUG] Balance promises resolved. Processing results...`);
     
     // Filter out failed requests and zero balances
     const validHolders = results
@@ -344,8 +314,7 @@ export async function getTokenHoldersWithBalancesForPlayer(moduleName: string, p
       .map(result => result.value)
       .filter(holder => holder.balance > 0); // Only include holders with actual balance
 
-    console.log(`[DEBUG] Successfully processed ${validHolders.length} token holders for ${moduleName}`);
-    console.log(`[DEBUG] Valid holders summary:`, validHolders.map(h => ({ address: h.address, balance: h.formattedBalance })));
+
     
     return validHolders;
   } catch (error) {
@@ -360,22 +329,18 @@ export async function getTokenHoldersWithBalancesForPlayer(moduleName: string, p
  */
 export async function getTokenHoldersWithBalances(): Promise<TokenHolderBalance[]> {
   try {
-    console.log('[DEBUG] Starting snapshot process for all player modules...');
-    console.log('[DEBUG] Using CONTRACT_CONFIG.MODULE_NAMES:', CONTRACT_CONFIG.MODULE_NAMES);
+
     
     const moduleNames = CONTRACT_CONFIG.MODULE_NAMES;
     
     if (moduleNames.length === 0) {
-      console.log('[DEBUG] No module names found in CONTRACT_CONFIG');
       return [];
     }
 
-    console.log(`[DEBUG] Processing ${moduleNames.length} player modules...`);
     
     // Fetch data from all player modules in parallel
     const modulePromises = moduleNames.map(async (moduleName, index) => {
       try {
-        console.log(`[DEBUG] Processing module ${index + 1}/${moduleNames.length}: ${moduleName}`);
         return await getTokenHoldersWithBalancesForPlayer(moduleName, (index + 1).toString());
       } catch (error) {
         console.error(`[ERROR] Failed to fetch data for module ${moduleName}:`, error);
@@ -383,10 +348,8 @@ export async function getTokenHoldersWithBalances(): Promise<TokenHolderBalance[
       }
     });
 
-    console.log(`[DEBUG] Waiting for all module promises to resolve...`);
     const results = await Promise.allSettled(modulePromises);
     
-    console.log(`[DEBUG] Module promises resolved. Processing results...`);
     
     // Combine all results
     const allHolders = results

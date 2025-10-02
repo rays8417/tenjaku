@@ -15,22 +15,16 @@
     "test:coverage": "jest --coverage",
     "test:integration": "node test-script.js",
     "test:all": "npm run test && npm run test:integration",
-
     "tournament:create-sample": "ts-node src/scripts/tournament.ts create-sample",
-
     "tournament:create-custom": "ts-node src/scripts/tournament.ts create-custom",
     "tournament:list": "ts-node src/scripts/tournament.ts list",
-
     "tournament:end": "ts-node src/scripts/tournament.ts end",
     "tournament:end-all-ongoing": "ts-node src/scripts/tournament.ts end-all-ongoing",
-
     "tournament:cleanup": "ts-node src/scripts/tournament.ts cleanup",
     "tournament:end-and-cleanup": "ts-node src/scripts/tournament.ts end-and-cleanup",
     "tournament:update-scores": "ts-node src/scripts/tournament.ts update-scores",
     "tournament:update-scores-file": "ts-node src/scripts/tournament.ts update-scores-file",
-
     "tournament:update-sample-scores": "ts-node src/scripts/tournament.ts update-sample-scores",
-    
     "tournament:help": "ts-node src/scripts/tournament.ts --help"
   },
   "keywords": [],
@@ -41,6 +35,7 @@
     "@prisma/client": "^6.16.2",
     "@types/commander": "^2.12.0",
     "@types/cron": "^2.0.1",
+    "axios": "^1.12.2",
     "commander": "^14.0.1",
     "cors": "^2.8.5",
     "cron": "^4.3.3",

@@ -46,7 +46,6 @@ export interface ContractSnapshotResult {
  * This creates a clean structure where each address has all their holdings
  */
 function groupHoldersByAddress(aptosHolders: TokenHolderBalance[]): ContractHolder[] {
-  console.log(`[DEBUG] Grouping ${aptosHolders.length} holders by address...`);
   
   const holdersMap = new Map<string, ContractHolder>();
   
@@ -68,7 +67,6 @@ function groupHoldersByAddress(aptosHolders: TokenHolderBalance[]): ContractHold
   }
   
   const groupedHolders = Array.from(holdersMap.values());
-  console.log(`[DEBUG] Grouped into ${groupedHolders.length} unique addresses`);
   
   return groupedHolders;
 }
@@ -157,7 +155,7 @@ export async function createContractSnapshot(
     // Step 5: Store snapshot in database
     const snapshot = await prisma.contractSnapshot.create({
       data: {
-        contractType: 'AMM_CONTRACT',
+        contractType: snapshotType ,
         contractAddress: snapshotData.contractAddress,
         blockNumber: currentBlockNumber,
         data: snapshotData as any // Type assertion for Prisma JSON field
@@ -196,7 +194,10 @@ export async function getContractSnapshot(
       where: {
         data: {
           path: ['tournamentId'],
-          equals: tournamentId
+          equals: tournamentId,
+
+          
+
         }
       },
       orderBy: { createdAt: 'desc' }
@@ -209,7 +210,7 @@ export async function getContractSnapshot(
     const snapshotData = snapshot.data as any;
     
     // Filter by snapshot type if specified
-    if (snapshotData.snapshotType !== snapshotType) {
+    if (snapshotData.contractType !== snapshotType) {
       return null;
     }
 
@@ -260,6 +261,7 @@ export async function comparePrePostMatchSnapshots(tournamentId: string): Promis
     console.log(`[CONTRACT_SNAPSHOT] Comparing snapshots for tournament ${tournamentId}...`);
     
     const preMatch = await getContractSnapshot(tournamentId, 'PRE_MATCH');
+    console.log(`[CONTRACT_SNAPSHOT] Pre-match snapshot:`, preMatch);
     const postMatch = await getContractSnapshot(tournamentId, 'POST_MATCH');
 
     if (!preMatch || !postMatch) {
