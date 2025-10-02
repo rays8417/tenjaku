@@ -137,7 +137,7 @@ async function createTournament(tournamentData: TournamentData, createSnapshot: 
     console.log(`   Status: ${tournament.status}`);
     console.log(`   Teams: ${tournament.team1} vs ${tournament.team2}`);
     console.log(`   Match Date: ${tournament.matchDate.toISOString()}`);
-    console.log(`   Entry Fee: ${tournament.entryFee} APT`);
+    console.log(`   Entry Fee: ${tournament.entryFee} BOSON`);
     console.log(`   Max Participants: ${tournament.maxParticipants || 'Unlimited'}`);
     console.log('');
 
@@ -198,7 +198,7 @@ async function createCustomTournament() {
     const team1 = await question('Team 1: ');
     const team2 = await question('Team 2: ');
     const venue = await question('Venue (optional): ');
-    const entryFeeStr = await question('Entry Fee (APT): ');
+    const entryFeeStr = await question('Entry Fee (BOSON): ');
     const maxParticipantsStr = await question('Max Participants (optional): ');
     const matchDateStr = await question('Match Date (YYYY-MM-DD HH:MM): ');
 
@@ -262,7 +262,7 @@ async function listTournaments() {
       console.log(`   Status: ${tournament.status}`);
       console.log(`   Teams: ${tournament.team1} vs ${tournament.team2}`);
       console.log(`   Date: ${tournament.matchDate.toISOString()}`);
-      console.log(`   Entry Fee: ${tournament.entryFee} APT`);
+      console.log(`   Entry Fee: ${tournament.entryFee} BOSON`);
       console.log(`   Participants: ${tournament.currentParticipants}/${tournament.maxParticipants || '∞'}`);
       console.log('');
     });
@@ -660,7 +660,7 @@ async function calculateSimpleRewards(tournamentId: string, totalRewardAmount: n
     console.log('\n💰 Step 3: Calculating Simple Rewards');
     console.log('====================================');
     console.log(`Tournament ID: ${tournamentId}`);
-    console.log(`Total Reward Amount: ${totalRewardAmount} APT\n`);
+    console.log(`Total Reward Amount: ${totalRewardAmount} BOSON\n`);
 
     // Import the reward calculation service
     const { calculateRewardsFromSnapshots } = await import('../services/rewardCalculationService');
@@ -670,10 +670,10 @@ async function calculateSimpleRewards(tournamentId: string, totalRewardAmount: n
 
     console.log('\n📈 Reward Distribution Results:');
     console.log('===============================');
-    console.log(`Total Reward Pool: ${totalRewardAmount} APT`);
+    console.log(`Total Reward Pool: ${totalRewardAmount} BOSON`);
     console.log(`Total Eligible Holders: ${rewardDistribution.totalEligibleHolders}`);
     console.log(`Total Tokens: ${rewardDistribution.totalTokens}`);
-    console.log(`Total Distributed: ${rewardDistribution.summary.totalRewardsDistributed.toFixed(6)} APT\n`);
+    console.log(`Total Distributed: ${rewardDistribution.summary.totalRewardsDistributed.toFixed(6)} BOSON\n`);
 
     console.log('🏆 Top 5 Reward Recipients:');
     console.log('---------------------------');
@@ -683,7 +683,7 @@ async function calculateSimpleRewards(tournamentId: string, totalRewardAmount: n
 
     topRewards.forEach((reward, index) => {
       console.log(`${index + 1}. Address: ${reward.address}`);
-      console.log(`   Reward: ${reward.rewardAmount.toFixed(6)} APT`);
+      console.log(`   Reward: ${reward.rewardAmount.toFixed(6)} BOSON`);
       console.log(`   Score: ${reward.totalScore.toFixed(2)}`);
       console.log(`   Tokens: ${reward.totalTokens}`);
       console.log(`   Eligibility: ${reward.eligibility.eligibilityPercentage.toFixed(1)}%`);
@@ -933,7 +933,7 @@ async function main() {
     .command('calculate-rewards')
     .description('Calculate rewards for a tournament')
     .argument('<tournament-id>', 'Tournament ID to calculate rewards for')
-    .option('-a, --amount <amount>', 'Total reward amount in APT', '10')
+    .option('-a, --amount <amount>', 'Total reward amount in BOSON', '10')
     .action(async (tournamentId: string, options) => {
       try {
         const totalRewardAmount = parseFloat(options.amount) || 10;

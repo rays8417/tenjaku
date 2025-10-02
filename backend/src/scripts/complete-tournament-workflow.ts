@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import { PrismaClient, TournamentStatus } from '@prisma/client';
+import { PrismaClient, TournamentStatus, ContractType } from '@prisma/client';
 import { Command } from 'commander';
 import { 
   createTournament, 
@@ -83,9 +83,9 @@ async function runCompleteWorkflow(options: WorkflowOptions = {}) {
     console.log('==================================');
     console.log(`Tournament ID: ${tournamentId}`);
     console.log(`Tournament Name: ${tournament.name}`);
-    console.log(`Total Reward Pool: ${totalRewardAmount} APT`);
+    console.log(`Total Reward Pool: ${totalRewardAmount} BOSON`);
     console.log(`Eligible Holders: ${rewardDistribution.totalEligibleHolders}`);
-    console.log(`Total Distributed: ${rewardDistribution.summary.totalRewardsDistributed.toFixed(6)} APT`);
+    console.log(`Total Distributed: ${rewardDistribution.summary.totalRewardsDistributed.toFixed(6)} BOSON`);
     
     console.log('\n✅ All Steps Completed:');
     console.log('   ✅ Tournament created');
@@ -125,14 +125,14 @@ async function showDetailedAnalysis(tournamentId: string, rewardDistribution: an
       prisma.contractSnapshot.findFirst({
         where: {
           data: { path: ['tournamentId'], equals: tournamentId },
-          contractType: 'PRE_MATCH'
+          contractType: 'PRE_MATCH' as ContractType
         },
         orderBy: { createdAt: 'desc' }
       }),
       prisma.contractSnapshot.findFirst({
         where: {
           data: { path: ['tournamentId'], equals: tournamentId },
-          contractType: 'POST_MATCH'
+          contractType: 'POST_MATCH' as ContractType
         },
         orderBy: { createdAt: 'desc' }
       })
@@ -177,11 +177,11 @@ async function showDetailedAnalysis(tournamentId: string, rewardDistribution: an
 
     console.log('\n💰 Reward Distribution Summary:');
     console.log('-------------------------------');
-    console.log(`Total Reward Pool: ${rewardDistribution.totalRewardAmount} APT`);
+    console.log(`Total Reward Pool: ${rewardDistribution.totalRewardAmount} BOSON`);
     console.log(`Eligible Holders: ${rewardDistribution.totalEligibleHolders}`);
     console.log(`Total Tokens: ${rewardDistribution.totalTokens}`);
-    console.log(`Total Distributed: ${rewardDistribution.summary.totalRewardsDistributed.toFixed(6)} APT`);
-    console.log(`Average Reward: ${(rewardDistribution.summary.totalRewardsDistributed / rewardDistribution.totalEligibleHolders).toFixed(6)} APT`);
+    console.log(`Total Distributed: ${rewardDistribution.summary.totalRewardsDistributed.toFixed(6)} BOSON`);
+    console.log(`Average Reward: ${(rewardDistribution.summary.totalRewardsDistributed / rewardDistribution.totalEligibleHolders).toFixed(6)} BOSON`);
 
     console.log('\n🏆 Top 10 Reward Recipients:');
     console.log('----------------------------');
@@ -191,7 +191,7 @@ async function showDetailedAnalysis(tournamentId: string, rewardDistribution: an
 
     topRewards.forEach((reward: any, index: number) => {
       console.log(`${index + 1}. ${reward.address}`);
-      console.log(`   Reward: ${reward.rewardAmount.toFixed(6)} APT`);
+      console.log(`   Reward: ${reward.rewardAmount.toFixed(6)} BOSON`);
       console.log(`   Score: ${reward.totalScore.toFixed(2)}`);
       console.log(`   Tokens: ${reward.totalTokens}`);
       console.log(`   Eligibility: ${reward.eligibility.eligibilityPercentage.toFixed(1)}%`);
@@ -205,10 +205,10 @@ async function showDetailedAnalysis(tournamentId: string, rewardDistribution: an
     const minReward = Math.min(...rewards);
     const medianReward = rewards.sort((a: number, b: number) => a - b)[Math.floor(rewards.length / 2)];
     
-    console.log(`Highest Reward: ${maxReward.toFixed(6)} APT`);
-    console.log(`Lowest Reward: ${minReward.toFixed(6)} APT`);
-    console.log(`Median Reward: ${medianReward.toFixed(6)} APT`);
-    console.log(`Reward Range: ${(maxReward - minReward).toFixed(6)} APT`);
+    console.log(`Highest Reward: ${maxReward.toFixed(6)} BOSON`);
+    console.log(`Lowest Reward: ${minReward.toFixed(6)} BOSON`);
+    console.log(`Median Reward: ${medianReward.toFixed(6)} BOSON`);
+    console.log(`Reward Range: ${(maxReward - minReward).toFixed(6)} BOSON`);
 
   } catch (error) {
     console.error('❌ Error in detailed analysis:', error);
@@ -335,7 +335,7 @@ async function main() {
     .command('run-complete')
     .description('Run complete tournament workflow from start to finish')
     .option('-n, --name <name>', 'Custom tournament name')
-    .option('-a, --amount <amount>', 'Total reward amount in APT', '10')
+    .option('-a, --amount <amount>', 'Total reward amount in BOSON', '10')
     .option('-v, --verbose', 'Show detailed analysis', false)
     .action(async (options) => {
       try {
@@ -357,7 +357,7 @@ async function main() {
     .command('run-for-existing')
     .description('Run workflow for existing tournament (update scores, create post-match snapshot, calculate rewards)')
     .argument('<tournament-id>', 'Tournament ID to run workflow for')
-    .option('-a, --amount <amount>', 'Total reward amount in APT', '10')
+    .option('-a, --amount <amount>', 'Total reward amount in BOSON', '10')
     .action(async (tournamentId: string, options) => {
       try {
         const totalRewardAmount = parseFloat(options.amount) || 10;

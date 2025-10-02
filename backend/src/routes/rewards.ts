@@ -1,5 +1,5 @@
 import express from "express";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, ContractType } from "@prisma/client";
 import { aptos, CONTRACT_CONFIG } from "../services/aptosService";
 import { Ed25519PrivateKey, Ed25519PublicKey, Ed25519Account } from "@aptos-labs/ts-sdk";
 import { 
@@ -13,12 +13,15 @@ const prisma = new PrismaClient();
 
 const router = express.Router();
 
-// Configuration for reward distribution
+// Configuration for reward distribution (BOSON)
 const REWARD_CONFIG = {
   ADMIN_PRIVATE_KEY: process.env.ADMIN_PRIVATE_KEY, // Private key for admin account (comma-separated bytes)
   ADMIN_ACCOUNT_ADDRESS: process.env.ADMIN_ACCOUNT_ADDRESS, // Admin account address that holds rewards
-  APTOS_COIN_TYPE: "0x1::aptos_coin::AptosCoin", // Standard APT coin type
-  MIN_REWARD_AMOUNT: 0.001, // Minimum reward amount to avoid dust
+  // BOSON coin type. Allow override via env; default to contract Boson coin type
+  BOSON_COIN_TYPE: (process.env.BOSON_COIN_TYPE as string) || `${CONTRACT_CONFIG.CONTRACT_ADDRESS}::Boson::Boson`,
+  // BOSON decimals. Allow override via env; default 6 (matches app usage)
+  BOSON_DECIMALS: Number(process.env.BOSON_DECIMALS || 6),//TODO: Check this
+  MIN_REWARD_AMOUNT: 0.001, // Minimum reward amount in BOSON to avoid dust
   GAS_LIMIT: 100000, // Gas limit for transactions
 };
 
@@ -81,7 +84,7 @@ const REWARD_CONFIG = {
 // }
 
 /**
- * Transfer APT tokens to user accounts using real Aptos SDK
+ * Transfer BOSON tokens to user accounts using Aptos SDK
  */
 async function transferRewardsToUsers(rewardCalculations: any[]) {
   try {
@@ -126,17 +129,18 @@ async function transferRewardsToUsers(rewardCalculations: any[]) {
           continue;
         }
 
-        // Convert APT to octas (1 APT = 100,000,000 octas)
-        const amountInOctas = Math.floor(reward.rewardAmount * 100000000);
+        // Convert BOSON to base units using configured decimals
+        const multiplier = Math.pow(10, REWARD_CONFIG.BOSON_DECIMALS);
+        const amountInBaseUnits = Math.floor(reward.rewardAmount * multiplier);
         
-        console.log(`Transferring ${reward.rewardAmount} APT (${amountInOctas} octas) to ${reward.address}...`);
+        console.log(`Transferring ${reward.rewardAmount} BOSON (${amountInBaseUnits} base units) to ${reward.address}...`);
         
         // Create transfer transaction
         const transferTransaction = await aptos.transferCoinTransaction({
           sender: adminAccountAddress.toString(),
           recipient: reward.address,
-          amount: amountInOctas,
-          coinType: REWARD_CONFIG.APTOS_COIN_TYPE as `${string}::${string}::${string}`,
+          amount: amountInBaseUnits,
+          coinType: REWARD_CONFIG.BOSON_COIN_TYPE as `${string}::${string}::${string}`,
         });
 
         // Sign and submit transaction
@@ -153,7 +157,7 @@ async function transferRewardsToUsers(rewardCalculations: any[]) {
         });
 
         if (transactionResult.success) {
-          console.log(`✅ Successfully transferred ${reward.rewardAmount} APT to ${reward.walletAddress}`);
+          console.log(`✅ Successfully transferred ${reward.rewardAmount} BOSON to ${reward.walletAddress}`);
           console.log(`   Transaction: ${committedTransaction.hash}`);
           
           transferResults.push({
@@ -210,7 +214,7 @@ router.post("/distribute-contract-based", async (req, res) => {
     }
 
     console.log(`Starting contract-based reward distribution for tournament ${tournamentId}...`);
-    console.log(`Total reward amount: ${totalRewardAmount} APT`);
+    console.log(`Total reward amount: ${totalRewardAmount} BOSON`);
 
     // Step 1: Calculate rewards based on snapshot data
     const rewardDistribution = await calculateRewardsFromSnapshots(tournamentId, totalRewardAmount);
@@ -252,7 +256,7 @@ router.post("/distribute-contract-based", async (req, res) => {
             amount: result.rewardAmount,
             status: 'COMPLETED',
             aptosTransactionId: result.transactionId
-          }
+          } as any
         });
         rewardRecords.push(userReward);
       }
@@ -262,7 +266,7 @@ router.post("/distribute-contract-based", async (req, res) => {
     console.log(`- Successful: ${successfulTransfers.length}`);
     console.log(`- Failed: ${failedTransfers.length}`);
     console.log(`- Skipped: ${skippedTransfers.length}`);
-    console.log(`- Total distributed: ${totalDistributed} APT`);
+    console.log(`- Total distributed: ${totalDistributed} BOSON`);
 
     res.json({
       success: true,
@@ -753,7 +757,7 @@ router.post("/calculate-simple", async (req, res) => {
     }
 
     console.log(`[SIMPLE_REWARDS] Calculating simplified rewards for tournament ${tournamentId}...`);
-    console.log(`[SIMPLE_REWARDS] Total reward amount: ${totalRewardAmount} APT`);
+    console.log(`[SIMPLE_REWARDS] Total reward amount: ${totalRewardAmount} BOSON`);
 
     // Step 1: Get post-match snapshot (who holds what shares)
     console.log('[SIMPLE_REWARDS] Getting post-match snapshot...');
@@ -763,7 +767,7 @@ router.post("/calculate-simple", async (req, res) => {
           path: ['tournamentId'],
           equals: tournamentId
         },
-        contractType: 'POST_MATCH'
+        contractType: 'POST_MATCH' as ContractType
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -867,15 +871,15 @@ router.post("/calculate-simple", async (req, res) => {
 
     console.log(`[SIMPLE_REWARDS] Reward calculation completed:`);
     console.log(`- Total users: ${finalRewards.length}`);
-    console.log(`- Total distributed: ${totalDistributed} APT`);
-    console.log(`- Highest reward: ${finalRewards[0]?.rewardAmount || 0} APT`);
+    console.log(`- Total distributed: ${totalDistributed} BOSON`);
+    console.log(`- Highest reward: ${finalRewards[0]?.rewardAmount || 0} BOSON`);
 
     // Format rewards in a more understandable way
     const formattedRewards = finalRewards.map(reward => ({
       address: reward.address,
       rank: reward.rank,
       rewardAmount: reward.rewardAmount,
-      rewardAmountFormatted: `${reward.rewardAmount.toFixed(6)} APT`,
+      rewardAmountFormatted: `${reward.rewardAmount.toFixed(6)} BOSON`,
       scorePercentage: reward.scorePercentage,
       totalScore: reward.totalScore,
       playerHoldings: reward.holdings.map(holding => ({
@@ -897,9 +901,9 @@ router.post("/calculate-simple", async (req, res) => {
       },
       rewardPool: {
         totalAmount: totalRewardAmount,
-        totalAmountFormatted: `${totalRewardAmount} APT`,
+        totalAmountFormatted: `${totalRewardAmount} BOSON`,
         totalDistributed: totalDistributed,
-        totalDistributedFormatted: `${totalDistributed.toFixed(6)} APT`
+        totalDistributedFormatted: `${totalDistributed.toFixed(6)} BOSON`
       },
       participants: {
         totalUsers: finalRewards.length,

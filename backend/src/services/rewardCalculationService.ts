@@ -114,7 +114,7 @@ export async function calculateRewardsFromSnapshots(
 ): Promise<RewardDistributionResult> {
   try {
     console.log(`[REWARD_CALC] Calculating rewards for tournament ${tournamentId}...`);
-    console.log(`[REWARD_CALC] Total reward amount: ${totalRewardAmount} APT`);
+    console.log(`[REWARD_CALC] Total reward amount: ${totalRewardAmount} BOSON`);
 
     // Step 1: Get player scores
     console.log('[REWARD_CALC] Getting player scores...');

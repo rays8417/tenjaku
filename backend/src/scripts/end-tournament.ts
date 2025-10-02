@@ -150,7 +150,7 @@ async function calculateRewards(tournamentId: string, totalRewardAmount: number 
     console.log(`\n💰 CALCULATING REWARDS`);
     console.log('=====================');
     console.log(`Tournament ID: ${tournamentId}`);
-    console.log(`Total Reward Amount: ${totalRewardAmount} APT\n`);
+    console.log(`Total Reward Amount: ${totalRewardAmount} BOSON\n`);
 
     // Verify tournament exists
     const tournament = await prisma.tournament.findUnique({
@@ -170,10 +170,10 @@ async function calculateRewards(tournamentId: string, totalRewardAmount: number 
 
     console.log('\n📈 REWARD DISTRIBUTION RESULTS:');
     console.log('===============================');
-    console.log(`Total Reward Pool: ${totalRewardAmount} APT`);
+    console.log(`Total Reward Pool: ${totalRewardAmount} BOSON`);
     console.log(`Total Eligible Holders: ${rewardDistribution.totalEligibleHolders}`);
     console.log(`Total Tokens: ${rewardDistribution.totalTokens}`);
-    console.log(`Total Distributed: ${rewardDistribution.summary.totalRewardsDistributed.toFixed(6)} APT\n`);
+    console.log(`Total Distributed: ${rewardDistribution.summary.totalRewardsDistributed.toFixed(6)} BOSON\n`);
 
     // Show detailed reward breakdown
     console.log('🏆 DETAILED REWARD BREAKDOWN:');
@@ -188,7 +188,7 @@ async function calculateRewards(tournamentId: string, totalRewardAmount: number 
     
     topRewards.forEach((reward, index) => {
       console.log(`\n${index + 1}. Address: ${reward.address}`);
-      console.log(`   Reward Amount: ${reward.rewardAmount.toFixed(6)} APT`);
+      console.log(`   Reward Amount: ${reward.rewardAmount.toFixed(6)} BOSON`);
       console.log(`   Total Score: ${reward.totalScore.toFixed(2)}`);
       console.log(`   Total Tokens: ${reward.totalTokens}`);
       console.log(`   Eligibility: ${reward.eligibility.eligibilityPercentage.toFixed(1)}%`);
@@ -217,12 +217,12 @@ async function calculateRewards(tournamentId: string, totalRewardAmount: number 
     const medianReward = rewards.sort((a, b) => a - b)[Math.floor(rewards.length / 2)];
     const totalDistributed = rewards.reduce((sum, r) => sum + r, 0);
     
-    console.log(`Highest Reward: ${maxReward.toFixed(6)} APT`);
-    console.log(`Lowest Reward: ${minReward.toFixed(6)} APT`);
-    console.log(`Median Reward: ${medianReward.toFixed(6)} APT`);
-    console.log(`Average Reward: ${(totalDistributed / rewards.length).toFixed(6)} APT`);
-    console.log(`Reward Range: ${(maxReward - minReward).toFixed(6)} APT`);
-    console.log(`Total Distributed: ${totalDistributed.toFixed(6)} APT`);
+    console.log(`Highest Reward: ${maxReward.toFixed(6)} BOSON`);
+    console.log(`Lowest Reward: ${minReward.toFixed(6)} BOSON`);
+    console.log(`Median Reward: ${medianReward.toFixed(6)} BOSON`);
+    console.log(`Average Reward: ${(totalDistributed / rewards.length).toFixed(6)} BOSON`);
+    console.log(`Reward Range: ${(maxReward - minReward).toFixed(6)} BOSON`);
+    console.log(`Total Distributed: ${totalDistributed.toFixed(6)} BOSON`);
 
     return rewardDistribution;
 
@@ -240,7 +240,7 @@ async function endTournamentWithSnapshot(tournamentId: string, totalRewardAmount
     console.log(`\n🏁 ENDING TOURNAMENT WITH POST-MATCH SNAPSHOT & REWARDS`);
     console.log('=======================================================');
     console.log(`Tournament ID: ${tournamentId}`);
-    console.log(`Total Reward Amount: ${totalRewardAmount} APT\n`);
+    console.log(`Total Reward Amount: ${totalRewardAmount} BOSON\n`);
 
     // Step 1: Take post-match snapshot
     console.log('📸 STEP 1: TAKING POST-MATCH SNAPSHOT');
@@ -271,9 +271,9 @@ async function endTournamentWithSnapshot(tournamentId: string, totalRewardAmount
     }
 
     console.log(`\n💰 REWARD SUMMARY:`);
-    console.log(`Total Reward Pool: ${totalRewardAmount} APT`);
+    console.log(`Total Reward Pool: ${totalRewardAmount} BOSON`);
     console.log(`Eligible Holders: ${rewardDistribution.totalEligibleHolders}`);
-    console.log(`Total Distributed: ${rewardDistribution.summary.totalRewardsDistributed.toFixed(6)} APT`);
+    console.log(`Total Distributed: ${rewardDistribution.summary.totalRewardsDistributed.toFixed(6)} BOSON`);
 
     console.log('\n✅ All Steps Completed:');
     console.log('   ✅ Post-match snapshot taken');
@@ -383,7 +383,7 @@ async function main() {
     .command('end-with-snapshot')
     .description('Take post-match snapshot, calculate rewards, and end tournament')
     .argument('<tournament-id>', 'Tournament ID to end')
-    .option('-a, --amount <amount>', 'Total reward amount in APT', '10')
+    .option('-a, --amount <amount>', 'Total reward amount in BOSON', '10')
     .action(async (tournamentId: string, options) => {
       try {
         const totalRewardAmount = parseFloat(options.amount) || 10;
@@ -430,7 +430,7 @@ async function main() {
     .command('calculate-rewards')
     .description('Calculate rewards for a tournament')
     .argument('<tournament-id>', 'Tournament ID to calculate rewards for')
-    .option('-a, --amount <amount>', 'Total reward amount in APT', '10')
+    .option('-a, --amount <amount>', 'Total reward amount in BOSON', '10')
     .action(async (tournamentId: string, options) => {
       try {
         const totalRewardAmount = parseFloat(options.amount) || 10;
