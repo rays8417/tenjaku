@@ -395,62 +395,7 @@ export default function TournamentsPage() {
         <div className="grid grid-cols-12 gap-8">
           {/* Left Sidebar */}
           <aside className="col-span-12 lg:col-span-4 space-y-6">
-            {/* Tournament Card */}
-            <div className="border border-gray-200 rounded-xl p-6">
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <div className="text-sm text-gray-500 font-medium">
-                    ASIA CUP 2024
-                  </div>
-                  <h1 className="text-2xl font-bold text-black mt-1">
-                    Fantasy Cricket
-                  </h1>
-                </div>
-                <div className="h-12 w-12 rounded-lg bg-black text-white flex items-center justify-center font-bold text-lg">
-                  🏏
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <div className="text-3xl font-bold text-black">3,096,340</div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    Total Points • 4/6 matches remaining
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-black rounded-full transition-all duration-500"
-                      style={{ width: "33%" }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Progress</span>
-                    <span className="font-medium text-black">33%</span>
-                  </div>
-                </div>
-
-                <div className="border border-orange-200 bg-orange-50 rounded-lg p-4">
-                  <div className="text-sm font-bold text-orange-700 mb-2">
-                    QUALIFICATION STATUS
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <div className="text-gray-600">Active Players</div>
-                      <div className="font-bold text-black">5/11</div>
-                    </div>
-                    <div>
-                      <div className="text-gray-600">Min Points</div>
-                      <div className="font-bold text-black">180/200</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Fixtures */}
+            {/* Matches */}
             <div className="border border-gray-200 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-black">Matches</h2>

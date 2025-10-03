@@ -29,9 +29,7 @@ export default function Navbar() {
       <div className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
         {/* Brand */}
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="h-7 w-7 rounded-md bg-gradient-to-br from-black to-gray-700 grid place-items-center">
-            <span className="text-white text-xs font-semibold">T</span>
-          </div>
+          
           <span className="text-lg font-semibold tracking-tight text-black group-hover:opacity-90 transition-opacity">
             Tenjaku
           </span>
