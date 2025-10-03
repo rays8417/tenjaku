@@ -65,6 +65,9 @@ export default function TournamentsPage() {
     useState<PlayerScore[]>([]);
   const [isLoadingTournaments, setIsLoadingTournaments] = useState(true);
   const [isLoadingPerformance, setIsLoadingPerformance] = useState(false);
+  const [upcomingMatches, setUpcomingMatches] = useState<any[]>([]);
+  const [isLoadingUpcomingMatches, setIsLoadingUpcomingMatches] =
+    useState(true);
 
   useEffect(() => {
     const fetchTournaments = async () => {
@@ -87,6 +90,66 @@ export default function TournamentsPage() {
     };
 
     fetchTournaments();
+  }, []);
+
+  useEffect(() => {
+    const fetchUpcomingMatches = async () => {
+      setIsLoadingUpcomingMatches(true);
+      try {
+        const options = {
+          method: "GET",
+          headers: {
+            "x-rapidapi-key":
+              process.env.NEXT_PUBLIC_RAPIDAPI_KEY ||
+              "532f0c50b1msh44411269bf0d34ap1e2fe9jsncdab740a4866",
+            "x-rapidapi-host": "cricbuzz-cricket.p.rapidapi.com",
+          },
+        };
+
+        const response = await fetch(
+          "https://cricbuzz-cricket.p.rapidapi.com/matches/v1/upcoming",
+          options
+        );
+        const data = await response.json();
+        console.log("Upcoming matches data:", data);
+
+        // Parse the matches from the response
+        const matches: any[] = [];
+        if (data.typeMatches) {
+          data.typeMatches.forEach((typeMatch: any) => {
+            if (typeMatch.seriesMatches) {
+              typeMatch.seriesMatches.forEach((seriesMatch: any) => {
+                if (seriesMatch.seriesAdWrapper) {
+                  const seriesName =
+                    seriesMatch.seriesAdWrapper.seriesName || "";
+                  if (seriesMatch.seriesAdWrapper.matches) {
+                    seriesMatch.seriesAdWrapper.matches.forEach(
+                      (matchWrapper: any) => {
+                        if (matchWrapper.matchInfo) {
+                          matches.push({
+                            ...matchWrapper.matchInfo,
+                            seriesName,
+                          });
+                        }
+                      }
+                    );
+                  }
+                }
+              });
+            }
+          });
+        }
+
+        setUpcomingMatches(matches.slice(0, 2)); // Show only first 5 matches
+      } catch (error) {
+        console.error("Error fetching upcoming matches:", error);
+        setUpcomingMatches([]);
+      } finally {
+        setIsLoadingUpcomingMatches(false);
+      }
+    };
+
+    fetchUpcomingMatches();
   }, []);
 
   const fetchLatestTournamentPerformance = async () => {
@@ -389,6 +452,63 @@ export default function TournamentsPage() {
     );
   };
 
+  const UpcomingMatchItem = ({ match }: { match: any }) => {
+    const matchDate = new Date(parseInt(match.startDate));
+    const dateStr = matchDate.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+    const timeStr = matchDate.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+    const team1 = match.team1?.teamName || "TBD";
+    const team2 = match.team2?.teamName || "TBD";
+
+    return (
+      <div className="flex flex-col gap-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50/50 transition-colors">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <div className="h-6 w-6 bg-gradient-to-br from-purple-500 to-pink-600 rounded text-white text-xs font-bold flex items-center justify-center">
+                {team1.substring(0, 3).toUpperCase()}
+              </div>
+              <span className="text-sm font-medium text-black">{team1}</span>
+            </div>
+            <span className="text-xs text-gray-400 font-medium">VS</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-black">{team2}</span>
+              <div className="h-6 w-6 bg-gradient-to-br from-blue-500 to-cyan-600 rounded text-white text-xs font-bold flex items-center justify-center">
+                {team2.substring(0, 3).toUpperCase()}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center justify-between text-xs">
+          <div className="text-gray-600">
+            <div className="font-medium">
+              {dateStr} • {timeStr}
+            </div>
+            <div className="text-gray-500 mt-1">
+              {match.venueInfo?.ground || "Venue TBD"}
+              {match.venueInfo?.city && `, ${match.venueInfo.city}`}
+            </div>
+            {match.seriesName && (
+              <div className="text-gray-500 mt-1 text-xs">
+                {match.seriesName}
+              </div>
+            )}
+          </div>
+          <div className="px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
+            {match.matchFormat || "Cricket"}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <div className="mx-auto max-w-7xl px-6 py-8">
@@ -401,7 +521,7 @@ export default function TournamentsPage() {
                 <h2 className="text-lg font-bold text-black">Matches</h2>
                 <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse" />
               </div>
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-[600px] overflow-y-auto scrollbar-thin pr-2">
                 {isLoadingTournaments ? (
                   // Show shimmer while loading
                   Array.from({ length: 2 }).map((_, index) => (
@@ -420,6 +540,39 @@ export default function TournamentsPage() {
                     <div className="font-medium">No tournaments available</div>
                     <div className="text-sm">
                       Check back later for upcoming matches
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Upcoming Matches */}
+            <div className="border border-gray-200 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-black">
+                  Upcoming Matches
+                </h2>
+                <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse" />
+              </div>
+              <div className="space-y-3 max-h-[400px] overflow-y-auto scrollbar-thin pr-2">
+                {isLoadingUpcomingMatches ? (
+                  // Show shimmer while loading
+                  Array.from({ length: 2 }).map((_, index) => (
+                    <TournamentShimmer key={index} />
+                  ))
+                ) : upcomingMatches.length > 0 ? (
+                  upcomingMatches.map((match) => (
+                    <UpcomingMatchItem
+                      key={match.matchId}
+                      match={match}
+                    />
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <div className="text-4xl mb-2">🏏</div>
+                    <div className="font-medium">No upcoming matches</div>
+                    <div className="text-sm">
+                      Check back later for upcoming cricket matches
                     </div>
                   </div>
                 )}
