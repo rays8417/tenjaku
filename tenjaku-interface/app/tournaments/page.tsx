@@ -140,7 +140,22 @@ export default function TournamentsPage() {
           });
         }
 
-        setUpcomingMatches(matches.slice(0, 2)); // Show only first 5 matches
+        // Filter matches to only include those where India is participating
+        const indiaMatches = matches.filter((match) => {
+          const team1 = match.team1?.teamName?.toLowerCase() || "";
+          const team2 = match.team2?.teamName?.toLowerCase() || "";
+          const team1Code = match.team1?.teamSName?.toLowerCase() || "";
+          const team2Code = match.team2?.teamSName?.toLowerCase() || "";
+          
+          return (
+            team1.includes("india") ||
+            team2.includes("india") ||
+            team1Code === "ind" ||
+            team2Code === "ind"
+          );
+        });
+
+        setUpcomingMatches(indiaMatches.slice(0, 2)); // Show only first 2 India matches
       } catch (error) {
         console.error("Error fetching upcoming matches:", error);
         setUpcomingMatches([]);
@@ -527,7 +542,7 @@ export default function TournamentsPage() {
             {/* Matches */}
             <div className="border border-gray-200 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-black">Matches</h2>
+                <h2 className="text-lg font-bold text-black">Tournments</h2>
                 <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse" />
               </div>
               <div className="space-y-3 max-h-[600px] overflow-y-auto scrollbar-thin pr-2">
@@ -548,9 +563,9 @@ export default function TournamentsPage() {
                     <svg className="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <div className="font-medium">No tournaments available</div>
+                    <div className="font-medium">Tournament will start when the upcoming match starts</div>
                     <div className="text-sm">
-                      Check back later for upcoming matches
+                      Make sure you hold player tokens before the tournament starts
                     </div>
                   </div>
                 )}
