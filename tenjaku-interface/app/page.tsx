@@ -53,7 +53,7 @@ export default function Home() {
           </h2>
           <p className="text-xl text-gray-600 leading-relaxed">
             Trade cricket player tokens, build winning teams, and compete for rewards 
-            in the ultimate fantasy cricket experience on Aptos.
+            in the ultimate fantasy cricket experience.
           </p>
         </div>
 
@@ -61,17 +61,17 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-4xl">
           <div className="text-center">
             <div className="text-5xl mb-4">⚡</div>
-            <h3 className="text-xl font-semibold mb-2">Trade Tokens</h3>
+            <h3 className="text-xl font-semibold mb-2 text-black">Trade Tokens</h3>
             <p className="text-gray-600">Buy and sell player tokens in real-time</p>
           </div>
           <div className="text-center">
             <div className="text-5xl mb-4">🏏</div>
-            <h3 className="text-xl font-semibold mb-2">Build Teams</h3>
+            <h3 className="text-xl font-semibold mb-2 text-black">Build Teams</h3>
             <p className="text-gray-600">Create your dream cricket lineup</p>
           </div>
           <div className="text-center">
             <div className="text-5xl mb-4">🏆</div>
-            <h3 className="text-xl font-semibold mb-2">Win Rewards</h3>
+            <h3 className="text-xl font-semibold mb-2 text-black">Win Rewards</h3>
             <p className="text-gray-600">Compete in tournaments and earn prizes</p>
           </div>
         </div>
