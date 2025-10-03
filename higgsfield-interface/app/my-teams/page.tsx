@@ -2,6 +2,7 @@
 
 import { useWallet } from "@/contexts/WalletContext";
 import { useState, useEffect } from "react";
+import axios from "axios";
 
 import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 
@@ -29,6 +30,11 @@ interface Holding {
   shares: number;
   holdings: number;
   avatar: string;
+}
+
+interface UserRewards {
+  totalEarnings: number;
+  totalRewards: number;
 }
 
 // TODO: Replace these placeholders with actual devnet deployed addresses
@@ -280,9 +286,36 @@ export default function MyTeamsPage() {
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userRewards, setUserRewards] = useState<UserRewards | null>(null);
+  const [rewardsLoading, setRewardsLoading] = useState(true);
   const { account } = useWallet();
 
   const address = account?.address;
+
+  // Fetch user rewards data
+  const fetchUserRewards = async (walletAddress: string) => {
+    try {
+      setRewardsLoading(true);
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/user-rewards/${walletAddress}`
+      );
+      
+      console.log('User rewards response:', response.data);
+      
+      // Transform the response data to match our interface
+      const rewardsData: UserRewards = {
+        totalEarnings: response.data.totalEarnings || 0,
+        totalRewards: response.data.totalRewards || 0
+      };
+      
+      setUserRewards(rewardsData);
+    } catch (err) {
+      console.error('Error fetching user rewards:', err);
+      setUserRewards({ totalEarnings: 0, totalRewards: 0 });
+    } finally {
+      setRewardsLoading(false);
+    }
+  };
 
   // Fetch real data on component mount
   useEffect(() => {
@@ -290,6 +323,10 @@ export default function MyTeamsPage() {
       if (!address) return;
       try {
         setLoading(true);
+        
+        // Fetch user rewards data
+        await fetchUserRewards(address);
+        
         const tokenReserves = await fetchTokenPairReserves(address);
 
         console.log("Token reserves:", tokenReserves);
@@ -462,6 +499,64 @@ export default function MyTeamsPage() {
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-black">My Teams</h1>
         </div>
+
+        {/* Rewards Summary */}
+        {address && (
+          <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+                    Total Earnings
+                  </h3>
+                  <div className="mt-2">
+                    {rewardsLoading ? (
+                      <div className="animate-pulse">
+                        <div className="h-8 w-24 bg-gray-200 rounded"></div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl font-bold text-black">
+                          {userRewards?.totalEarnings?.toFixed(2) || '0.00'}
+                        </span>
+                        <span className="text-sm text-gray-500">BOSON</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="h-12 w-12 rounded-lg bg-green-100 flex items-center justify-center">
+                  <span className="text-2xl">💰</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+                    Total Rewards
+                  </h3>
+                  <div className="mt-2">
+                    {rewardsLoading ? (
+                      <div className="animate-pulse">
+                        <div className="h-8 w-24 bg-gray-200 rounded"></div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl font-bold text-black">
+                          {userRewards?.totalRewards?.toFixed(2) || '0.00'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <span className="text-2xl">🏆</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Search Bar */}
         <div className="mb-6">

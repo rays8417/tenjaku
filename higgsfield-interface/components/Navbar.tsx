@@ -21,9 +21,9 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 group">
           <div className="h-12 w-12 bg-black flex items-center justify-center transform group-hover:scale-105 transition-transform shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]">
-            <span className="text-white font-black text-2xl">H</span>
+            <span className="text-white font-black text-2xl">T</span>
           </div>
-          <span className="font-black text-2xl tracking-tighter uppercase">Tenjaku</span>
+          <span className="font-black text-black text-2xl tracking-tighter uppercase">Tenjaku</span>
         </Link>
         
         <div className="flex items-center gap-6">

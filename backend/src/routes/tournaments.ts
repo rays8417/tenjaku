@@ -70,11 +70,7 @@ router.get("/:id", async (req, res) => {
           },
         },
        
-        playerScores: {
-          include: {
-            player: true,
-          },
-        },
+        playerScores: true,
       },
     });
 
@@ -97,6 +93,7 @@ router.get("/:id", async (req, res) => {
         maxParticipants: tournament.maxParticipants,
         currentParticipants: tournament.currentParticipants,
         createdAt: tournament.createdAt,
+        playerScores: tournament.playerScores,
       },
     });
   } catch (error) {
