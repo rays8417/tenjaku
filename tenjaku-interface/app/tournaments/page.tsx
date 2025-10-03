@@ -394,56 +394,60 @@ export default function TournamentsPage() {
     });
 
     return (
-      <div className="flex flex-col gap-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50/50 transition-colors">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <div className="h-6 w-6 bg-gradient-to-br from-orange-500 to-red-600 rounded text-white text-xs font-bold flex items-center justify-center">
-                {tournament.team1.substring(0, 3).toUpperCase()}
-              </div>
-              <span className="text-sm font-medium text-black">
-                {tournament.team1}
-              </span>
+      <div className="flex flex-col gap-4 p-5 border border-gray-200 rounded-xl hover:shadow-md hover:border-gray-300 transition-all bg-white">
+        {/* Teams */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-10 w-10 flex-shrink-0 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg text-white text-sm font-bold flex items-center justify-center shadow-sm">
+              {tournament.team1.substring(0, 3).toUpperCase()}
             </div>
-            <span className="text-xs text-gray-400 font-medium">VS</span>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-black">
-                {tournament.team2}
-              </span>
-              <div className="h-6 w-6 bg-gradient-to-br from-green-500 to-blue-600 rounded text-white text-xs font-bold flex items-center justify-center">
-                {tournament.team2.substring(0, 3).toUpperCase()}
-              </div>
+            <span className="text-base font-semibold text-black truncate">
+              {tournament.team1}
+            </span>
+          </div>
+          
+          <span className="text-sm text-gray-400 font-semibold flex-shrink-0">VS</span>
+          
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-base font-semibold text-black truncate">
+              {tournament.team2}
+            </span>
+            <div className="h-10 w-10 flex-shrink-0 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg text-white text-sm font-bold flex items-center justify-center shadow-sm">
+              {tournament.team2.substring(0, 3).toUpperCase()}
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-between text-xs">
-          <div className="text-gray-600">
-            <div className="font-medium">
+
+        {/* Match Details */}
+        <div className="flex flex-col gap-2 pt-3 border-t border-gray-100">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-sm font-semibold text-gray-700">
               {dateStr} • {timeStr}
             </div>
-            <div className="text-gray-500 mt-1">
-              {tournament.venue || "Venue TBD"}
+            <div
+              className={`px-3 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${
+                tournament.status === "UPCOMING"
+                  ? "bg-blue-100 text-blue-700"
+                  : tournament.status === "LIVE"
+                  ? "bg-red-100 text-red-700"
+                  : "bg-green-100 text-green-700"
+              }`}
+            >
+              {tournament.status}
             </div>
-            {tournament.description && (
-              <div className="text-gray-500 mt-1 text-xs">
-                {tournament.description}
-              </div>
-            )}
           </div>
-          <div
-            className={`px-2 py-1 rounded-full text-xs font-medium ${
-              tournament.status === "UPCOMING"
-                ? "bg-blue-100 text-blue-700"
-                : tournament.status === "LIVE"
-                ? "bg-red-100 text-red-700"
-                : "bg-green-100 text-green-700"
-            }`}
-          >
-            {tournament.status}
+          
+          <div className="text-sm text-gray-500">
+            {tournament.venue || "Venue TBD"}
           </div>
-        </div>
-        <div className="flex items-center justify-between text-xs mt-2 pt-2 border-t border-gray-100">
-          <div className="text-gray-500">
+          
+          {tournament.description && (
+            <div className="text-sm text-gray-500 line-clamp-1">
+              {tournament.description}
+            </div>
+          )}
+          
+          <div className="text-sm text-gray-500 mt-1 pt-2 border-t border-gray-100">
             Entry Fee:{" "}
             {tournament.entryFee === "0" ? "Free" : `₹${tournament.entryFee}`}
           </div>
@@ -468,42 +472,47 @@ export default function TournamentsPage() {
     const team2 = match.team2?.teamName || "TBD";
 
     return (
-      <div className="flex flex-col gap-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50/50 transition-colors">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <div className="h-6 w-6 bg-gradient-to-br from-purple-500 to-pink-600 rounded text-white text-xs font-bold flex items-center justify-center">
-                {team1.substring(0, 3).toUpperCase()}
-              </div>
-              <span className="text-sm font-medium text-black">{team1}</span>
+      <div className="flex flex-col gap-4 p-5 border border-gray-200 rounded-xl hover:shadow-md hover:border-gray-300 transition-all bg-white">
+        {/* Teams */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-10 w-10 flex-shrink-0 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg text-white text-sm font-bold flex items-center justify-center shadow-sm">
+              {team1.substring(0, 3).toUpperCase()}
             </div>
-            <span className="text-xs text-gray-400 font-medium">VS</span>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-black">{team2}</span>
-              <div className="h-6 w-6 bg-gradient-to-br from-blue-500 to-cyan-600 rounded text-white text-xs font-bold flex items-center justify-center">
-                {team2.substring(0, 3).toUpperCase()}
-              </div>
+            <span className="text-base font-semibold text-black truncate">{team1}</span>
+          </div>
+          
+          <span className="text-sm text-gray-400 font-semibold flex-shrink-0">VS</span>
+          
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-base font-semibold text-black truncate">{team2}</span>
+            <div className="h-10 w-10 flex-shrink-0 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg text-white text-sm font-bold flex items-center justify-center shadow-sm">
+              {team2.substring(0, 3).toUpperCase()}
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-between text-xs">
-          <div className="text-gray-600">
-            <div className="font-medium">
+
+        {/* Match Details */}
+        <div className="flex flex-col gap-2 pt-3 border-t border-gray-100">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-sm font-semibold text-gray-700">
               {dateStr} • {timeStr}
             </div>
-            <div className="text-gray-500 mt-1">
-              {match.venueInfo?.ground || "Venue TBD"}
-              {match.venueInfo?.city && `, ${match.venueInfo.city}`}
+            <div className="px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 flex-shrink-0">
+              {match.matchFormat || "Cricket"}
             </div>
-            {match.seriesName && (
-              <div className="text-gray-500 mt-1 text-xs">
-                {match.seriesName}
-              </div>
-            )}
           </div>
-          <div className="px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
-            {match.matchFormat || "Cricket"}
+          
+          <div className="text-sm text-gray-500">
+            {match.venueInfo?.ground || "Venue TBD"}
+            {match.venueInfo?.city && `, ${match.venueInfo.city}`}
           </div>
+          
+          {match.seriesName && (
+            <div className="text-sm text-gray-500 line-clamp-1">
+              {match.seriesName}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -536,7 +545,9 @@ export default function TournamentsPage() {
                   ))
                 ) : (
                   <div className="text-center py-8 text-gray-500">
-                    <div className="text-4xl mb-2">🏏</div>
+                    <svg className="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
                     <div className="font-medium">No tournaments available</div>
                     <div className="text-sm">
                       Check back later for upcoming matches
@@ -554,7 +565,7 @@ export default function TournamentsPage() {
                 </h2>
                 <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse" />
               </div>
-              <div className="space-y-3 max-h-[400px] overflow-y-auto scrollbar-thin pr-2">
+              <div className="space-y-4 max-h-[500px] overflow-y-auto scrollbar-thin pr-2">
                 {isLoadingUpcomingMatches ? (
                   // Show shimmer while loading
                   Array.from({ length: 2 }).map((_, index) => (
@@ -569,7 +580,9 @@ export default function TournamentsPage() {
                   ))
                 ) : (
                   <div className="text-center py-8 text-gray-500">
-                    <div className="text-4xl mb-2">🏏</div>
+                    <svg className="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                     <div className="font-medium">No upcoming matches</div>
                     <div className="text-sm">
                       Check back later for upcoming cricket matches
@@ -637,7 +650,7 @@ export default function TournamentsPage() {
 
                 <div className="space-y-1">
                   <div className="text-sm font-medium text-gray-900 mb-4">
-                    {activeTab === "Overview" ? "All Players" : activeTab} (
+                    {activeTab === "Overview" ? "Eligible Players" : activeTab} (
                     {visiblePlayers.length})
                   </div>
                   <div className="space-y-0">
@@ -652,7 +665,9 @@ export default function TournamentsPage() {
                       ))
                     ) : (
                       <div className="text-center py-12 text-gray-500">
-                        <div className="text-4xl mb-2">🏏</div>
+                        <svg className="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
                         <div className="font-medium">No players found</div>
                         <div className="text-sm">
                           Try adjusting your search or filters
@@ -669,3 +684,4 @@ export default function TournamentsPage() {
     </div>
   );
 }
+

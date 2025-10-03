@@ -1,98 +1,93 @@
 "use client";
 
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-
-declare global {
-  interface Window {
-    aptos?: any;
-  }
-}
+import { useWallet } from "../contexts/WalletContext";
 
 export default function Home() {
   const router = useRouter();
-
-  useEffect(() => {
-    const attemptReconnect = async () => {
-      try {
-        if (typeof window !== "undefined" && window.aptos) {
-          if (typeof window.aptos.isConnected === "function") {
-            const connected = await window.aptos.isConnected();
-            if (!connected) return;
-          }
-          const account = await window.aptos.account();
-          if (account?.address) {
-            // Redirect connected users to tournaments page immediately
-            router.replace("/tournaments");
-          }
-        }
-      } catch (_) {
-        // silently ignore on first load
-      }
-    };
-
-    attemptReconnect();
-  }, [router]);
+  const { account, isConnecting, connectWallet } = useWallet();
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 py-20">
-        {/* Logo */}
-        <div className="text-center mb-16">
-          <h1 className="text-6xl md:text-8xl font-bold text-black mb-4">
-            Tenjaku
+    <div className="min-h-screen flex flex-col">
+      {/* Hero */}
+      <section className="relative flex items-center justify-center min-h-[calc(100vh-4rem)]">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-1/4 right-0 h-[600px] w-[600px] rounded-full bg-brand-gradient blur-3xl opacity-20" />
+          <div className="absolute bottom-0 left-0 h-[500px] w-[500px] rounded-full bg-brand-gradient blur-3xl opacity-15" />
+        </div>
+        
+        <div className="relative mx-auto max-w-6xl px-6 py-20 text-center">
+          <h1 className="text-6xl md:text-8xl font-bold tracking-tight text-white">
+            <span className="block">Predict.</span>
+            <span className="block bg-clip-text text-transparent bg-gradient-to-r from-brand-400 via-brand-500 to-brand-300">
+              Compete.
+            </span>
+            <span className="block">Win.</span>
           </h1>
-          <div className="w-24 h-1 bg-black mx-auto"></div>
-        </div>
-
-        {/* Main Message */}
-        <div className="text-center max-w-3xl mb-20">
-          <h2 className="text-3xl md:text-5xl font-bold text-black mb-6">
-            Fantasy Cricket Meets Blockchain
-          </h2>
-          <p className="text-xl text-gray-600 leading-relaxed">
-            Trade cricket player tokens, build winning teams, and compete for rewards 
-            in the ultimate fantasy cricket experience.
+          
+          <p className="mt-8 mx-auto max-w-2xl text-xl md:text-2xl text-white/60 leading-relaxed font-light">
+            Cricket Fan Score Predictions
           </p>
-        </div>
 
-        {/* Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-4xl">
-          <div className="text-center">
-            <div className="text-5xl mb-4">⚡</div>
-            <h3 className="text-xl font-semibold mb-2 text-black">Trade Tokens</h3>
-            <p className="text-gray-600">Buy and sell player tokens in real-time</p>
+          <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
+            {account ? (
+              <button
+                onClick={() => router.push("/tournaments")}
+                className="inline-flex items-center justify-center rounded-lg px-8 py-4 text-base font-medium text-white bg-brand-gradient hover:opacity-90 transition-opacity shadow-xl shadow-brand-500/20"
+              >
+                Enter App
+              </button>
+            ) : (
+              <button
+                onClick={async () => {
+                  await connectWallet();
+                }}
+                disabled={isConnecting}
+                className="inline-flex items-center justify-center rounded-lg px-8 py-4 text-base font-medium text-white bg-brand-gradient hover:opacity-90 transition-opacity shadow-xl shadow-brand-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isConnecting ? "Connecting..." : "Get Started"}
+              </button>
+            )}
           </div>
-          <div className="text-center">
-            <div className="text-5xl mb-4">🏏</div>
-            <h3 className="text-xl font-semibold mb-2 text-black">Build Teams</h3>
-            <p className="text-gray-600">Create your dream cricket lineup</p>
-          </div>
-          <div className="text-center">
-            <div className="text-5xl mb-4">🏆</div>
-            <h3 className="text-xl font-semibold mb-2 text-black">Win Rewards</h3>
-            <p className="text-gray-600">Compete in tournaments and earn prizes</p>
+
+          {/* Stats Bar */}
+          <div className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <StatCard value="Live" label="Real-time Tournaments" />
+            <StatCard value="On-chain" label="Transparent & Fair" />
+            <StatCard value="Instant" label="Automated Payouts" />
           </div>
         </div>
+      </section>
 
-        {/* Simple CTA */}
-        <div className="text-center mt-20">
-          <p className="text-lg text-gray-700 mb-4">
-            Ready to get started?
-          </p>
-          <p className="text-gray-500">
-            Connect your wallet using the button in the navigation bar
-          </p>
-        </div>
-      </main>
+      
+    </div>
+  );
+}
 
-      {/* Footer */}
-      <footer className="py-8 text-center border-t border-gray-100">
-        <p className="text-sm text-gray-500">
-          © 2025 Tenjaku
-        </p>
-      </footer>
+type StatCardProps = {
+  value: string;
+  label: string;
+};
+
+function StatCard({ value, label }: StatCardProps) {
+  return (
+    <div className="bg-card border border-white/10 rounded-xl px-6 py-8 text-center backdrop-blur-sm hover:border-brand-500/50 transition-colors">
+      <div className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-brand-300">{value}</div>
+      <div className="mt-2 text-sm text-white/70 font-medium">{label}</div>
+    </div>
+  );
+}
+
+type FeatureCardProps = {
+  title: string;
+  desc: string;
+};
+
+function FeatureCard({ title, desc }: FeatureCardProps) {
+  return (
+    <div className="group relative rounded-2xl border border-white/10 bg-card p-8 transition-all hover:border-white/20">
+      <h3 className="text-2xl font-bold text-white mb-3">{title}</h3>
+      <p className="text-white/60 leading-relaxed">{desc}</p>
     </div>
   );
 }

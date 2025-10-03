@@ -3,21 +3,38 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Base palette */
+  --background: #0b0b0b; /* near-black */
+  --foreground: #ffffff; /* white */
+  --border: #262626; /* neutral-800 */
+  --card: #0f0f10; /* slightly lifted from background */
+  --card-foreground: #fafafa;
+  --muted: #1a1a1a;
+  --muted-foreground: #a3a3a3;
+  --primary: #3b82f6; /* blue-500 */
+  --primary-foreground: #e6f0ff;
+  --accent: #1f2937; /* slate-800 */
+  --accent-foreground: #f8fafc;
+  --ring: #60a5fa; /* blue-400 */
+
+  /* Gradient helpers */
+  --brand-from: #3b82f6; /* blue-500 */
+  --brand-via: #60a5fa; /* blue-400 */
+  --brand-to: #93c5fd;  /* blue-300 */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0b0b0b;
+    --foreground: #ffffff;
   }
 }
 
 body {
   color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  background: radial-gradient(1200px 800px at 100% -200px, rgba(37, 99, 235, 0.15), transparent 60%), radial-gradient(800px 600px at -100px 50px, rgba(59, 130, 246, 0.12), transparent 60%), var(--background);
+  /* Use Geist variable fonts provided in layout.tsx */
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji;
 }
 
 @layer utilities {
@@ -31,22 +48,28 @@ body {
   }
 
   .scrollbar-thin::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: #111318;
     border-radius: 10px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: #d1d5db;
+    background: #334155;
     border-radius: 10px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: #9ca3af;
+    background: #1f5fbf;
   }
 
   /* Firefox */
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: #d1d5db #f1f1f1;
+    scrollbar-color: #334155 #111318;
   }
+}
+
+/* Selection */
+::selection {
+  background: rgba(37, 99, 235, 0.35);
+  color: #fff;
 }

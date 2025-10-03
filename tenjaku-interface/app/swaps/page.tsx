@@ -1259,98 +1259,120 @@ export default function SwapsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="mx-auto max-w-7xl px-6 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-black">Token Swap</h1>
-            <p className="text-gray-500 text-sm mt-1">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-1 bg-gradient-to-r from-gray-900 via-blue-900 to-blue-700 bg-clip-text text-transparent">
+              Token Swap
+            </h1>
+            <p className="text-gray-600 text-sm sm:text-base">
               Exchange your tokens instantly with live pricing
             </p>
           </div>
 
           {/* Wallet Status */}
           {account ? (
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <div className="text-sm font-semibold text-black">
-                  {account.address.slice(0, 6)}...{account.address.slice(-4)}
+            <div className="flex items-center gap-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl px-4 py-3">
+              <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
+              <div className="text-left">
+                <div className="text-sm font-bold text-gray-900">
+                  {account.address.slice(0, 8)}...{account.address.slice(-6)}
                 </div>
-                <div className="text-xs text-gray-500">Aptos Testnet</div>
+                <div className="text-xs text-gray-600">Aptos Testnet</div>
               </div>
             </div>
           ) : (
-            <div className="text-center">
-              <p className="text-sm text-gray-500 mb-2">Connect your wallet to start swapping</p>
-              <p className="text-xs text-gray-400">Use the Connect Wallet button in the navbar</p>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+              <p className="text-sm font-medium text-amber-900 mb-1">
+                Wallet not connected
+              </p>
+              <p className="text-xs text-amber-700">
+                Use the Connect Wallet button in the navbar
+              </p>
             </div>
           )}
         </div>
 
-        <div className="grid grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
           {/* Left Column - Swap Interface */}
-          <div className="col-span-12 lg:col-span-7">
-            <div className="border border-gray-200 rounded-xl p-6">
-              <h2 className="text-xl font-bold text-black mb-6">Swap Tokens</h2>
+          <div className="lg:col-span-7">
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-xl shadow-gray-100 overflow-hidden">
+              {/* Card Header */}
+              <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-4">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                  Swap Tokens
+                </h2>
+              </div>
 
-              {/* You Pay */}
-              <div className="space-y-6">
-                <div className="bg-gray-50 rounded-xl p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm font-medium text-gray-600">
+              <div className="p-6 space-y-3">
+                {/* You Pay */}
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-5 border-2 border-gray-200 hover:border-blue-300 transition-all duration-200">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                       You Pay
                     </span>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setPercent(25)}
-                        className="px-3 py-1 bg-black text-white rounded-lg text-xs hover:bg-gray-800 transition-colors"
+                        className="px-3 py-1.5 bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-lg text-xs font-medium hover:from-gray-800 hover:to-gray-900 transition-all shadow-sm active:scale-95"
                       >
                         25%
                       </button>
                       <button
                         onClick={() => setPercent(50)}
-                        className="px-3 py-1 bg-black text-white rounded-lg text-xs hover:bg-gray-800 transition-colors"
+                        className="px-3 py-1.5 bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-lg text-xs font-medium hover:from-gray-800 hover:to-gray-900 transition-all shadow-sm active:scale-95"
                       >
                         50%
                       </button>
                       <button
                         onClick={() => setPercent(100)}
-                        className="px-3 py-1 bg-black text-white rounded-lg text-xs hover:bg-gray-800 transition-colors"
+                        className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-xs font-medium hover:from-blue-700 hover:to-blue-800 transition-all shadow-sm active:scale-95"
                       >
                         MAX
                       </button>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between gap-4 mb-3">
                     <input
                       inputMode="decimal"
                       value={payAmount}
                       onChange={(e) => handlePayChange(e.target.value)}
                       placeholder="0.00"
-                      className="bg-transparent text-3xl font-semibold outline-none placeholder:text-gray-300 flex-1 text-black"
+                      className="bg-transparent text-4xl font-bold outline-none placeholder:text-gray-300 flex-1 text-gray-900 min-w-0"
                     />
-                    <div className="flex items-center gap-3 ml-4">
+                    <div className="flex items-center gap-3 flex-shrink-0">
                       {!isSwapped ? (
-                        // BOSON token display (default)
                         <>
-                          <div className="h-8 w-8 rounded-full bg-black" />
-                          <span className="font-bold text-black text-lg">
-                            {getCurrentTokens().from.name}
-                          </span>
+                          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-gray-800 to-black shadow-lg flex items-center justify-center">
+                            <span className="text-white font-bold text-lg">B</span>
+                          </div>
+                          <div className="text-left">
+                            <div className="font-bold text-gray-900 text-lg leading-tight">
+                              BOSON
+                            </div>
+                            <div className="text-xs text-gray-500 font-medium">
+                              Base Token
+                            </div>
+                          </div>
                         </>
                       ) : (
-                        // Player token display when swapped
                         <>
-                          <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
-                            {getCurrentTokens().from.avatar}
+                          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 shadow-lg flex items-center justify-center">
+                            <span className="text-white font-bold text-sm">
+                              {getCurrentTokens().from.avatar}
+                            </span>
                           </div>
-                          <div className="text-right">
-                            <div className="font-bold text-black text-lg">
+                          <div className="text-left">
+                            <div className="font-bold text-gray-900 text-lg leading-tight">
                               {getCurrentTokens().from.displayName}
                             </div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-gray-500 font-medium">
                               {getCurrentTokens().from.team} • {getCurrentTokens().from.position}
                             </div>
                           </div>
@@ -1359,24 +1381,26 @@ export default function SwapsPage() {
                     </div>
                   </div>
 
-                  <div className="text-sm text-gray-500">
-                    Balance:{" "}
-                    {isLoading.balance
-                      ? "Loading..."
-                      : `${getCurrentTokens().fromBalance.toFixed(4)} ${
-                          getCurrentTokens().from.displayName || getCurrentTokens().from.name
-                        }`}
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600 font-medium">Balance:</span>
+                    <span className="text-gray-900 font-semibold">
+                      {isLoading.balance
+                        ? "Loading..."
+                        : `${getCurrentTokens().fromBalance.toFixed(4)} ${
+                            getCurrentTokens().from.displayName || getCurrentTokens().from.name
+                          }`}
+                    </span>
                   </div>
                 </div>
 
-                {/* Swap Button */}
-                <div className="flex justify-center">
+                {/* Swap Direction Button */}
+                <div className="flex justify-center -my-1 relative z-10">
                   <button
                     onClick={swapTokens}
-                    className="h-12 w-12 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center text-gray-500 hover:border-gray-300 hover:bg-gray-50 transition-colors group"
+                    className="h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-200 flex items-center justify-center text-white hover:shadow-xl hover:scale-110 transition-all duration-300 group border-4 border-white"
                   >
                     <svg
-                      className="h-5 w-5 group-hover:rotate-180 transition-transform duration-300"
+                      className="h-6 w-6 group-hover:rotate-180 transition-transform duration-500"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -1384,7 +1408,7 @@ export default function SwapsPage() {
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        strokeWidth={2}
+                        strokeWidth={2.5}
                         d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
                       />
                     </svg>
@@ -1392,72 +1416,107 @@ export default function SwapsPage() {
                 </div>
 
                 {/* You Receive */}
-                <div className="bg-gray-50 rounded-xl p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm font-medium text-gray-600">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 border-2 border-blue-200 hover:border-blue-300 transition-all duration-200">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                       You Receive
                     </span>
                     {isLoading.quote && (
-                      <span className="text-xs text-blue-600 animate-pulse">
+                      <span className="text-xs font-semibold text-blue-600 animate-pulse flex items-center gap-1">
+                        <div className="h-1.5 w-1.5 bg-blue-600 rounded-full animate-bounce" />
                         Calculating...
                       </span>
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-start justify-between gap-4 mb-3">
                     <input
                       inputMode="decimal"
                       value={isLoading.quote ? "..." : receiveAmount}
                       placeholder="0.00"
-                      className="bg-transparent text-3xl font-semibold outline-none placeholder:text-gray-300 flex-1 text-black"
+                      className="bg-transparent text-4xl font-bold outline-none placeholder:text-blue-200 flex-1 text-gray-900 min-w-0"
                       readOnly
                     />
-                    <div className="flex items-center gap-3 ml-4">
+                    <div className="flex flex-col gap-2 flex-shrink-0">
                       {!isSwapped ? (
-                        // Player token selection dropdown (default)
-                        <div className="flex flex-col gap-1 min-w-0 max-w-[200px]">
-                          <select
-                            value={selectedPlayerToken}
-                            onChange={(e) => {
-                              setSelectedPlayerToken(e.target.value);
-                              setPayAmount("");
-                              setReceiveAmount("");
-                            }}
-                            className="bg-transparent border border-gray-300 rounded-lg px-3 py-2 text-black font-semibold text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500 truncate"
-                            disabled={isLoading.liquidity}
-                          >
-                            {isLoading.liquidity ? (
-                              <option value="">Loading tokens...</option>
-                            ) : (
-                              availableTokens.map((token) => (
-                                <option key={token.name} value={token.name}>
-                                  {token.displayName} ({token.team}) - {token.position}
-                                </option>
-                              ))
-                            )}
-                          </select>
-                        </div>
-                      ) : (
-                        // BOSON token display when swapped
                         <>
-                          <div className="h-8 w-8 rounded-full bg-black" />
-                          <span className="font-bold text-black text-lg">
-                            {getCurrentTokens().to.name}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 shadow-lg flex items-center justify-center flex-shrink-0">
+                              <span className="text-white font-bold text-sm">
+                                {availableTokens.find(t => t.name === selectedPlayerToken)?.avatar || 'AS'}
+                              </span>
+                            </div>
+                            <select
+                              value={selectedPlayerToken}
+                              onChange={(e) => {
+                                setSelectedPlayerToken(e.target.value);
+                                setPayAmount("");
+                                setReceiveAmount("");
+                              }}
+                              className="bg-white border-2 border-blue-200 rounded-lg px-3 py-2 text-gray-900 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:border-blue-300 transition-colors min-w-[160px]"
+                              disabled={isLoading.liquidity}
+                            >
+                              {isLoading.liquidity ? (
+                                <option value="">Loading...</option>
+                              ) : (
+                                availableTokens.map((token) => (
+                                  <option key={token.name} value={token.name}>
+                                    {token.displayName}
+                                  </option>
+                                ))
+                              )}
+                            </select>
+                          </div>
+                          <div className="text-xs text-blue-700 font-medium text-right">
+                            {availableTokens.find(t => t.name === selectedPlayerToken)?.team} • {availableTokens.find(t => t.name === selectedPlayerToken)?.position}
+                          </div>
                         </>
+                      ) : (
+                        <div className="flex items-center gap-3">
+                          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-gray-800 to-black shadow-lg flex items-center justify-center">
+                            <span className="text-white font-bold text-lg">B</span>
+                          </div>
+                          <div className="text-left">
+                            <div className="font-bold text-gray-900 text-lg leading-tight">
+                              BOSON
+                            </div>
+                            <div className="text-xs text-gray-500 font-medium">
+                              Base Token
+                            </div>
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
 
-                  <div className="text-sm text-gray-500">
-                    Balance:{" "}
-                    {isLoading.balance
-                      ? "Loading..."
-                      : `${getCurrentTokens().toBalance.toFixed(4)} ${
-                          getCurrentTokens().to.displayName || getCurrentTokens().to.name
-                        }`}
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600 font-medium">Balance:</span>
+                    <span className="text-gray-900 font-semibold">
+                      {isLoading.balance
+                        ? "Loading..."
+                        : `${getCurrentTokens().toBalance.toFixed(4)} ${
+                            getCurrentTokens().to.displayName || getCurrentTokens().to.name
+                          }`}
+                    </span>
                   </div>
                 </div>
+
+                {/* Exchange Rate Info */}
+                {payAmount && receiveAmount && Number(receiveAmount) > 0 && (
+                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-amber-900 font-medium flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                        Exchange Rate:
+                      </span>
+                      <span className="text-amber-900 font-bold">
+                        1 {getCurrentTokens().from.displayName} ≈ {(Number(receiveAmount) / Number(payAmount)).toFixed(4)} {getCurrentTokens().to.displayName}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Swap Button */}
                 <button
@@ -1468,234 +1527,241 @@ export default function SwapsPage() {
                     Number(payAmount) <= 0 ||
                     isLoading.swap
                   }
-                  className={`w-full py-4 text-lg font-semibold rounded-xl transition-colors ${
+                  className={`w-full py-5 text-lg font-bold rounded-2xl transition-all duration-300 shadow-lg ${
                     account &&
                     payAmount &&
                     Number(payAmount) > 0 &&
                     !isLoading.swap
-                      ? "bg-black text-white hover:bg-gray-800"
-                      : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                      ? "bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 text-white hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
                   }`}
                 >
                   {!account
                     ? "Connect Wallet First"
                     : isLoading.swap
-                    ? "Swapping..."
+                    ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Swapping...
+                      </span>
+                    )
                     : payAmount && Number(payAmount) > 0
                     ? "Swap Tokens"
                     : "Enter Amount"}
                 </button>
-              </div>
 
-              {/* Debug Section */}
-              
+                {/* Slippage Info */}
+                <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+                  {/* <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg> */}
+                  {/* <span>Max slippage: <span className="font-semibold text-gray-700">{((1 - SLIPPAGE_TOLERANCE) * 100).toFixed(1)}%</span></span> */}
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Right Column - Live Token Prices */}
-          <div className="col-span-12 lg:col-span-5">
-            <div className="border border-gray-200 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-black">
-                  Live Token Prices
-                </h2>
-                <div className="flex items-center gap-2">
-                  {isLoading.price && (
-                    <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
+          <div className="lg:col-span-5">
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-xl shadow-gray-100 overflow-hidden sticky top-6">
+              {/* Card Header */}
+              <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                    Live Prices
+                  </h2>
+                  {tokenPrices.lastUpdated && (
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse" />
+                      <span className="text-xs text-white/90 font-medium">
+                        {tokenPrices.lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
                   )}
-                  <span className="text-xs text-gray-500">
-                    {tokenPrices.lastUpdated
-                      ? `Updated ${tokenPrices.lastUpdated.toLocaleTimeString()}`
-                      : isLoading.price
-                      ? "Updating..."
-                      : "No data"}
-                  </span>
                 </div>
               </div>
 
-              {isLoading.price ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className="bg-gray-50 rounded-lg p-4 animate-pulse"
-                    >
-                      <div className="h-4 bg-gray-200 rounded w-1/3 mb-2" />
-                      <div className="h-6 bg-gray-200 rounded w-2/3" />
-                    </div>
-                  ))}
-                </div>
-              ) : tokenPrices.current?.reserves ? (
-                <div className="space-y-4">
-                  {/* Token Pair Overview */}
-                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-blue-900">
-                        {getCurrentTokens().from.displayName || getCurrentTokens().from.name}/
-                        {getCurrentTokens().to.displayName || getCurrentTokens().to.name} Pair
-                      </span>
-                      <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full font-medium">
-                        Active
-                      </span>
-                    </div>
-                    <div className="text-xs text-blue-700">
-                      Liquidity Pool Status
-                    </div>
-                  </div>
-
-                  {/* Token Prices */}
-                  <div className="space-y-3">
-                    <div className="bg-black text-white rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-sm text-gray-300">
-                            BOSON (BOSON)
-                          </div>
-                          <div className="text-2xl font-bold">$1.00</div>
-                          <div className="text-xs text-gray-400">USD</div>
-                        </div>
-                        <div className="h-10 w-10 bg-white rounded-full flex items-center justify-center">
-                          <span className="text-black font-bold text-sm">
-                            B
-                          </span>
-                        </div>
+              <div className="p-6">
+                {isLoading.price ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div
+                        key={i}
+                        className="bg-gradient-to-r from-gray-100 to-gray-50 rounded-xl p-5 animate-pulse"
+                      >
+                        <div className="h-4 bg-gray-200 rounded w-1/3 mb-3" />
+                        <div className="h-8 bg-gray-200 rounded w-2/3" />
                       </div>
-                    </div>
-
-                    <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-sm text-blue-100">
-                            {getCurrentTokens().from.displayName} • {getCurrentTokens().from.team}
-                          </div>
-                          <div className="text-2xl font-bold">
-                            $
-                            {tokenPrices.current.reserves.abhishekPriceUSD.toFixed(
-                              6
-                            )}
-                          </div>
-                          <div className="text-xs text-blue-200">USD</div>
-                        </div>
-                        <div className="h-10 w-10 bg-white rounded-full flex items-center justify-center">
-                          <span className="text-blue-600 font-bold text-sm">
-                            {getCurrentTokens().from.avatar}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                    ))}
                   </div>
-
-                  {/* Exchange Rates */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-3">
-                      Exchange Rates
-                    </h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-600">1 {getCurrentTokens().from.displayName} =</span>
-                        <span className="font-semibold text-black">
-                          {tokenPrices.current.reserves.abhishekPriceInBoson.toFixed(
-                            6
-                          )}{" "}
-                          BOSON
+                ) : tokenPrices.current?.reserves ? (
+                  <div className="space-y-4">
+                    {/* Token Pair Status */}
+                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-4 border-2 border-emerald-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-bold text-emerald-900">
+                          {availableTokens.find(t => t.name === selectedPlayerToken)?.displayName || 'Player Token'}/BOSON
+                        </span>
+                        <span className="flex items-center gap-1.5 text-xs px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold">
+                          <div className="h-1.5 w-1.5 bg-emerald-600 rounded-full animate-pulse" />
+                          Active
                         </span>
                       </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-600">1 BOSON =</span>
-                        <span className="font-semibold text-black">
-                          {tokenPrices.current.reserves.bosonPriceInAbhishek.toFixed(
-                            2
-                          )}{" "}
-                          {getCurrentTokens().from.displayName}
-                        </span>
+                      <div className="text-xs text-emerald-700 font-medium">
+                        Liquidity Pool • Real-time pricing
                       </div>
                     </div>
-                  </div>
 
-                 
+                    {/* Token Price Cards */}
+                    <div className="space-y-3">
+                      {/* BOSON Price */}
+                      <div className="bg-gradient-to-br from-gray-900 to-black text-white rounded-xl p-5 shadow-lg">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">
+                              BOSON
+                            </div>
+                            <div className="text-3xl font-black mb-1">$1.00</div>
+                            {/* <div className="text-xs text-gray-400 font-medium">
+                              USD • Base Token
+                            </div> */}
+                          </div>
+                          <div className="h-14 w-14 bg-white rounded-2xl shadow-lg flex items-center justify-center transform rotate-12 hover:rotate-0 transition-transform">
+                            <span className="text-black font-black text-xl">B</span>
+                          </div>
+                        </div>
+                      </div>
 
-                  {/* Price Details */}
-                  {receiveAmount && Number(receiveAmount) > 0 && (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                      <h3 className="text-sm font-semibold text-green-800 mb-3">
-                        💰 Current Trade Value
+                      {/* Player Token Price */}
+                      <div className="bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400 text-white rounded-xl p-5 shadow-lg">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="text-xs text-white/80 font-medium uppercase tracking-wide mb-1">
+                              {availableTokens.find(t => t.name === selectedPlayerToken)?.displayName || 'Player Token'}
+                            </div>
+                            <div className="text-3xl font-black mb-1">
+                              ${tokenPrices.current.reserves.abhishekPriceUSD.toFixed(6)}
+                            </div>
+                          </div>
+                          <div className="h-14 w-14 bg-white rounded-2xl shadow-lg flex items-center justify-center transform -rotate-12 hover:rotate-0 transition-transform">
+                            <span className="text-blue-600 font-black text-lg">
+                              {availableTokens.find(t => t.name === selectedPlayerToken)?.avatar || 'P'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Exchange Rates */}
+                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border-2 border-gray-200">
+                      <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wide flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                        Exchange Rates
                       </h3>
-                      {getCurrentTokens().to.name === "BOSON" ? (
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-green-700">Unit Price:</span>
-                            <span className="font-semibold text-green-900">
-                              $1.00
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-green-700">Total Value:</span>
-                            <span className="font-semibold text-green-900">
-                              ${Number(receiveAmount).toFixed(4)}
-                            </span>
-                          </div>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center p-3 bg-white rounded-lg">
+                          <span className="text-sm text-gray-600 font-medium">
+                            1 {availableTokens.find(t => t.name === selectedPlayerToken)?.displayName || 'Player Token'}
+                          </span>
+                          <span className="text-sm font-bold text-gray-900">
+                            {tokenPrices.current.reserves.abhishekPriceInBoson.toFixed(6)} BOSON
+                          </span>
                         </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-green-700">Unit Price:</span>
-                            <span className="font-semibold text-green-900">
-                              $
-                              {tokenPrices.current.reserves.abhishekPriceUSD.toFixed(
-                                6
-                              )}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-green-700">Total Value:</span>
-                            <span className="font-semibold text-green-900">
-                              $
-                              {(
-                                Number(receiveAmount) *
-                                tokenPrices.current.reserves
-                                  .abhishekPriceUSD
-                              ).toFixed(4)}
-                            </span>
-                          </div>
+                        <div className="flex justify-between items-center p-3 bg-white rounded-lg">
+                          <span className="text-sm text-gray-600 font-medium">
+                            1 BOSON
+                          </span>
+                          <span className="text-sm font-bold text-gray-900">
+                            {tokenPrices.current.reserves.bosonPriceInAbhishek.toFixed(2)} {availableTokens.find(t => t.name === selectedPlayerToken)?.displayName || 'Player Token'}
+                          </span>
                         </div>
-                      )}
+                      </div>
                     </div>
-                  )}
 
-                  {/* Refresh Button */}
-                  <button
-                    onClick={() => {
-                      const selectedToken = availableTokens.find(token => token.name === selectedPlayerToken);
-                      if (selectedToken) {
-                        fetchTokenPairPrice(selectedToken.type, BOSON_TOKEN.type);
-                      }
-                    }}
-                    disabled={isLoading.price}
-                    className="w-full py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 font-medium"
-                  >
-                    {isLoading.price ? "Refreshing..." : "Refresh Prices"}
-                  </button>
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <div className="text-4xl mb-4">📊</div>
-                  <div className="text-gray-500 mb-4">
-                    No price data available
+                    {/* Trade Value */}
+                    {receiveAmount && Number(receiveAmount) > 0 && (
+                      <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-5">
+                        <h3 className="text-sm font-bold text-green-900 mb-3 uppercase tracking-wide flex items-center gap-2">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Trade Value
+                        </h3>
+                        {getCurrentTokens().to.name === "BOSON" ? (
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-green-700 font-medium">Total Value:</span>
+                              <span className="text-2xl font-black text-green-900">
+                                ${Number(receiveAmount).toFixed(4)}
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-green-700 font-medium">Total Value:</span>
+                              <span className="text-2xl font-black text-green-900">
+                                ${(Number(receiveAmount) * tokenPrices.current.reserves.abhishekPriceUSD).toFixed(4)}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Refresh Button */}
+                    <button
+                      onClick={() => {
+                        const selectedToken = availableTokens.find(token => token.name === selectedPlayerToken);
+                        if (selectedToken) {
+                          fetchTokenPairPrice(selectedToken.type, BOSON_TOKEN.type);
+                        }
+                      }}
+                      disabled={isLoading.price}
+                      className="w-full py-4 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-xl hover:from-gray-800 hover:to-gray-700 transition-all shadow-lg hover:shadow-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-95"
+                    >
+                      <svg className={`w-5 h-5 ${isLoading.price ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      {isLoading.price ? "Refreshing..." : "Refresh Prices"}
+                    </button>
                   </div>
-                  <button
-                    onClick={() => {
-                      fetchLiquidityPairs();
-                      const selectedToken = availableTokens.find(token => token.name === selectedPlayerToken);
-                      if (selectedToken) {
-                        fetchTokenPairPrice(selectedToken.type, BOSON_TOKEN.type);
-                      }
-                    }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Load Token Prices
-                  </button>
-                </div>
-              )}
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="mx-auto h-16 w-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mb-4">
+                      <svg className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                    </div>
+                    <div className="text-gray-600 font-medium mb-2">
+                      No price data available
+                    </div>
+                    <p className="text-sm text-gray-500 mb-4">
+                      Load token prices to see live market data
+                    </p>
+                    <button
+                      onClick={() => {
+                        fetchLiquidityPairs();
+                        const selectedToken = availableTokens.find(token => token.name === selectedPlayerToken);
+                        if (selectedToken) {
+                          fetchTokenPairPrice(selectedToken.type, BOSON_TOKEN.type);
+                        }
+                      }}
+                      className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all shadow-lg hover:shadow-xl font-bold active:scale-95"
+                    >
+                      Load Token Prices
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

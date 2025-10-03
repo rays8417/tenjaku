@@ -525,7 +525,9 @@ export default function MyTeamsPage() {
                   </div>
                 </div>
                 <div className="h-12 w-12 rounded-lg bg-green-100 flex items-center justify-center">
-                  <span className="text-2xl">💰</span>
+                  <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                 </div>
               </div>
             </div>
@@ -551,7 +553,9 @@ export default function MyTeamsPage() {
                   </div>
                 </div>
                 <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center">
-                  <span className="text-2xl">🏆</span>
+                  <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                  </svg>
                 </div>
               </div>
             </div>
@@ -634,7 +638,6 @@ export default function MyTeamsPage() {
                   </div>
                   <div className="col-span-2 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <span className="text-yellow-500">🪙</span>
                       <span className="font-medium text-black">
                         {holding.price.toFixed(6)}
                       </span>
@@ -659,7 +662,6 @@ export default function MyTeamsPage() {
                   </div>
                   <div className="col-span-2 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <span className="text-yellow-500">🪙</span>
                       <span className="font-medium text-black">
                         {holding.holdings.toFixed(4)}
                       </span>
@@ -668,24 +670,6 @@ export default function MyTeamsPage() {
                 </div>
               ))
             )}
-          </div>
-        </div>
-
-        {/* Pagination */}
-        <div className="mt-6 flex items-center justify-between">
-          <div className="text-sm text-gray-500">
-            Showing 1 - {filteredHoldings.length} of {holdings.length}
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-              ←
-            </button>
-            <button className="px-3 py-2 rounded-lg bg-black text-white text-sm font-medium">
-              1
-            </button>
-            <button className="p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 transition-colors">
-              →
-            </button>
           </div>
         </div>
       </div>

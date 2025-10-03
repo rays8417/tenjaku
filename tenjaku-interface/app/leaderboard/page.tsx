@@ -151,7 +151,9 @@ export default function LeaderboardPage() {
                 </p>
               )}
             </div>
-            <div className="text-2xl">🏆</div>
+            <svg className="h-8 w-8 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z" />
+            </svg>
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4">
@@ -194,7 +196,9 @@ export default function LeaderboardPage() {
           {/* Error State */}
           {error && (
             <div className="text-center py-12 text-red-500">
-              <div className="text-4xl mb-2">⚠️</div>
+              <svg className="mx-auto h-12 w-12 text-red-500 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
               <div className="font-medium">{error}</div>
             </div>
           )}
@@ -209,16 +213,7 @@ export default function LeaderboardPage() {
                 >
                   {/* Rank */}
                   <div className="flex items-center">
-                    {entry.rank <= 3 ? (
-                      <div className="flex items-center gap-2">
-                        <div className="text-2xl">
-                          {entry.rank === 1 ? "🥇" : entry.rank === 2 ? "🥈" : "🥉"}
-                        </div>
-                        <span className="text-lg font-bold text-gray-900">#{entry.rank}</span>
-                      </div>
-                    ) : (
-                      <span className="text-lg font-bold text-gray-600">#{entry.rank}</span>
-                    )}
+                    <span className="text-lg font-bold text-gray-900">#{entry.rank}</span>
                   </div>
 
                   {/* Wallet Address */}
@@ -240,7 +235,9 @@ export default function LeaderboardPage() {
               {/* Empty State */}
               {filteredData.length === 0 && !loading && (
                 <div className="text-center py-12 text-gray-500">
-                  <div className="text-4xl mb-2">🏆</div>
+                  <svg className="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
                   <div className="font-medium">No entries found</div>
                   <div className="text-sm">Try adjusting your search</div>
                 </div>
