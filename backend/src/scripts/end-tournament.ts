@@ -147,16 +147,18 @@ async function endTournament(tournamentId: string) {
 /**
  * Calculate rewards for a tournament
  */
-async function calculateRewards(tournamentId: string, totalRewardAmount: number = 10) {
+async function calculateRewards(tournamentId: string, totalRewardAmount?: number) {
   try {
     console.log(`\n💰 CALCULATING REWARDS`);
     console.log('=====================');
-    console.log(`Tournament ID: ${tournamentId}`);
-    console.log(`Total Reward Amount: ${totalRewardAmount} BOSON\n`);
+    console.log(`Tournament ID: ${tournamentId}\n`);
 
-    // Verify tournament exists
+    // Verify tournament exists and check for existing reward pool
     const tournament = await prisma.tournament.findUnique({
-      where: { id: tournamentId }
+      where: { id: tournamentId },
+      include: {
+        rewardPools: true
+      }
     });
 
     if (!tournament) {
@@ -164,7 +166,21 @@ async function calculateRewards(tournamentId: string, totalRewardAmount: number 
     }
 
     console.log(`✅ Tournament: ${tournament.name}`);
-    console.log(`   Teams: ${tournament.team1} vs ${tournament.team2}\n`);
+    console.log(`   Teams: ${tournament.team1} vs ${tournament.team2}`);
+    
+    // Use existing reward pool amount if available, otherwise use provided amount or default
+    if (!totalRewardAmount) {
+      if (tournament.rewardPools.length > 0) {
+        totalRewardAmount = Number(tournament.rewardPools[0].totalAmount);
+        console.log(`   Using existing reward pool: ${totalRewardAmount} BOSON`);
+      } else {
+        totalRewardAmount = 10; // Default fallback
+        console.log(`   ⚠️  No reward pool found, using default: ${totalRewardAmount} BOSON`);
+      }
+    } else {
+      console.log(`   Using specified reward amount: ${totalRewardAmount} BOSON`);
+    }
+    console.log('');
 
     // Calculate rewards based on snapshots
     console.log('🔍 Calculating rewards based on snapshots...');
@@ -230,23 +246,47 @@ async function calculateRewards(tournamentId: string, totalRewardAmount: number 
     console.log('\n💾 SAVING REWARDS TO DATABASE');
     console.log('=============================');
     try {
-      // Create reward pool
-      const rewardPool = await prisma.rewardPool.create({
-        data: {
-          tournamentId,
-          name: `${tournament.name} - Rewards`,
-          totalAmount: totalRewardAmount,
-          distributedAmount: totalDistributed,
-          distributionType: 'PERCENTAGE',
-          distributionRules: {
-            type: 'snapshot_based',
-            totalEligibleHolders: rewardDistribution.totalEligibleHolders,
-            calculatedAt: new Date().toISOString()
-          }
-        }
+      // Check if reward pool already exists, otherwise create it
+      let rewardPool = await prisma.rewardPool.findFirst({
+        where: { tournamentId }
       });
 
-      console.log(`✅ Reward pool created: ${rewardPool.id}`);
+      if (rewardPool) {
+        console.log(`✅ Using existing reward pool: ${rewardPool.id}`);
+        console.log(`   Original Amount: ${rewardPool.totalAmount} BOSON`);
+        
+        // Update the reward pool with distribution info
+        rewardPool = await prisma.rewardPool.update({
+          where: { id: rewardPool.id },
+          data: {
+            distributedAmount: totalDistributed,
+            distributionRules: {
+              ...(rewardPool.distributionRules as any),
+              type: 'snapshot_based',
+              totalEligibleHolders: rewardDistribution.totalEligibleHolders,
+              calculatedAt: new Date().toISOString()
+            }
+          }
+        });
+        console.log(`✅ Reward pool updated with distribution info`);
+      } else {
+        // Create new reward pool if none exists
+        rewardPool = await prisma.rewardPool.create({
+          data: {
+            tournamentId,
+            name: `${tournament.name} - Rewards`,
+            totalAmount: totalRewardAmount,
+            distributedAmount: totalDistributed,
+            distributionType: 'PERCENTAGE',
+            distributionRules: {
+              type: 'snapshot_based',
+              totalEligibleHolders: rewardDistribution.totalEligibleHolders,
+              calculatedAt: new Date().toISOString()
+            }
+          }
+        });
+        console.log(`✅ Reward pool created: ${rewardPool.id}`);
+      }
 
       // Save individual rewards
       let savedCount = 0;
@@ -407,27 +447,26 @@ async function distributeBosonRewards(rewardCalculations: RewardCalculation[], t
   }
 }
 
-async function endTournamentWithSnapshot(tournamentId: string, totalRewardAmount: number = 10) {
+async function endTournamentWithSnapshot(tournamentId: string) {
   try {
     console.log(`\n🏁 ENDING TOURNAMENT WITH POST-MATCH SNAPSHOT & REWARDS`);
     console.log('=======================================================');
-    console.log(`Tournament ID: ${tournamentId}`);
-    console.log(`Total Reward Amount: ${totalRewardAmount} BOSON\n`);
+    console.log(`Tournament ID: ${tournamentId}\n`);
 
     // Step 1: Take post-match snapshot
     console.log('📸 STEP 1: TAKING POST-MATCH SNAPSHOT');
     console.log('=====================================');
     const snapshot = await takePostMatchSnapshot(tournamentId);
 
-    // Step 2: Calculate rewards
+    // Step 2: Calculate rewards (auto-detects reward pool from tournament)
     console.log('\n💰 STEP 2: CALCULATING REWARDS');
     console.log('==============================');
-    const rewardDistribution = await calculateRewards(tournamentId, totalRewardAmount);
+    const rewardDistribution = await calculateRewards(tournamentId);
 
     // Step 3: Distribute rewards on-chain
     console.log('\n🚚 STEP 3: DISTRIBUTING BOSON REWARDS ON-CHAIN');
     console.log('==============================================');
-    await distributeBosonRewards(rewardDistribution.rewardCalculations, totalRewardAmount);
+    await distributeBosonRewards(rewardDistribution.rewardCalculations, rewardDistribution.totalRewardAmount);
 
     // Step 4: End tournament
     console.log('\n🏁 STEP 4: ENDING TOURNAMENT');
@@ -448,7 +487,7 @@ async function endTournamentWithSnapshot(tournamentId: string, totalRewardAmount
     }
 
     console.log(`\n💰 REWARD SUMMARY:`);
-    console.log(`Total Reward Pool: ${totalRewardAmount} BOSON`);
+    console.log(`Total Reward Pool: ${rewardDistribution.totalRewardAmount} BOSON`);
     console.log(`Eligible Holders: ${rewardDistribution.totalEligibleHolders}`);
     console.log(`Total Distributed: ${rewardDistribution.summary.totalRewardsDistributed.toFixed(6)} BOSON`);
 
@@ -558,13 +597,11 @@ async function main() {
 
   program
     .command('end-with-snapshot')
-    .description('Take post-match snapshot, calculate rewards, and end tournament')
+    .description('Take post-match snapshot, calculate rewards, and end tournament (uses tournament reward pool)')
     .argument('<tournament-id>', 'Tournament ID to end')
-    .option('-a, --amount <amount>', 'Total reward amount in BOSON', '10')
-    .action(async (tournamentId: string, options) => {
+    .action(async (tournamentId: string) => {
       try {
-        const totalRewardAmount = parseFloat(options.amount) || 10;
-        await endTournamentWithSnapshot(tournamentId, totalRewardAmount);
+        await endTournamentWithSnapshot(tournamentId);
       } catch (error) {
         console.error('Failed to end tournament with snapshot:', error);
         process.exit(1);
@@ -607,10 +644,10 @@ async function main() {
     .command('calculate-rewards')
     .description('Calculate rewards for a tournament')
     .argument('<tournament-id>', 'Tournament ID to calculate rewards for')
-    .option('-a, --amount <amount>', 'Total reward amount in BOSON', '10')
+    .option('-a, --amount <amount>', 'Total reward amount in BOSON (defaults to tournament reward pool)')
     .action(async (tournamentId: string, options) => {
       try {
-        const totalRewardAmount = parseFloat(options.amount) || 10;
+        const totalRewardAmount = options.amount ? parseFloat(options.amount) : undefined;
         await calculateRewards(tournamentId, totalRewardAmount);
       } catch (error) {
         console.error('Failed to calculate rewards:', error);

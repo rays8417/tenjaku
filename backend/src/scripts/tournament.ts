@@ -17,6 +17,7 @@ interface TournamentData {
   entryFee: number;
   maxParticipants?: number;
   matchId?: number;
+  rewardPoolAmount?: number; // Total reward pool in BOSON tokens
 }
 
 interface PlayerScoreData {
@@ -47,8 +48,8 @@ const sampleTournaments: TournamentData[] = [
         "venue": "Dubai International Cricket Stadium",
         "entryFee": 0,
         "status": TournamentStatus.ONGOING,
-        "matchId": 130179
-
+        "matchId": 130179,
+        "rewardPoolAmount": 100 // 100 BOSON tokens reward pool
       }
 ];
 
@@ -143,6 +144,37 @@ async function createTournament(tournamentData: TournamentData, createSnapshot: 
     console.log(`   Max Participants: ${tournament.maxParticipants || 'Unlimited'}`);
     console.log('');
 
+    // Create reward pool if specified
+    if (tournamentData.rewardPoolAmount && tournamentData.rewardPoolAmount > 0) {
+      try {
+        console.log(`💰 Creating reward pool for tournament: ${tournament.name}`);
+        const rewardPool = await prisma.rewardPool.create({
+          data: {
+            tournamentId: tournament.id,
+            name: `${tournament.name} - Prize Pool`,
+            totalAmount: tournamentData.rewardPoolAmount,
+            distributedAmount: 0,
+            distributionType: 'PERCENTAGE',
+            distributionRules: {
+              type: 'snapshot_based',
+              description: 'Rewards distributed based on player token holdings and fantasy scores',
+              createdAt: new Date().toISOString()
+            }
+          }
+        });
+        console.log(`✅ Reward pool created successfully!`);
+        console.log(`   Pool ID: ${rewardPool.id}`);
+        console.log(`   Total Amount: ${rewardPool.totalAmount} BOSON`);
+        console.log(`   Distribution Type: ${rewardPool.distributionType}`);
+        console.log('');
+      } catch (rewardPoolError) {
+        console.error(`⚠️  Warning: Failed to create reward pool for tournament ${tournament.name}`);
+        console.error(rewardPoolError);
+        console.log('   Tournament was created successfully, but reward pool creation failed.');
+        console.log('');
+      }
+    }
+
     // Create pre-match snapshot if requested
     if (createSnapshot) {
       try {
@@ -201,10 +233,12 @@ async function createCustomTournament() {
     const team2 = await question('Team 2: ');
     const venue = await question('Venue (optional): ');
     const entryFeeStr = await question('Entry Fee (BOSON): ');
+    const rewardPoolAmountStr = await question('Reward Pool Amount (BOSON): ');
     const maxParticipantsStr = await question('Max Participants (optional): ');
     const matchDateStr = await question('Match Date (YYYY-MM-DD HH:MM): ');
 
     const entryFee = parseFloat(entryFeeStr) || 0;
+    const rewardPoolAmount = parseFloat(rewardPoolAmountStr) || 0;
     const maxParticipants = maxParticipantsStr ? parseInt(maxParticipantsStr) : undefined;
     const matchDate = new Date(matchDateStr);
 
@@ -221,6 +255,7 @@ async function createCustomTournament() {
       venue: venue || undefined,
       status: TournamentStatus.ONGOING,
       entryFee,
+      rewardPoolAmount,
       maxParticipants
     };
 
@@ -250,7 +285,10 @@ async function listTournaments() {
 
     const tournaments = await prisma.tournament.findMany({
       orderBy: { createdAt: 'desc' },
-      take: 10
+      take: 10,
+      include: {
+        rewardPools: true
+      }
     });
 
     if (tournaments.length === 0) {
@@ -266,6 +304,13 @@ async function listTournaments() {
       console.log(`   Date: ${tournament.matchDate.toISOString()}`);
       console.log(`   Entry Fee: ${tournament.entryFee} BOSON`);
       console.log(`   Participants: ${tournament.currentParticipants}/${tournament.maxParticipants || '∞'}`);
+      
+      // Show reward pool information
+      if (tournament.rewardPools.length > 0) {
+        const totalRewardPool = tournament.rewardPools.reduce((sum, pool) => sum + Number(pool.totalAmount), 0);
+        console.log(`   💰 Reward Pool: ${totalRewardPool} BOSON`);
+      }
+      
       console.log('');
     });
   } catch (error) {

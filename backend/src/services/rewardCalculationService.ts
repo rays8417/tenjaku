@@ -176,8 +176,8 @@ export async function calculateRewardsFromSnapshots(
         // Check reward eligibility
         const eligibility = await calculateRewardEligibility(tournamentId, holder.address);
 
-        // Only include eligible holders in reward calculation
-        if (eligibility.eligible) {
+        // Only include eligible holders with non-zero score in reward calculation
+        if (eligibility.eligible && userScore > 0) {
           totalScore += userScore;
           
           rewardCalculations.push({
@@ -188,8 +188,10 @@ export async function calculateRewardsFromSnapshots(
             eligibility,
             holdings: detailedScores
           });
-        } else {
+        } else if (!eligibility.eligible) {
           console.log(`[REWARD_CALC] Address ${holder.address} not eligible: ${eligibility.eligibilityPercentage}% maintained`);
+        } else if (userScore === 0) {
+          console.log(`[REWARD_CALC] Address ${holder.address} skipped: no player holdings or zero score`);
         }
       } catch (error) {
         console.error(`[REWARD_CALC] Error calculating reward for ${holder.address}:`, error);

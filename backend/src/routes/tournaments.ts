@@ -92,6 +92,7 @@ router.get("/:id", async (req, res) => {
         entryFee: tournament.entryFee,
         maxParticipants: tournament.maxParticipants,
         currentParticipants: tournament.currentParticipants,
+        rewardPools: tournament.rewardPools,
         createdAt: tournament.createdAt,
         playerScores: tournament.playerScores,
       },
