@@ -31,6 +31,7 @@ model Tournament {
   aptosEventId String? // Aptos blockchain event ID
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  matchId     String? // Match ID from the cricket API
   
   // Relations
   playerScores PlayerScore[]
