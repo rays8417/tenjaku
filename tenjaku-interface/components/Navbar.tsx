@@ -45,9 +45,9 @@ export default function Navbar() {
           {/* Desktop Navigation (hidden on landing) */}
           {!isLanding && (
             <nav className="hidden md:flex items-center gap-1.5">
-              <NavLink href="/tournaments" label="Tournaments" />
-              <NavLink href="/my-teams" label="My Teams" />
               <NavLink href="/swaps" label="Swaps" />
+              <NavLink href="/tournaments" label="Tournaments" />
+              <NavLink href="/holdings" label="Holdings" />
               <NavLink href="/leaderboard" label="Leaderboard" />
             </nav>
           )}
