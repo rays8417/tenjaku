@@ -135,6 +135,15 @@ model ContractSnapshot {
   @@map("contract_snapshots")
 }
 
+model User {
+  id          String   @id @default(uuid())
+  address     String   @unique 
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("users")
+}
+
 // Enums
 enum TournamentStatus {
   UPCOMING
