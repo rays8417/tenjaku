@@ -40,7 +40,8 @@ interface TournamentPlayerData {
 
 export function useTournamentPlayers(
   tournamentId?: string,
-  tournamentStatus?: "UPCOMING" | "LIVE" | "COMPLETED"
+  tournamentStatus?: "UPCOMING" | "ONGOING" | "COMPLETED",
+  walletAddress?: string
 ) {
   const [players, setPlayers] = useState<TournamentPlayerData[]>([]);
   const [loading, setLoading] = useState(false);
@@ -62,38 +63,50 @@ export function useTournamentPlayers(
     const fetchPlayers = async () => {
       setLoading(true);
       try {
-        if (tournamentStatus === "UPCOMING") {
-          // For upcoming tournaments, fetch eligible players with 0 points
-          const response = await axios.get(
-            `${getApiUrl()}/api/tournaments/${tournamentId}/players`
-          );
+        if (tournamentStatus === "UPCOMING" || tournamentStatus === "ONGOING") {
+          // For upcoming/ONGOING tournaments, first try to get player scores
+          try {
+            const tournamentResponse = await axios.get(
+              `${getApiUrl()}/api/tournaments/${tournamentId}`
+            );
+            console.log('Tournament response:-------------------', tournamentResponse.data);
+            const playerScores = tournamentResponse.data.tournament.playerScores || [];
+
+            const matchId = tournamentResponse.data.tournament.matchId;
+            if (playerScores.length > 0 && tournamentStatus === "ONGOING") {
+              // Use actual scores for ONGOING tournaments if available
+              setPlayers(
+                playerScores.map((score: PlayerScore) => ({
+                  id: score.id,
+                  moduleName: score.moduleName,
+                  name: score.moduleName.replace(/([A-Z])/g, " $1").trim(),
+                  team: "", // Team info not available in playerScores
+                  role: "", // Role info not available in playerScores
+                  fantasyPoints: score.fantasyPoints,
+                }))
+              );
+              return;
+            }
+          } catch (err) {
+            console.log("No player scores yet, fetching eligible players");
+          }
+
+          // Fallback: Fetch eligible players from Cricbuzz API with holdings
+          const url = walletAddress
+            ? `${getApiUrl()}/api/tournaments/${tournamentId}/eligible-players?address=${walletAddress}`
+            : `${getApiUrl()}/api/tournaments/${tournamentId}/eligible-players`;
+          
+          const response = await axios.get(url);
           const eligiblePlayers = response.data.players || [];
 
           setPlayers(
-            eligiblePlayers.map((player: Player) => ({
+            eligiblePlayers.map((player: any) => ({
               id: player.id,
-              moduleName: player.name.replace(/\s+/g, ""),
+              moduleName: player.moduleName,
               name: player.name,
-              team: player.team,
-              role: player.role,
-              fantasyPoints: "0",
-            }))
-          );
-        } else if (tournamentStatus === "LIVE") {
-          // For live tournaments, fetch actual player scores
-          const response = await axios.get(
-            `${getApiUrl()}/api/tournaments/${tournamentId}`
-          );
-          const playerScores = response.data.tournament.playerScores || [];
-
-          setPlayers(
-            playerScores.map((score: PlayerScore) => ({
-              id: score.id,
-              moduleName: score.moduleName,
-              name: score.moduleName.replace(/([A-Z])/g, " $1").trim(),
-              team: "", // Team info not available in playerScores
-              role: "", // Role info not available in playerScores
-              fantasyPoints: score.fantasyPoints,
+              team: player.teamName || "",
+              role: player.role || "",
+              fantasyPoints: player.formattedHoldings || "0",
             }))
           );
         }
@@ -107,9 +120,9 @@ export function useTournamentPlayers(
 
     fetchPlayers();
 
-    // For LIVE tournaments, refresh every 1 minute
+    // For ONGOING tournaments, refresh every 1 minute
     let interval: NodeJS.Timeout | null = null;
-    if (tournamentStatus === "LIVE") {
+    if (tournamentStatus === "ONGOING") {
       interval = setInterval(fetchPlayers, 60000); // 60 seconds
     }
 
@@ -118,7 +131,7 @@ export function useTournamentPlayers(
         clearInterval(interval);
       }
     };
-  }, [tournamentId, tournamentStatus]);
+  }, [tournamentId, tournamentStatus, walletAddress]);
 
   return { players, loading };
 }
