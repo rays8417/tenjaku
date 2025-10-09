@@ -10,34 +10,83 @@ const config: Config = {
   theme: {
   	extend: {
   		colors: {
-  			background: 'hsl(var(--background))',
-  			foreground: 'hsl(var(--foreground))',
-  			border: 'hsl(var(--border))',
-  			card: {
-  				DEFAULT: 'hsl(var(--card))',
-  				foreground: 'hsl(var(--card-foreground))'
-  			},
-  			'card-foreground': 'var(--card-foreground)',
-  			muted: {
-  				DEFAULT: 'hsl(var(--muted))',
-  				foreground: 'hsl(var(--muted-foreground))'
-  			},
-  			'muted-foreground': 'var(--muted-foreground)',
+  			// Background colors
+  			background: 'rgb(var(--background) / <alpha-value>)',
+  			'background-elevated': 'rgb(var(--background-elevated) / <alpha-value>)',
+  			surface: 'rgb(var(--surface) / <alpha-value>)',
+  			'surface-elevated': 'rgb(var(--surface-elevated) / <alpha-value>)',
+  			
+  			// Foreground colors
+  			foreground: 'rgb(var(--foreground) / <alpha-value>)',
+  			'foreground-muted': 'rgb(var(--foreground-muted) / <alpha-value>)',
+  			'foreground-subtle': 'rgb(var(--foreground-subtle) / <alpha-value>)',
+  			
+  			// Border colors
+  			border: 'rgb(var(--border) / <alpha-value>)',
+  			'border-subtle': 'rgb(var(--border-subtle) / <alpha-value>)',
+  			'border-strong': 'rgb(var(--border-strong) / <alpha-value>)',
+  			
+  			// Primary/Brand colors
   			primary: {
-  				DEFAULT: 'hsl(var(--primary))',
-  				foreground: 'hsl(var(--primary-foreground))'
+  				DEFAULT: 'rgb(var(--primary) / <alpha-value>)',
+  				hover: 'rgb(var(--primary-hover) / <alpha-value>)',
+  				foreground: 'rgb(var(--primary-foreground) / <alpha-value>)'
   			},
-  			'primary-foreground': 'var(--primary-foreground)',
+  			
+  			// Accent colors
   			accent: {
-  				DEFAULT: 'hsl(var(--accent))',
-  				foreground: 'hsl(var(--accent-foreground))'
+  				DEFAULT: 'rgb(var(--accent) / <alpha-value>)',
+  				hover: 'rgb(var(--accent-hover) / <alpha-value>)',
+  				foreground: 'rgb(var(--accent-foreground) / <alpha-value>)'
   			},
-  			'accent-foreground': 'var(--accent-foreground)',
-  			ring: 'hsl(var(--ring))',
-  			gray: {
-  				'750': '#374151',
-  				'850': '#1f2937'
+  			
+  			// Status colors
+  			success: {
+  				DEFAULT: 'rgb(var(--success) / <alpha-value>)',
+  				bg: 'rgb(var(--success-bg) / <alpha-value>)'
   			},
+  			error: {
+  				DEFAULT: 'rgb(var(--error) / <alpha-value>)',
+  				bg: 'rgb(var(--error-bg) / <alpha-value>)'
+  			},
+  			warning: {
+  				DEFAULT: 'rgb(var(--warning) / <alpha-value>)',
+  				bg: 'rgb(var(--warning-bg) / <alpha-value>)'
+  			},
+  			info: {
+  				DEFAULT: 'rgb(var(--info) / <alpha-value>)',
+  				bg: 'rgb(var(--info-bg) / <alpha-value>)'
+  			},
+  			
+  			// Muted colors
+  			muted: {
+  				DEFAULT: 'rgb(var(--muted) / <alpha-value>)',
+  				foreground: 'rgb(var(--muted-foreground) / <alpha-value>)'
+  			},
+  			
+  			// Card colors
+  			card: {
+  				DEFAULT: 'rgb(var(--card) / <alpha-value>)',
+  				elevated: 'rgb(var(--card-elevated) / <alpha-value>)',
+  				foreground: 'rgb(var(--card-foreground) / <alpha-value>)'
+  			},
+  			
+  			// Popover/Modal colors
+  			popover: {
+  				DEFAULT: 'rgb(var(--popover) / <alpha-value>)',
+  				foreground: 'rgb(var(--popover-foreground) / <alpha-value>)'
+  			},
+  			
+  			// Input colors
+  			input: {
+  				DEFAULT: 'rgb(var(--input) / <alpha-value>)',
+  				bg: 'rgb(var(--input-bg) / <alpha-value>)'
+  			},
+  			
+  			// Ring/Focus color
+  			ring: 'rgb(var(--ring) / <alpha-value>)',
+  			
+  			// Brand color scale (for gradients)
   			brand: {
   				'50': '#eff6ff',
   				'100': '#dbeafe',
@@ -51,19 +100,8 @@ const config: Config = {
   				'900': '#1e3a8a',
   				'950': '#0b1769'
   			},
-  			popover: {
-  				DEFAULT: 'hsl(var(--popover))',
-  				foreground: 'hsl(var(--popover-foreground))'
-  			},
-  			secondary: {
-  				DEFAULT: 'hsl(var(--secondary))',
-  				foreground: 'hsl(var(--secondary-foreground))'
-  			},
-  			destructive: {
-  				DEFAULT: 'hsl(var(--destructive))',
-  				foreground: 'hsl(var(--destructive-foreground))'
-  			},
-  			input: 'hsl(var(--input))',
+  			
+  			// Chart colors
   			chart: {
   				'1': 'hsl(var(--chart-1))',
   				'2': 'hsl(var(--chart-2))',

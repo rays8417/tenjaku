@@ -1259,36 +1259,33 @@ export default function SwapsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+    <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-1 bg-gradient-to-r from-gray-900 via-blue-900 to-blue-700 bg-clip-text text-transparent">
+            <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-1">
               Token Swap
             </h1>
-            <p className="text-gray-600 text-sm sm:text-base">
+            <p className="text-foreground-muted text-sm sm:text-base">
               Exchange your tokens instantly with live pricing
             </p>
           </div>
 
           {/* Wallet Status */}
           {account ? (
-            <div className="flex items-center gap-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl px-4 py-3">
-              <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
+            <div className="flex items-center gap-3 bg-surface-elevated border border-border rounded-xl px-4 py-3">
+              <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse" />
               <div className="text-left">
-                <div className="text-sm font-bold text-gray-900">
-                  {account.address.slice(0, 8)}...{account.address.slice(-6)}
-                </div>
-                <div className="text-xs text-gray-600">Aptos Testnet</div>
+                <div className="text-sm font-medium text-foreground">Aptos Testnet</div>
               </div>
             </div>
           ) : (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-              <p className="text-sm font-medium text-amber-900 mb-1">
+            <div className="bg-warning-bg border border-warning rounded-xl px-4 py-3">
+              <p className="text-sm font-medium text-warning mb-1">
                 Wallet not connected
               </p>
-              <p className="text-xs text-amber-700">
+              <p className="text-xs text-warning">
                 Use the Connect Wallet button in the navbar
               </p>
             </div>
@@ -1298,10 +1295,10 @@ export default function SwapsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
           {/* Left Column - Swap Interface */}
           <div className="lg:col-span-7">
-            <div className="bg-white border border-gray-200 rounded-2xl shadow-xl shadow-gray-100 overflow-hidden">
+            <div className="bg-card border border-border rounded-2xl shadow-xl overflow-hidden">
               {/* Card Header */}
-              <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-4">
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <div className="bg-gradient-to-r from-surface-elevated to-surface px-6 py-4 border-b border-border">
+                <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                   </svg>
@@ -1311,27 +1308,27 @@ export default function SwapsPage() {
 
               <div className="p-6 space-y-3">
                 {/* You Pay */}
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-5 border-2 border-gray-200 hover:border-blue-300 transition-all duration-200">
+                <div className="bg-surface rounded-2xl p-5 border-2 border-border hover:border-primary/50 transition-all duration-200">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                    <span className="text-sm font-semibold text-foreground-muted uppercase tracking-wide">
                       You Pay
                     </span>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setPercent(25)}
-                        className="px-3 py-1.5 bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-lg text-xs font-medium hover:from-gray-800 hover:to-gray-900 transition-all shadow-sm active:scale-95"
+                        className="px-3 py-1.5 bg-surface-elevated text-foreground rounded-lg text-xs font-medium hover:bg-muted transition-all shadow-sm active:scale-95 border border-border"
                       >
                         25%
                       </button>
                       <button
                         onClick={() => setPercent(50)}
-                        className="px-3 py-1.5 bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-lg text-xs font-medium hover:from-gray-800 hover:to-gray-900 transition-all shadow-sm active:scale-95"
+                        className="px-3 py-1.5 bg-surface-elevated text-foreground rounded-lg text-xs font-medium hover:bg-muted transition-all shadow-sm active:scale-95 border border-border"
                       >
                         50%
                       </button>
                       <button
                         onClick={() => setPercent(100)}
-                        className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-xs font-medium hover:from-blue-700 hover:to-blue-800 transition-all shadow-sm active:scale-95"
+                        className="px-3 py-1.5 bg-gradient-to-r from-primary to-primary-hover text-primary-foreground rounded-lg text-xs font-medium hover:opacity-90 transition-all shadow-sm active:scale-95"
                       >
                         MAX
                       </button>
@@ -1344,35 +1341,35 @@ export default function SwapsPage() {
                       value={payAmount}
                       onChange={(e) => handlePayChange(e.target.value)}
                       placeholder="0.00"
-                      className="bg-transparent text-4xl font-bold outline-none placeholder:text-gray-300 flex-1 text-gray-900 min-w-0"
+                      className="bg-transparent text-4xl font-bold outline-none placeholder:text-foreground-subtle flex-1 text-foreground min-w-0"
                     />
                     <div className="flex items-center gap-3 flex-shrink-0">
                       {!isSwapped ? (
                         <>
-                          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-gray-800 to-black shadow-lg flex items-center justify-center">
-                            <span className="text-white font-bold text-lg">B</span>
+                          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-surface-elevated to-muted shadow-lg flex items-center justify-center ring-2 ring-border">
+                            <span className="text-foreground font-bold text-lg">B</span>
                           </div>
                           <div className="text-left">
-                            <div className="font-bold text-gray-900 text-lg leading-tight">
+                            <div className="font-bold text-foreground text-lg leading-tight">
                               BOSON
                             </div>
-                            <div className="text-xs text-gray-500 font-medium">
+                            <div className="text-xs text-foreground-subtle font-medium">
                               Base Token
                             </div>
                           </div>
                         </>
                       ) : (
                         <>
-                          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 shadow-lg flex items-center justify-center">
-                            <span className="text-white font-bold text-sm">
+                          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary via-primary-hover to-primary shadow-lg flex items-center justify-center">
+                            <span className="text-primary-foreground font-bold text-sm">
                               {getCurrentTokens().from.avatar}
                             </span>
                           </div>
                           <div className="text-left">
-                            <div className="font-bold text-gray-900 text-lg leading-tight">
+                            <div className="font-bold text-foreground text-lg leading-tight">
                               {getCurrentTokens().from.displayName}
                             </div>
-                            <div className="text-xs text-gray-500 font-medium">
+                            <div className="text-xs text-foreground-subtle font-medium">
                               {getCurrentTokens().from.team} • {getCurrentTokens().from.position}
                             </div>
                           </div>
@@ -1382,8 +1379,8 @@ export default function SwapsPage() {
                   </div>
 
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600 font-medium">Balance:</span>
-                    <span className="text-gray-900 font-semibold">
+                    <span className="text-foreground-muted font-medium">Balance:</span>
+                    <span className="text-foreground font-semibold">
                       {isLoading.balance
                         ? "Loading..."
                         : `${getCurrentTokens().fromBalance.toFixed(4)} ${
@@ -1397,7 +1394,7 @@ export default function SwapsPage() {
                 <div className="flex justify-center -my-1 relative z-10">
                   <button
                     onClick={swapTokens}
-                    className="h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-200 flex items-center justify-center text-white hover:shadow-xl hover:scale-110 transition-all duration-300 group border-4 border-white"
+                    className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-primary-hover shadow-lg shadow-primary/20 flex items-center justify-center text-primary-foreground hover:shadow-xl hover:scale-110 transition-all duration-300 group border-4 border-background"
                   >
                     <svg
                       className="h-6 w-6 group-hover:rotate-180 transition-transform duration-500"
@@ -1416,14 +1413,14 @@ export default function SwapsPage() {
                 </div>
 
                 {/* You Receive */}
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 border-2 border-blue-200 hover:border-blue-300 transition-all duration-200">
+                <div className="bg-surface-elevated rounded-2xl p-5 border-2 border-primary/30 hover:border-primary/50 transition-all duration-200">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                    <span className="text-sm font-semibold text-foreground-muted uppercase tracking-wide">
                       You Receive
                     </span>
                     {isLoading.quote && (
-                      <span className="text-xs font-semibold text-blue-600 animate-pulse flex items-center gap-1">
-                        <div className="h-1.5 w-1.5 bg-blue-600 rounded-full animate-bounce" />
+                      <span className="text-xs font-semibold text-primary animate-pulse flex items-center gap-1">
+                        <div className="h-1.5 w-1.5 bg-primary rounded-full animate-bounce" />
                         Calculating...
                       </span>
                     )}
@@ -1434,15 +1431,15 @@ export default function SwapsPage() {
                       inputMode="decimal"
                       value={isLoading.quote ? "..." : receiveAmount}
                       placeholder="0.00"
-                      className="bg-transparent text-4xl font-bold outline-none placeholder:text-blue-200 flex-1 text-gray-900 min-w-0"
+                      className="bg-transparent text-4xl font-bold outline-none placeholder:text-foreground-subtle flex-1 text-foreground min-w-0"
                       readOnly
                     />
                     <div className="flex flex-col gap-2 flex-shrink-0">
                       {!isSwapped ? (
                         <>
                           <div className="flex items-center gap-2">
-                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 shadow-lg flex items-center justify-center flex-shrink-0">
-                              <span className="text-white font-bold text-sm">
+                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary via-primary-hover to-primary shadow-lg flex items-center justify-center flex-shrink-0">
+                              <span className="text-primary-foreground font-bold text-sm">
                                 {availableTokens.find(t => t.name === selectedPlayerToken)?.avatar || 'AS'}
                               </span>
                             </div>
@@ -1453,7 +1450,7 @@ export default function SwapsPage() {
                                 setPayAmount("");
                                 setReceiveAmount("");
                               }}
-                              className="bg-white border-2 border-blue-200 rounded-lg px-3 py-2 text-gray-900 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:border-blue-300 transition-colors min-w-[160px]"
+                              className="bg-input-bg border-2 border-input rounded-lg px-3 py-2 text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary cursor-pointer hover:border-primary/50 transition-colors min-w-[160px]"
                               disabled={isLoading.liquidity}
                             >
                               {isLoading.liquidity ? (
@@ -1467,20 +1464,20 @@ export default function SwapsPage() {
                               )}
                             </select>
                           </div>
-                          <div className="text-xs text-blue-700 font-medium text-right">
+                          <div className="text-xs text-foreground-muted font-medium text-right">
                             {availableTokens.find(t => t.name === selectedPlayerToken)?.team} • {availableTokens.find(t => t.name === selectedPlayerToken)?.position}
                           </div>
                         </>
                       ) : (
                         <div className="flex items-center gap-3">
-                          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-gray-800 to-black shadow-lg flex items-center justify-center">
-                            <span className="text-white font-bold text-lg">B</span>
+                          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-surface-elevated to-muted shadow-lg flex items-center justify-center ring-2 ring-border">
+                            <span className="text-foreground font-bold text-lg">B</span>
                           </div>
                           <div className="text-left">
-                            <div className="font-bold text-gray-900 text-lg leading-tight">
+                            <div className="font-bold text-foreground text-lg leading-tight">
                               BOSON
                             </div>
-                            <div className="text-xs text-gray-500 font-medium">
+                            <div className="text-xs text-foreground-subtle font-medium">
                               Base Token
                             </div>
                           </div>
@@ -1490,8 +1487,8 @@ export default function SwapsPage() {
                   </div>
 
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600 font-medium">Balance:</span>
-                    <span className="text-gray-900 font-semibold">
+                    <span className="text-foreground-muted font-medium">Balance:</span>
+                    <span className="text-foreground font-semibold">
                       {isLoading.balance
                         ? "Loading..."
                         : `${getCurrentTokens().toBalance.toFixed(4)} ${
@@ -1503,15 +1500,15 @@ export default function SwapsPage() {
 
                 {/* Exchange Rate Info */}
                 {payAmount && receiveAmount && Number(receiveAmount) > 0 && (
-                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4">
+                  <div className="bg-info-bg/20 border border-info/30 rounded-xl p-4">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-amber-900 font-medium flex items-center gap-1">
+                      <span className="text-info font-medium flex items-center gap-1">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                         </svg>
                         Exchange Rate:
                       </span>
-                      <span className="text-amber-900 font-bold">
+                      <span className="text-foreground font-bold">
                         1 {getCurrentTokens().from.displayName} ≈ {(Number(receiveAmount) / Number(payAmount)).toFixed(4)} {getCurrentTokens().to.displayName}
                       </span>
                     </div>
@@ -1532,8 +1529,8 @@ export default function SwapsPage() {
                     payAmount &&
                     Number(payAmount) > 0 &&
                     !isLoading.swap
-                      ? "bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 text-white hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
-                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                      ? "bg-gradient-to-r from-primary via-primary-hover to-primary text-primary-foreground hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] shadow-primary/30"
+                      : "bg-muted text-foreground-subtle cursor-not-allowed"
                   }`}
                 >
                   {!account
@@ -1566,11 +1563,11 @@ export default function SwapsPage() {
 
           {/* Right Column - Live Token Prices */}
           <div className="lg:col-span-5">
-            <div className="bg-white border border-gray-200 rounded-2xl shadow-xl shadow-gray-100 overflow-hidden sticky top-6">
+            <div className="bg-card border border-border rounded-2xl shadow-xl overflow-hidden sticky top-6">
               {/* Card Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-4">
+              <div className="bg-gradient-to-r from-primary to-primary-hover px-6 py-4 border-b border-border">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <h2 className="text-xl font-bold text-primary-foreground flex items-center gap-2">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
@@ -1578,8 +1575,8 @@ export default function SwapsPage() {
                   </h2>
                   {tokenPrices.lastUpdated && (
                     <div className="flex items-center gap-2">
-                      <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse" />
-                      <span className="text-xs text-white/90 font-medium">
+                      <div className="h-2 w-2 bg-success rounded-full animate-pulse" />
+                      <span className="text-xs text-primary-foreground/90 font-medium">
                         {tokenPrices.lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
@@ -1593,27 +1590,27 @@ export default function SwapsPage() {
                     {[1, 2, 3].map((i) => (
                       <div
                         key={i}
-                        className="bg-gradient-to-r from-gray-100 to-gray-50 rounded-xl p-5 animate-pulse"
+                        className="bg-surface rounded-xl p-5 animate-pulse"
                       >
-                        <div className="h-4 bg-gray-200 rounded w-1/3 mb-3" />
-                        <div className="h-8 bg-gray-200 rounded w-2/3" />
+                        <div className="h-4 bg-surface-elevated rounded w-1/3 mb-3" />
+                        <div className="h-8 bg-surface-elevated rounded w-2/3" />
                       </div>
                     ))}
                   </div>
                 ) : tokenPrices.current?.reserves ? (
                   <div className="space-y-4">
                     {/* Token Pair Status */}
-                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-4 border-2 border-emerald-200">
+                    <div className="bg-surface-elevated rounded-xl p-4 border-2 border-primary/30">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold text-emerald-900">
+                        <span className="text-sm font-bold text-foreground">
                           {availableTokens.find(t => t.name === selectedPlayerToken)?.displayName || 'Player Token'}/BOSON
                         </span>
-                        <span className="flex items-center gap-1.5 text-xs px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold">
-                          <div className="h-1.5 w-1.5 bg-emerald-600 rounded-full animate-pulse" />
+                        <span className="flex items-center gap-1.5 text-xs px-3 py-1 bg-primary/20 text-primary rounded-full font-bold border border-primary/30">
+                          <div className="h-1.5 w-1.5 bg-primary rounded-full animate-pulse" />
                           Active
                         </span>
                       </div>
-                      <div className="text-xs text-emerald-700 font-medium">
+                      <div className="text-xs text-foreground-muted font-medium">
                         Liquidity Pool • Real-time pricing
                       </div>
                     </div>
@@ -1621,36 +1618,33 @@ export default function SwapsPage() {
                     {/* Token Price Cards */}
                     <div className="space-y-3">
                       {/* BOSON Price */}
-                      <div className="bg-gradient-to-br from-gray-900 to-black text-white rounded-xl p-5 shadow-lg">
+                      <div className="bg-gradient-to-br from-surface-elevated to-surface rounded-xl p-5 shadow-lg border border-border">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <div className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">
+                            <div className="text-xs text-foreground-muted font-medium uppercase tracking-wide mb-1">
                               BOSON
                             </div>
-                            <div className="text-3xl font-black mb-1">$1.00</div>
-                            {/* <div className="text-xs text-gray-400 font-medium">
-                              USD • Base Token
-                            </div> */}
+                            <div className="text-3xl font-black mb-1 text-foreground">$1.00</div>
                           </div>
-                          <div className="h-14 w-14 bg-white rounded-2xl shadow-lg flex items-center justify-center transform rotate-12 hover:rotate-0 transition-transform">
-                            <span className="text-black font-black text-xl">B</span>
+                          <div className="h-14 w-14 bg-primary rounded-2xl shadow-lg flex items-center justify-center transform rotate-12 hover:rotate-0 transition-transform">
+                            <span className="text-primary-foreground font-black text-xl">B</span>
                           </div>
                         </div>
                       </div>
 
                       {/* Player Token Price */}
-                      <div className="bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400 text-white rounded-xl p-5 shadow-lg">
+                      <div className="bg-gradient-to-br from-primary via-primary-hover to-primary rounded-xl p-5 shadow-lg border border-primary/30">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <div className="text-xs text-white/80 font-medium uppercase tracking-wide mb-1">
+                            <div className="text-xs text-primary-foreground/80 font-medium uppercase tracking-wide mb-1">
                               {availableTokens.find(t => t.name === selectedPlayerToken)?.displayName || 'Player Token'}
                             </div>
-                            <div className="text-3xl font-black mb-1">
+                            <div className="text-3xl font-black mb-1 text-primary-foreground">
                               ${tokenPrices.current.reserves.abhishekPriceUSD.toFixed(6)}
                             </div>
                           </div>
-                          <div className="h-14 w-14 bg-white rounded-2xl shadow-lg flex items-center justify-center transform -rotate-12 hover:rotate-0 transition-transform">
-                            <span className="text-blue-600 font-black text-lg">
+                          <div className="h-14 w-14 bg-primary-foreground rounded-2xl shadow-lg flex items-center justify-center transform -rotate-12 hover:rotate-0 transition-transform">
+                            <span className="text-primary font-black text-lg">
                               {availableTokens.find(t => t.name === selectedPlayerToken)?.avatar || 'P'}
                             </span>
                           </div>
@@ -1659,27 +1653,27 @@ export default function SwapsPage() {
                     </div>
 
                     {/* Exchange Rates */}
-                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border-2 border-gray-200">
-                      <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wide flex items-center gap-2">
+                    <div className="bg-surface rounded-xl p-5 border-2 border-border">
+                      <h3 className="text-sm font-bold text-foreground mb-3 uppercase tracking-wide flex items-center gap-2">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                         </svg>
                         Exchange Rates
                       </h3>
                       <div className="space-y-3">
-                        <div className="flex justify-between items-center p-3 bg-white rounded-lg">
-                          <span className="text-sm text-gray-600 font-medium">
+                        <div className="flex justify-between items-center p-3 bg-surface-elevated rounded-lg border border-border">
+                          <span className="text-sm text-foreground-muted font-medium">
                             1 {availableTokens.find(t => t.name === selectedPlayerToken)?.displayName || 'Player Token'}
                           </span>
-                          <span className="text-sm font-bold text-gray-900">
+                          <span className="text-sm font-bold text-foreground">
                             {tokenPrices.current.reserves.abhishekPriceInBoson.toFixed(6)} BOSON
                           </span>
                         </div>
-                        <div className="flex justify-between items-center p-3 bg-white rounded-lg">
-                          <span className="text-sm text-gray-600 font-medium">
+                        <div className="flex justify-between items-center p-3 bg-surface-elevated rounded-lg border border-border">
+                          <span className="text-sm text-foreground-muted font-medium">
                             1 BOSON
                           </span>
-                          <span className="text-sm font-bold text-gray-900">
+                          <span className="text-sm font-bold text-foreground">
                             {tokenPrices.current.reserves.bosonPriceInAbhishek.toFixed(2)} {availableTokens.find(t => t.name === selectedPlayerToken)?.displayName || 'Player Token'}
                           </span>
                         </div>
@@ -1688,8 +1682,8 @@ export default function SwapsPage() {
 
                     {/* Trade Value */}
                     {receiveAmount && Number(receiveAmount) > 0 && (
-                      <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-5">
-                        <h3 className="text-sm font-bold text-green-900 mb-3 uppercase tracking-wide flex items-center gap-2">
+                      <div className="bg-success-bg/20 border-2 border-success/30 rounded-xl p-5">
+                        <h3 className="text-sm font-bold text-success mb-3 uppercase tracking-wide flex items-center gap-2">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
@@ -1698,8 +1692,8 @@ export default function SwapsPage() {
                         {getCurrentTokens().to.name === "BOSON" ? (
                           <div className="space-y-2">
                             <div className="flex justify-between items-center">
-                              <span className="text-sm text-green-700 font-medium">Total Value:</span>
-                              <span className="text-2xl font-black text-green-900">
+                              <span className="text-sm text-foreground-muted font-medium">Total Value:</span>
+                              <span className="text-2xl font-black text-success">
                                 ${Number(receiveAmount).toFixed(4)}
                               </span>
                             </div>
@@ -1707,8 +1701,8 @@ export default function SwapsPage() {
                         ) : (
                           <div className="space-y-2">
                             <div className="flex justify-between items-center">
-                              <span className="text-sm text-green-700 font-medium">Total Value:</span>
-                              <span className="text-2xl font-black text-green-900">
+                              <span className="text-sm text-foreground-muted font-medium">Total Value:</span>
+                              <span className="text-2xl font-black text-success">
                                 ${(Number(receiveAmount) * tokenPrices.current.reserves.abhishekPriceUSD).toFixed(4)}
                               </span>
                             </div>
@@ -1726,7 +1720,7 @@ export default function SwapsPage() {
                         }
                       }}
                       disabled={isLoading.price}
-                      className="w-full py-4 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-xl hover:from-gray-800 hover:to-gray-700 transition-all shadow-lg hover:shadow-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-95"
+                      className="w-full py-4 bg-gradient-to-r from-surface-elevated to-surface border border-border text-foreground rounded-xl hover:bg-muted transition-all shadow-lg hover:shadow-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-95"
                     >
                       <svg className={`w-5 h-5 ${isLoading.price ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -1736,15 +1730,15 @@ export default function SwapsPage() {
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <div className="mx-auto h-16 w-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mb-4">
-                      <svg className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="mx-auto h-16 w-16 bg-surface-elevated rounded-2xl flex items-center justify-center mb-4 border border-border">
+                      <svg className="h-8 w-8 text-foreground-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                       </svg>
                     </div>
-                    <div className="text-gray-600 font-medium mb-2">
+                    <div className="text-foreground-muted font-medium mb-2">
                       No price data available
                     </div>
-                    <p className="text-sm text-gray-500 mb-4">
+                    <p className="text-sm text-foreground-subtle mb-4">
                       Load token prices to see live market data
                     </p>
                     <button
@@ -1755,7 +1749,7 @@ export default function SwapsPage() {
                           fetchTokenPairPrice(selectedToken.type, BOSON_TOKEN.type);
                         }
                       }}
-                      className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all shadow-lg hover:shadow-xl font-bold active:scale-95"
+                      className="px-6 py-3 bg-gradient-to-r from-primary to-primary-hover text-primary-foreground rounded-xl hover:opacity-90 transition-all shadow-lg hover:shadow-xl font-bold active:scale-95"
                     >
                       Load Token Prices
                     </button>

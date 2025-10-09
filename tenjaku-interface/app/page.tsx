@@ -9,9 +9,9 @@ export default function Home() {
   const { account, isConnecting, connectWallet } = useWallet();
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0a0a0f]">
+    <div className="min-h-screen flex flex-col bg-background">
       {/* Hero */}
-      <section className="relative flex items-center justify-center min-h-[calc(100vh-4rem)] bg-gradient-to-b from-[#0a0a0f] via-[#0d0d15] to-[#0a0a0f] overflow-hidden">
+      <section className="relative flex items-center justify-center min-h-[calc(100vh-4rem)] bg-gradient-to-b from-background via-background-elevated to-background overflow-hidden">
         {/* Liquid Ether Background */}
         <div className="absolute inset-0 overflow-hidden">
           <LiquidEther
@@ -29,16 +29,16 @@ export default function Home() {
         </div>
 
         {/* Radial gradient overlay for depth */}
-        <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-[#0a0a0f] pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-background pointer-events-none"></div>
         
         <div className="relative mx-auto max-w-7xl px-6 py-20 text-center z-10 pointer-events-auto">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full bg-white/5 backdrop-blur-md border border-white/10 animate-fade-in">
-            <div className="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></div>
-            <span className="text-sm font-medium text-white/80">Beta is now live</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full bg-surface/50 backdrop-blur-md border border-border animate-fade-in">
+            <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+            <span className="text-sm font-medium text-foreground-muted">Beta is now live</span>
           </div>
 
-          <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tight text-white animate-fade-in-up">
+          <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tight text-foreground animate-fade-in-up">
             <span className="block mb-2">Predict.</span>
             <span className="block mb-2 bg-clip-text text-transparent bg-gradient-to-r from-brand-400 via-brand-500 to-brand-300 animate-gradient-x">
               Compete.
@@ -46,7 +46,7 @@ export default function Home() {
             <span className="block">Win.</span>
           </h1>
           
-          <p className="mt-10 mx-auto max-w-3xl text-xl md:text-2xl lg:text-3xl text-white/70 leading-relaxed font-light animate-fade-in-delayed">
+          <p className="mt-10 mx-auto max-w-3xl text-xl md:text-2xl lg:text-3xl text-foreground-muted leading-relaxed font-light animate-fade-in-delayed">
             Trade cricket player tokens. Compete in real-time tournaments.{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-brand-300 font-medium">
               Win real rewards.
@@ -57,7 +57,7 @@ export default function Home() {
             {account ? (
               <button
                 onClick={() => router.push("/tournaments")}
-                className="group relative inline-flex items-center justify-center rounded-xl px-10 py-5 text-lg font-semibold text-white bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 transition-all duration-300 shadow-2xl shadow-brand-500/30 hover:shadow-brand-500/50 hover:scale-105 transform"
+                className="group relative inline-flex items-center justify-center rounded-xl px-10 py-5 text-lg font-semibold text-primary-foreground bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 transition-all duration-300 shadow-2xl shadow-primary/30 hover:shadow-primary/50 hover:scale-105 transform"
               >
                 <span className="relative z-10">Start Playing</span>
                 <svg 
@@ -76,7 +76,7 @@ export default function Home() {
                   await connectWallet();
                 }}
                 disabled={isConnecting}
-                className="group relative inline-flex items-center justify-center rounded-xl px-10 py-5 text-lg font-semibold text-white bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 transition-all duration-300 shadow-2xl shadow-brand-500/30 hover:shadow-brand-500/50 hover:scale-105 transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="group relative inline-flex items-center justify-center rounded-xl px-10 py-5 text-lg font-semibold text-primary-foreground bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 transition-all duration-300 shadow-2xl shadow-primary/30 hover:shadow-primary/50 hover:scale-105 transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 <span className="relative z-10">{isConnecting ? "Connecting..." : "Get Started"}</span>
                 {!isConnecting && (
@@ -107,14 +107,14 @@ type StatCardProps = {
 
 function StatCard({ icon, value, label }: StatCardProps) {
   return (
-    <div className="group relative bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-2xl px-6 py-8 text-center backdrop-blur-sm hover:border-brand-500/50 hover:shadow-lg hover:shadow-brand-500/10 transition-all duration-300 hover:-translate-y-1">
-      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-brand-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+    <div className="group relative bg-gradient-to-br from-surface to-surface/0 border border-border rounded-2xl px-6 py-8 text-center backdrop-blur-sm hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 hover:-translate-y-1">
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       <div className="relative">
-        <div className="inline-flex items-center justify-center w-12 h-12 mb-4 rounded-xl bg-gradient-to-br from-brand-500/20 to-brand-600/20 text-brand-400 group-hover:scale-110 transition-transform duration-300">
+        <div className="inline-flex items-center justify-center w-12 h-12 mb-4 rounded-xl bg-gradient-to-br from-primary/20 to-primary-hover/20 text-primary group-hover:scale-110 transition-transform duration-300">
           {icon}
         </div>
         <div className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-brand-500 to-brand-300">{value}</div>
-        <div className="mt-3 text-sm text-white/60 font-medium group-hover:text-white/80 transition-colors">{label}</div>
+        <div className="mt-3 text-sm text-foreground-muted font-medium group-hover:text-foreground transition-colors">{label}</div>
       </div>
     </div>
   );
@@ -127,9 +127,9 @@ type FeatureCardProps = {
 
 function FeatureCard({ title, desc }: FeatureCardProps) {
   return (
-    <div className="group relative rounded-2xl border border-white/10 bg-card p-8 transition-all hover:border-white/20">
-      <h3 className="text-2xl font-bold text-white mb-3">{title}</h3>
-      <p className="text-white/60 leading-relaxed">{desc}</p>
+    <div className="group relative rounded-2xl border border-border bg-card p-8 transition-all hover:border-border-strong">
+      <h3 className="text-2xl font-bold text-foreground mb-3">{title}</h3>
+      <p className="text-foreground-muted leading-relaxed">{desc}</p>
     </div>
   );
 }

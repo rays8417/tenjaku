@@ -132,26 +132,26 @@ export default function LeaderboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl px-6 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-black">Leaderboard</h1>
-              <p className="text-gray-500 text-sm mt-1">
+              <h1 className="text-3xl font-bold text-foreground">Leaderboard</h1>
+              <p className="text-foreground-muted text-sm mt-1">
                 {currentTournament 
                   ? `${currentTournament.team1} vs ${currentTournament.team2}` 
                   : 'Tournament rewards and rankings'
                 }
               </p>
               {currentTournament && (
-                <p className="text-gray-400 text-xs mt-1">
+                <p className="text-foreground-subtle text-xs mt-1">
                   Match Date: {new Date(currentTournament.matchDate).toLocaleDateString()}
                 </p>
               )}
             </div>
-            <svg className="h-8 w-8 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="h-8 w-8 text-warning" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z" />
             </svg>
           </div>
@@ -163,9 +163,9 @@ export default function LeaderboardPage() {
                 placeholder="Search wallet addresses..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-white outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
+                className="w-full border border-input rounded-lg px-4 py-3 text-sm bg-input-bg outline-none focus:border-primary focus:ring-1 focus:ring-ring transition-all"
               />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground-subtle">
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
@@ -175,28 +175,28 @@ export default function LeaderboardPage() {
         </div>
 
         {/* Leaderboard Table */}
-        <div className="border border-gray-200 rounded-xl overflow-hidden">
+        <div className="border border-border rounded-xl overflow-hidden bg-card">
           {/* Table Header */}
-          <div className="bg-gray-50 border-b border-gray-200">
+          <div className="bg-surface border-b border-border">
             <div className="grid grid-cols-3 gap-4 px-6 py-4">
-              <div className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Rank</div>
-              <div className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Wallet Address</div>
-              <div className="text-sm font-semibold text-gray-700 uppercase tracking-wide text-right">Rewards</div>
+              <div className="text-sm font-semibold text-foreground-muted uppercase tracking-wide">Rank</div>
+              <div className="text-sm font-semibold text-foreground-muted uppercase tracking-wide">Wallet Address</div>
+              <div className="text-sm font-semibold text-foreground-muted uppercase tracking-wide text-right">Rewards</div>
             </div>
           </div>
 
           {/* Loading State */}
           {loading && (
             <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
-              <div className="text-gray-500 mt-2">Loading leaderboard...</div>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <div className="text-foreground-muted mt-2">Loading leaderboard...</div>
             </div>
           )}
 
           {/* Error State */}
           {error && (
-            <div className="text-center py-12 text-red-500">
-              <svg className="mx-auto h-12 w-12 text-red-500 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="text-center py-12 text-error">
+              <svg className="mx-auto h-12 w-12 text-error mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
               <div className="font-medium">{error}</div>
@@ -205,27 +205,27 @@ export default function LeaderboardPage() {
 
           {/* Table Body */}
           {!loading && !error && (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-border">
               {filteredData.map((entry, index) => (
                 <div
                   key={entry.id}
-                  className="grid grid-cols-3 gap-4 px-6 py-4 hover:bg-gray-50/50 transition-colors group"
+                  className="grid grid-cols-3 gap-4 px-6 py-4 hover:bg-surface-elevated/50 transition-colors group"
                 >
                   {/* Rank */}
                   <div className="flex items-center">
-                    <span className="text-lg font-bold text-gray-900">#{entry.rank}</span>
+                    <span className="text-lg font-bold text-foreground">#{entry.rank}</span>
                   </div>
 
                   {/* Wallet Address */}
                   <div className="flex items-center">
-                    <div className="font-mono text-sm text-gray-900 bg-gray-100 px-3 py-1 rounded-md">
+                    <div className="font-mono text-sm text-foreground bg-muted px-3 py-1 rounded-md border border-border">
                       {formatWalletAddress(entry.walletAddress)}
                     </div>
                   </div>
 
                   {/* Rewards */}
                   <div className="text-right">
-                    <div className="text-lg font-bold text-black">
+                    <div className="text-lg font-bold text-foreground">
                       {formatRewards(entry.rewards)} BOSON
                     </div>
                   </div>
@@ -234,8 +234,8 @@ export default function LeaderboardPage() {
               
               {/* Empty State */}
               {filteredData.length === 0 && !loading && (
-                <div className="text-center py-12 text-gray-500">
-                  <svg className="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="text-center py-12 text-foreground-muted">
+                  <svg className="mx-auto h-12 w-12 text-foreground-subtle mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                   <div className="font-medium">No entries found</div>
@@ -248,7 +248,7 @@ export default function LeaderboardPage() {
 
         {/* Footer Info */}
         {!loading && !error && filteredData.length > 0 && (
-          <div className="mt-6 text-center text-sm text-gray-500">
+          <div className="mt-6 text-center text-sm text-foreground-muted">
             Showing {filteredData.length} of {leaderboardData.length} entries
           </div>
         )}

@@ -3,26 +3,83 @@
 @tailwind utilities;
 
 :root {
-  /* Base palette */ /* near-black */ /* white */
-  --border: #262626; /* neutral-800 */
-  --card: #0f0f10; /* slightly lifted from background */
-  --card-foreground: #fafafa;
-  --muted: #1a1a1a;
-  --muted-foreground: #a3a3a3;
-  --primary: #3b82f6; /* blue-500 */
-  --primary-foreground: #e6f0ff;
-  --accent: #1f2937; /* slate-800 */
-  --accent-foreground: #f8fafc;
-  --ring: #60a5fa; /* blue-400 */
-
-  /* Gradient helpers */
+  /* ===== DARK DASHBOARD DESIGN SYSTEM ===== */
+  
+  /* Background Colors */
+  --background: 10 10 15; /* #0a0a0f - Main app background */
+  --background-elevated: 15 15 20; /* #0f0f14 - Elevated surfaces */
+  --surface: 18 18 24; /* #121218 - Card/panel background */
+  --surface-elevated: 24 24 32; /* #181820 - Elevated cards */
+  
+  /* Foreground Colors */
+  --foreground: 250 250 250; /* #fafafa - Primary text */
+  --foreground-muted: 163 163 163; /* #a3a3a3 - Secondary text */
+  --foreground-subtle: 115 115 115; /* #737373 - Tertiary text */
+  
+  /* Border Colors */
+  --border: 38 38 38; /* #262626 - Default borders */
+  --border-subtle: 28 28 28; /* #1c1c1c - Subtle borders */
+  --border-strong: 64 64 64; /* #404040 - Strong borders */
+  
+  /* Brand/Primary Colors */
+  --primary: 59 130 246; /* #3b82f6 - Brand blue */
+  --primary-hover: 37 99 235; /* #2563eb - Brand blue hover */
+  --primary-foreground: 255 255 255; /* #ffffff - Text on primary */
+  
+  /* Accent Colors */
+  --accent: 96 165 250; /* #60a5fa - Accent blue */
+  --accent-hover: 147 197 253; /* #93c5fd - Accent blue hover */
+  --accent-foreground: 10 10 15; /* #0a0a0f - Text on accent */
+  
+  /* Status Colors */
+  --success: 34 197 94; /* #22c55e - Green */
+  --success-bg: 20 83 45; /* #14532d - Success background */
+  --error: 239 68 68; /* #ef4444 - Red */
+  --error-bg: 127 29 29; /* #7f1d1d - Error background */
+  --warning: 251 146 60; /* #fb923c - Orange */
+  --warning-bg: 124 45 18; /* #7c2d12 - Warning background */
+  --info: 96 165 250; /* #60a5fa - Blue */
+  --info-bg: 30 58 138; /* #1e3a8a - Info background */
+  
+  /* Muted/Subtle Colors */
+  --muted: 26 26 26; /* #1a1a1a - Muted background */
+  --muted-foreground: 163 163 163; /* #a3a3a3 - Muted text */
+  
+  /* Card Colors */
+  --card: 18 18 24; /* #121218 - Card background */
+  --card-elevated: 24 24 32; /* #181820 - Elevated card */
+  --card-foreground: 250 250 250; /* #fafafa - Card text */
+  
+  /* Popover/Modal Colors */
+  --popover: 18 18 24; /* #121218 - Popover background */
+  --popover-foreground: 250 250 250; /* #fafafa - Popover text */
+  
+  /* Input Colors */
+  --input: 38 38 38; /* #262626 - Input borders */
+  --input-bg: 24 24 32; /* #181820 - Input background */
+  
+  /* Ring/Focus Colors */
+  --ring: 96 165 250; /* #60a5fa - Focus ring */
+  
+  /* Gradient Brand Colors (for gradients) */
   --brand-from: #3b82f6; /* blue-500 */
   --brand-via: #60a5fa; /* blue-400 */
   --brand-to: #93c5fd;  /* blue-300 */
+  
+  /* Chart Colors */
+  --chart-1: 220 70% 50%;
+  --chart-2: 160 60% 45%;
+  --chart-3: 30 80% 55%;
+  --chart-4: 280 65% 60%;
+  --chart-5: 340 75% 55%;
+  
+  /* Border Radius */
+  --radius: 0.5rem;
 }
 
 body {
-  background: #0a0a0f;
+  background: rgb(10 10 15);
+  color: rgb(250 250 250);
   /* Use Geist variable fonts provided in layout.tsx */
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji;
 }
@@ -129,40 +186,23 @@ body {
 }
 
 @layer base {
-  :root {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --radius: 0.5rem;
-  }
-}
-
-@layer base {
   * {
     @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* Additional base styles for dark theme */
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-foreground;
+  }
+  
+  input, textarea, select {
+    @apply bg-input-bg border-input text-foreground;
+  }
+  
+  input::placeholder, textarea::placeholder {
+    @apply text-foreground-subtle;
   }
 }

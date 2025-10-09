@@ -19,24 +19,24 @@ export default function Navbar() {
       <Link
         href={href}
         className={`relative px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-          isActive ? "text-white" : "text-muted-foreground hover:text-white"
+          isActive ? "text-foreground" : "text-foreground-muted hover:text-foreground"
         }`}
         onClick={() => setMobileOpen(false)}
       >
         {label}
         {isActive && (
-          <span className="pointer-events-none absolute -bottom-[6px] left-2 right-2 h-[2px] rounded bg-gradient-to-r from-brand-400 via-brand-500 to-brand-400" />
+          <span className="pointer-events-none absolute -bottom-[6px] left-2 right-2 h-[2px] rounded bg-gradient-to-r from-primary via-accent to-primary" />
         )}
       </Link>
     );
   };
 
   return (
-    <header className={`sticky top-0 z-40 ${isLanding ? "" : "border-b border-border/60"} bg-black/40 backdrop-blur supports-[backdrop-filter]:bg-black/30`}>
+    <header className={`sticky top-0 z-40 ${isLanding ? "" : "border-b border-border"} bg-surface/80 backdrop-blur supports-[backdrop-filter]:bg-surface/60`}>
       <div className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
         {/* Brand */}
         <Link href="/" className="flex items-center gap-2 group">
-          <span className="text-lg font-semibold tracking-tight text-white group-hover:text-white">
+          <span className="text-lg font-semibold tracking-tight text-foreground group-hover:text-foreground">
             Tenjaku
           </span>
         </Link>
@@ -58,7 +58,7 @@ export default function Navbar() {
               account ? (
                 <button
                   onClick={() => router.push("/my-teams")}
-                  className="inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white hover:bg-white/10 transition-colors"
+                  className="inline-flex items-center justify-center rounded-md border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
                 >
                   Enter App
                 </button>
@@ -68,19 +68,19 @@ export default function Navbar() {
                     await connectWallet();
                   }}
                   disabled={isConnecting}
-                  className="inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center justify-center rounded-md border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isConnecting ? "Connecting..." : "Connect Wallet"}
                 </button>
               )
             ) : account ? (
               <div className="flex items-center gap-3">
-                <div className="px-2.5 py-1.5 bg-muted text-white/90 text-sm font-mono rounded-md border border-border/70">
+                <div className="px-2.5 py-1.5 bg-muted text-foreground text-sm font-mono rounded-md border border-border">
                   {account.address?.slice(0, 6)}...{account.address?.slice(-4)}
                 </div>
                 <button
                   onClick={disconnectWallet}
-                  className="px-3 py-2 text-sm rounded-md border border-white/10 text-white/90 hover:text-white transition-colors"
+                  className="px-3 py-2 text-sm rounded-md border border-border text-foreground hover:bg-surface-elevated transition-colors"
                 >
                   Disconnect
                 </button>
@@ -91,7 +91,7 @@ export default function Navbar() {
                   await connectWallet();
                 }}
                 disabled={isConnecting}
-                className="inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center justify-center rounded-md border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isConnecting ? "Connecting..." : "Connect Wallet"}
               </button>
@@ -100,7 +100,7 @@ export default function Navbar() {
 
           {/* Mobile menu button */}
           <button
-            className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/5 text-white hover:bg-white/10"
+            className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface-elevated text-foreground hover:bg-muted"
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Toggle menu"
           >
@@ -123,7 +123,7 @@ export default function Navbar() {
 
       {/* Mobile Drawer */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-border/60 bg-black/70 backdrop-blur supports-[backdrop-filter]:bg-black/60">
+        <div className="md:hidden border-t border-border bg-surface/90 backdrop-blur supports-[backdrop-filter]:bg-surface/80">
           {!isLanding && (
             <nav className="mx-auto max-w-7xl px-4 py-3 flex flex-col gap-1">
               <NavLink href="/tournaments" label="Tournaments" />
@@ -140,7 +140,7 @@ export default function Navbar() {
                     setMobileOpen(false);
                     router.push("/my-teams");
                   }}
-                  className="mt-2 w-full inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white hover:bg-white/10"
+                  className="mt-2 w-full inline-flex items-center justify-center rounded-md border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
                 >
                   Enter App
                 </button>
@@ -151,19 +151,19 @@ export default function Navbar() {
                     setMobileOpen(false);
                   }}
                   disabled={isConnecting}
-                  className="mt-2 w-full inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="mt-2 w-full inline-flex items-center justify-center rounded-md border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isConnecting ? "Connecting..." : "Connect Wallet"}
                 </button>
               )
             ) : account ? (
               <div className="mt-2 grid grid-cols-2 gap-2">
-                <div className="col-span-2 px-2.5 py-1.5 bg-muted text-white/90 text-sm font-mono rounded-md border border-border/70 text-center">
+                <div className="col-span-2 px-2.5 py-1.5 bg-muted text-foreground text-sm font-mono rounded-md border border-border text-center">
                   {account.address?.slice(0, 10)}...{account.address?.slice(-6)}
                 </div>
                 <button
                   onClick={() => setMobileOpen(false)}
-                  className="px-3 py-2 text-sm rounded-md border border-white/10 text-white/90 hover:bg-white/10"
+                  className="px-3 py-2 text-sm rounded-md border border-border text-foreground hover:bg-surface-elevated"
                 >
                   Close
                 </button>
@@ -172,7 +172,7 @@ export default function Navbar() {
                     await disconnectWallet();
                     setMobileOpen(false);
                   }}
-                  className="px-3 py-2 text-sm rounded-md border border-white/10 text-white/90 hover:text-white"
+                  className="px-3 py-2 text-sm rounded-md border border-border text-foreground hover:bg-surface-elevated"
                 >
                   Disconnect
                 </button>
@@ -184,7 +184,7 @@ export default function Navbar() {
                   setMobileOpen(false);
                 }}
                 disabled={isConnecting}
-                className="mt-2 w-full inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="mt-2 w-full inline-flex items-center justify-center rounded-md border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isConnecting ? "Connecting..." : "Connect Wallet"}
               </button>

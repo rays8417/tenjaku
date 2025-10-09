@@ -453,15 +453,15 @@ export default function MyTeamsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-background p-6">
         <div className="mx-auto max-w-7xl">
           <div className="mb-8">
-            <h1 className="text-2xl font-semibold text-black">My Teams</h1>
+            <h1 className="text-2xl font-semibold text-foreground">My Teams</h1>
           </div>
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading player data...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-foreground-muted">Loading player data...</p>
             </div>
           </div>
         </div>
@@ -471,17 +471,17 @@ export default function MyTeamsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-background p-6">
         <div className="mx-auto max-w-7xl">
           <div className="mb-8">
-            <h1 className="text-2xl font-semibold text-black">My Teams</h1>
+            <h1 className="text-2xl font-semibold text-foreground">My Teams</h1>
           </div>
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
-              <p className="text-red-600 mb-4">{error}</p>
+              <p className="text-error mb-4">{error}</p>
               <button
                 onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary-hover transition-colors"
               >
                 Retry
               </button>
@@ -493,67 +493,67 @@ export default function MyTeamsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-background p-6">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-black">My Teams</h1>
+          <h1 className="text-2xl font-semibold text-foreground">My Teams</h1>
         </div>
 
         {/* Rewards Summary */}
         {address && (
           <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+            <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+                  <h3 className="text-sm font-medium text-foreground-muted uppercase tracking-wide">
                     Total Earnings
                   </h3>
                   <div className="mt-2">
                     {rewardsLoading ? (
                       <div className="animate-pulse">
-                        <div className="h-8 w-24 bg-gray-200 rounded"></div>
+                        <div className="h-8 w-24 bg-surface-elevated rounded"></div>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <span className="text-2xl font-bold text-black">
+                        <span className="text-2xl font-bold text-foreground">
                           {userRewards?.totalEarnings?.toFixed(2) || '0.00'}
                         </span>
-                        <span className="text-sm text-gray-500">BOSON</span>
+                        <span className="text-sm text-foreground-muted">BOSON</span>
                       </div>
                     )}
                   </div>
                 </div>
-                <div className="h-12 w-12 rounded-lg bg-green-100 flex items-center justify-center">
-                  <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="h-12 w-12 rounded-lg bg-success-bg flex items-center justify-center">
+                  <svg className="h-6 w-6 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+            <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+                  <h3 className="text-sm font-medium text-foreground-muted uppercase tracking-wide">
                     Total Rewards
                   </h3>
                   <div className="mt-2">
                     {rewardsLoading ? (
                       <div className="animate-pulse">
-                        <div className="h-8 w-24 bg-gray-200 rounded"></div>
+                        <div className="h-8 w-24 bg-surface-elevated rounded"></div>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <span className="text-2xl font-bold text-black">
+                        <span className="text-2xl font-bold text-foreground">
                           {userRewards?.totalRewards?.toFixed(2) || '0.00'}
                         </span>
                       </div>
                     )}
                   </div>
                 </div>
-                <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center">
-                  <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="h-12 w-12 rounded-lg bg-info-bg flex items-center justify-center">
+                  <svg className="h-6 w-6 text-info" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                   </svg>
                 </div>
@@ -570,11 +570,11 @@ export default function MyTeamsPage() {
               placeholder="Search players or teams..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+              className="w-full px-4 py-2 pl-10 border border-input rounded-lg bg-input-bg focus:ring-2 focus:ring-ring focus:border-primary"
             />
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <svg
-                className="h-5 w-5 text-gray-400"
+                className="h-5 w-5 text-foreground-subtle"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -591,54 +591,54 @@ export default function MyTeamsPage() {
         </div>
 
         {/* Holdings Table */}
-        <div className="mt-8 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+        <div className="mt-8 bg-card border border-border rounded-lg shadow-sm overflow-hidden">
           {/* Table Header */}
-          <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <div className="col-span-4 text-xs uppercase tracking-wider text-gray-500 font-medium">
+          <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-border bg-surface">
+            <div className="col-span-4 text-xs uppercase tracking-wider text-foreground-muted font-medium">
               PLAYER
             </div>
-            <div className="col-span-2 text-xs uppercase tracking-wider text-gray-500 font-medium text-right">
+            <div className="col-span-2 text-xs uppercase tracking-wider text-foreground-muted font-medium text-right">
               PRICE (BOSON)
             </div>
-            <div className="col-span-2 text-xs uppercase tracking-wider text-gray-500 font-medium text-right">
+            <div className="col-span-2 text-xs uppercase tracking-wider text-foreground-muted font-medium text-right">
               1H
             </div>
-            <div className="col-span-2 text-xs uppercase tracking-wider text-gray-500 font-medium text-right">
+            <div className="col-span-2 text-xs uppercase tracking-wider text-foreground-muted font-medium text-right">
               SHARES
             </div>
-            <div className="col-span-2 text-xs uppercase tracking-wider text-gray-500 font-medium text-right">
+            <div className="col-span-2 text-xs uppercase tracking-wider text-foreground-muted font-medium text-right">
               HOLDINGS (BOSON)
             </div>
           </div>
 
           {/* Table Body */}
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-border">
             {filteredHoldings.length === 0 ? (
-              <div className="px-6 py-12 text-center text-gray-500">
+              <div className="px-6 py-12 text-center text-foreground-muted">
                 No players found matching your search.
               </div>
             ) : (
               filteredHoldings.map((holding) => (
                 <div
                   key={holding.id}
-                  className="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-gray-50 transition-colors"
+                  className="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-surface-elevated/50 transition-colors"
                 >
                   <div className="col-span-4 flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-gray-600 flex items-center justify-center text-white font-semibold text-sm">
+                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm">
                       {holding.avatar}
                     </div>
                     <div>
-                      <div className="font-medium text-black">
+                      <div className="font-medium text-foreground">
                         {holding.playerName}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-foreground-muted">
                         {holding.team} • {holding.position}
                       </div>
                     </div>
                   </div>
                   <div className="col-span-2 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <span className="font-medium text-black">
+                      <span className="font-medium text-foreground">
                         {holding.price.toFixed(6)}
                       </span>
                     </div>
@@ -647,8 +647,8 @@ export default function MyTeamsPage() {
                     <span
                       className={`text-sm font-medium ${
                         holding.change1h >= 0
-                          ? "text-emerald-500"
-                          : "text-red-500"
+                          ? "text-success"
+                          : "text-error"
                       }`}
                     >
                       {holding.change1h >= 0 ? "↑" : "↓"}
@@ -656,13 +656,13 @@ export default function MyTeamsPage() {
                     </span>
                   </div>
                   <div className="col-span-2 text-right">
-                    <span className="font-medium text-black">
+                    <span className="font-medium text-foreground">
                       {holding.shares.toFixed(2)}
                     </span>
                   </div>
                   <div className="col-span-2 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <span className="font-medium text-black">
+                      <span className="font-medium text-foreground">
                         {holding.holdings.toFixed(4)}
                       </span>
                     </div>

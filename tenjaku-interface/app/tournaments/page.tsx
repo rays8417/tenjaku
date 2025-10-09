@@ -289,8 +289,8 @@ export default function TournamentsPage() {
       onClick={() => setActiveTab(label)}
       className={`px-4 py-2 text-sm font-medium transition-all duration-200 ${
         activeTab === label
-          ? "text-black border-b-2 border-black"
-          : "text-gray-500 hover:text-gray-700 border-b-2 border-transparent"
+          ? "text-foreground border-b-2 border-primary"
+          : "text-foreground-muted hover:text-foreground border-b-2 border-transparent"
       }`}
     >
       {label}
@@ -304,31 +304,31 @@ export default function TournamentsPage() {
     player: PlayerRow;
     index: number;
   }) => (
-    <div className="flex items-center justify-between py-4 border-b border-gray-100 hover:bg-gray-50/50 transition-colors group">
+    <div className="flex items-center justify-between py-4 border-b border-border hover:bg-surface-elevated/50 transition-colors group">
       <div className="flex items-center gap-4">
-        <div className="text-sm w-8 text-gray-400 font-mono">
+        <div className="text-sm w-8 text-foreground-subtle font-mono">
           {String(index + 1).padStart(2, "0")}
         </div>
-        <div className="relative h-9 w-9 shrink-0 rounded bg-black flex items-center justify-center font-bold text-white text-xs">
+        <div className="relative h-9 w-9 shrink-0 rounded bg-primary flex items-center justify-center font-bold text-primary-foreground text-xs">
           {player.name
             .split(" ")
             .map((n) => n[0])
             .join("")}
         </div>
         <div className="min-w-0">
-          <div className="font-semibold text-black text-sm">{player.name}</div>
-          <div className="text-xs text-gray-500 flex items-center gap-3">
+          <div className="font-semibold text-foreground text-sm">{player.name}</div>
+          <div className="text-xs text-foreground-muted flex items-center gap-3">
             <span className="font-medium">{player.team}</span>
             <span>{player.role}</span>
             {player.avg && (
               <>
-                <span className="text-gray-300">•</span>
+                <span className="text-foreground-subtle">•</span>
                 <span>Avg {player.avg}</span>
               </>
             )}
             {player.strikeRate && (
               <>
-                <span className="text-gray-300">•</span>
+                <span className="text-foreground-subtle">•</span>
                 <span>SR {player.strikeRate}</span>
               </>
             )}
@@ -336,8 +336,7 @@ export default function TournamentsPage() {
         </div>
       </div>
       <div className="flex items-center gap-4">
-        {/* <div className="text-sm text-gray-600 font-medium">{player.price}</div> */}
-        <div className="bg-black text-white text-sm font-bold px-3 py-1 rounded min-w-[50px] text-center">
+        <div className="bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded min-w-[50px] text-center">
           {player.points}
         </div>
       </div>
@@ -346,52 +345,52 @@ export default function TournamentsPage() {
 
   // Shimmer component for tournament items
   const TournamentShimmer = () => (
-    <div className="flex flex-col gap-2 p-4 border border-gray-200 rounded-lg animate-pulse">
+    <div className="flex flex-col gap-2 p-4 border border-border rounded-lg animate-pulse">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <div className="h-6 w-6 bg-gray-200 rounded"></div>
-            <div className="h-4 w-16 bg-gray-200 rounded"></div>
+            <div className="h-6 w-6 bg-surface-elevated rounded"></div>
+            <div className="h-4 w-16 bg-surface-elevated rounded"></div>
           </div>
-          <div className="h-3 w-6 bg-gray-200 rounded"></div>
+          <div className="h-3 w-6 bg-surface-elevated rounded"></div>
           <div className="flex items-center gap-2">
-            <div className="h-4 w-16 bg-gray-200 rounded"></div>
-            <div className="h-6 w-6 bg-gray-200 rounded"></div>
+            <div className="h-4 w-16 bg-surface-elevated rounded"></div>
+            <div className="h-6 w-6 bg-surface-elevated rounded"></div>
           </div>
         </div>
       </div>
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <div className="h-3 w-24 bg-gray-200 rounded"></div>
-          <div className="h-3 w-32 bg-gray-200 rounded"></div>
+          <div className="h-3 w-24 bg-surface-elevated rounded"></div>
+          <div className="h-3 w-32 bg-surface-elevated rounded"></div>
         </div>
-        <div className="h-6 w-16 bg-gray-200 rounded-full"></div>
+        <div className="h-6 w-16 bg-surface-elevated rounded-full"></div>
       </div>
-      <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
-        <div className="h-3 w-20 bg-gray-200 rounded"></div>
+      <div className="flex items-center justify-between mt-2 pt-2 border-t border-border">
+        <div className="h-3 w-20 bg-surface-elevated rounded"></div>
       </div>
     </div>
   );
 
   // Shimmer component for player items
   const PlayerShimmer = () => (
-    <div className="flex items-center justify-between py-4 border-b border-gray-100 animate-pulse">
+    <div className="flex items-center justify-between py-4 border-b border-border animate-pulse">
       <div className="flex items-center gap-4">
-        <div className="h-4 w-8 bg-gray-200 rounded"></div>
-        <div className="h-9 w-9 bg-gray-200 rounded"></div>
+        <div className="h-4 w-8 bg-surface-elevated rounded"></div>
+        <div className="h-9 w-9 bg-surface-elevated rounded"></div>
         <div className="space-y-1">
-          <div className="h-4 w-24 bg-gray-200 rounded"></div>
+          <div className="h-4 w-24 bg-surface-elevated rounded"></div>
           <div className="flex items-center gap-3">
-            <div className="h-3 w-8 bg-gray-200 rounded"></div>
-            <div className="h-3 w-16 bg-gray-200 rounded"></div>
-            <div className="h-3 w-12 bg-gray-200 rounded"></div>
-            <div className="h-3 w-10 bg-gray-200 rounded"></div>
+            <div className="h-3 w-8 bg-surface-elevated rounded"></div>
+            <div className="h-3 w-16 bg-surface-elevated rounded"></div>
+            <div className="h-3 w-12 bg-surface-elevated rounded"></div>
+            <div className="h-3 w-10 bg-surface-elevated rounded"></div>
           </div>
         </div>
       </div>
       <div className="flex items-center gap-4">
-        <div className="h-4 w-12 bg-gray-200 rounded"></div>
-        <div className="h-8 w-12 bg-gray-200 rounded"></div>
+        <div className="h-4 w-12 bg-surface-elevated rounded"></div>
+        <div className="h-8 w-12 bg-surface-elevated rounded"></div>
       </div>
     </div>
   );
@@ -409,22 +408,22 @@ export default function TournamentsPage() {
     });
 
     return (
-      <div className="flex flex-col gap-4 p-5 border border-gray-200 rounded-xl hover:shadow-md hover:border-gray-300 transition-all bg-white">
+      <div className="flex flex-col gap-4 p-5 border border-border rounded-xl hover:bg-surface-elevated transition-all bg-card">
         {/* Teams */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className="h-10 w-10 flex-shrink-0 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg text-white text-sm font-bold flex items-center justify-center shadow-sm">
               {tournament.team1.substring(0, 3).toUpperCase()}
             </div>
-            <span className="text-base font-semibold text-black truncate">
+            <span className="text-base font-semibold text-foreground truncate">
               {tournament.team1}
             </span>
           </div>
           
-          <span className="text-sm text-gray-400 font-semibold flex-shrink-0">VS</span>
+          <span className="text-sm text-foreground-subtle font-semibold flex-shrink-0">VS</span>
           
           <div className="flex items-center gap-3 min-w-0">
-            <span className="text-base font-semibold text-black truncate">
+            <span className="text-base font-semibold text-foreground truncate">
               {tournament.team2}
             </span>
             <div className="h-10 w-10 flex-shrink-0 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg text-white text-sm font-bold flex items-center justify-center shadow-sm">
@@ -434,35 +433,35 @@ export default function TournamentsPage() {
         </div>
 
         {/* Match Details */}
-        <div className="flex flex-col gap-2 pt-3 border-t border-gray-100">
+        <div className="flex flex-col gap-2 pt-3 border-t border-border">
           <div className="flex items-center justify-between gap-3">
-            <div className="text-sm font-semibold text-gray-700">
+            <div className="text-sm font-semibold text-foreground-muted">
               {dateStr} • {timeStr}
             </div>
             <div
               className={`px-3 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${
                 tournament.status === "UPCOMING"
-                  ? "bg-blue-100 text-blue-700"
+                  ? "bg-info-bg text-info"
                   : tournament.status === "LIVE"
-                  ? "bg-red-100 text-red-700"
-                  : "bg-green-100 text-green-700"
+                  ? "bg-error-bg text-error"
+                  : "bg-success-bg text-success"
               }`}
             >
               {tournament.status}
             </div>
           </div>
           
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-foreground-muted">
             {tournament.venue || "Venue TBD"}
           </div>
           
           {tournament.description && (
-            <div className="text-sm text-gray-500 line-clamp-1">
+            <div className="text-sm text-foreground-muted line-clamp-1">
               {tournament.description}
             </div>
           )}
           
-          <div className="text-sm text-gray-500 mt-1 pt-2 border-t border-gray-100">
+          <div className="text-sm text-foreground-muted mt-1 pt-2 border-t border-border">
             Entry Fee:{" "}
             {tournament.entryFee === "0" ? "Free" : `₹${tournament.entryFee}`}
           </div>
@@ -487,20 +486,20 @@ export default function TournamentsPage() {
     const team2 = match.team2?.teamName || "TBD";
 
     return (
-      <div className="flex flex-col gap-4 p-5 border border-gray-200 rounded-xl hover:shadow-md hover:border-gray-300 transition-all bg-white">
+      <div className="flex flex-col gap-4 p-5 border border-border rounded-xl hover:bg-surface-elevated transition-all bg-card">
         {/* Teams */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className="h-10 w-10 flex-shrink-0 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg text-white text-sm font-bold flex items-center justify-center shadow-sm">
               {team1.substring(0, 3).toUpperCase()}
             </div>
-            <span className="text-base font-semibold text-black truncate">{team1}</span>
+            <span className="text-base font-semibold text-foreground truncate">{team1}</span>
           </div>
           
-          <span className="text-sm text-gray-400 font-semibold flex-shrink-0">VS</span>
+          <span className="text-sm text-foreground-subtle font-semibold flex-shrink-0">VS</span>
           
           <div className="flex items-center gap-3 min-w-0">
-            <span className="text-base font-semibold text-black truncate">{team2}</span>
+            <span className="text-base font-semibold text-foreground truncate">{team2}</span>
             <div className="h-10 w-10 flex-shrink-0 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg text-white text-sm font-bold flex items-center justify-center shadow-sm">
               {team2.substring(0, 3).toUpperCase()}
             </div>
@@ -508,23 +507,23 @@ export default function TournamentsPage() {
         </div>
 
         {/* Match Details */}
-        <div className="flex flex-col gap-2 pt-3 border-t border-gray-100">
+        <div className="flex flex-col gap-2 pt-3 border-t border-border">
           <div className="flex items-center justify-between gap-3">
-            <div className="text-sm font-semibold text-gray-700">
+            <div className="text-sm font-semibold text-foreground-muted">
               {dateStr} • {timeStr}
             </div>
-            <div className="px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 flex-shrink-0">
+            <div className="px-3 py-1 rounded-full text-xs font-semibold bg-warning-bg text-warning flex-shrink-0">
               {match.matchFormat || "Cricket"}
             </div>
           </div>
           
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-foreground-muted">
             {match.venueInfo?.ground || "Venue TBD"}
             {match.venueInfo?.city && `, ${match.venueInfo.city}`}
           </div>
           
           {match.seriesName && (
-            <div className="text-sm text-gray-500 line-clamp-1">
+            <div className="text-sm text-foreground-muted line-clamp-1">
               {match.seriesName}
             </div>
           )}
@@ -534,16 +533,16 @@ export default function TournamentsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-7xl px-6 py-8">
         <div className="grid grid-cols-12 gap-8">
           {/* Left Sidebar */}
           <aside className="col-span-12 lg:col-span-4 space-y-6">
             {/* Matches */}
-            <div className="border border-gray-200 rounded-xl p-6">
+            <div className="border border-border rounded-xl p-6 bg-card">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-black">Tournments</h2>
-                <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse" />
+                <h2 className="text-lg font-bold text-foreground">Tournments</h2>
+                <div className="h-2 w-2 bg-error rounded-full animate-pulse" />
               </div>
               <div className="space-y-3 max-h-[600px] overflow-y-auto scrollbar-thin pr-2">
                 {isLoadingTournaments ? (
@@ -559,8 +558,8 @@ export default function TournamentsPage() {
                     />
                   ))
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <svg className="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="text-center py-8 text-foreground-muted">
+                    <svg className="mx-auto h-12 w-12 text-foreground-subtle mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     <div className="font-medium">Tournament will start when the upcoming match starts</div>
@@ -573,12 +572,12 @@ export default function TournamentsPage() {
             </div>
 
             {/* Upcoming Matches */}
-            <div className="border border-gray-200 rounded-xl p-6">
+            <div className="border border-border rounded-xl p-6 bg-card">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-black">
+                <h2 className="text-lg font-bold text-foreground">
                   Upcoming Matches
                 </h2>
-                <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse" />
+                <div className="h-2 w-2 bg-info rounded-full animate-pulse" />
               </div>
               <div className="space-y-4 max-h-[500px] overflow-y-auto scrollbar-thin pr-2">
                 {isLoadingUpcomingMatches ? (
@@ -594,8 +593,8 @@ export default function TournamentsPage() {
                     />
                   ))
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <svg className="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="text-center py-8 text-foreground-muted">
+                    <svg className="mx-auto h-12 w-12 text-foreground-subtle mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div className="font-medium">No upcoming matches</div>
@@ -610,13 +609,13 @@ export default function TournamentsPage() {
 
           {/* Center Content */}
           <section className="col-span-12 lg:col-span-8">
-            <div className="border border-gray-200 rounded-xl p-6">
+            <div className="border border-border rounded-xl p-6 bg-card">
               <div className="mb-8">
                 <div>
-                  <h2 className="text-2xl font-bold text-black">
+                  <h2 className="text-2xl font-bold text-foreground">
                     Player Performance
                   </h2>
-                  <p className="text-gray-500 text-sm mt-1">
+                  <p className="text-foreground-muted text-sm mt-1">
                     Track and analyze player statistics
                   </p>
                 </div>
@@ -628,9 +627,9 @@ export default function TournamentsPage() {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search players by name or team..."
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-white outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
+                    className="w-full border border-input rounded-lg px-4 py-3 text-sm bg-input-bg outline-none focus:border-primary focus:ring-1 focus:ring-ring transition-all"
                   />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground-subtle">
                     <svg
                       className="h-4 w-4"
                       fill="none"
@@ -647,7 +646,7 @@ export default function TournamentsPage() {
                   </div>
                 </div>
 
-                <div className="border-b border-gray-200">
+                <div className="border-b border-border">
                   <div className="flex space-x-8">
                     {(
                       [
@@ -664,7 +663,7 @@ export default function TournamentsPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <div className="text-sm font-medium text-gray-900 mb-4">
+                  <div className="text-sm font-medium text-foreground mb-4">
                     {activeTab === "Overview" ? "Eligible Players" : activeTab} (
                     {visiblePlayers.length})
                   </div>
@@ -679,8 +678,8 @@ export default function TournamentsPage() {
                         <PlayerItem key={p.id} player={p} index={idx} />
                       ))
                     ) : (
-                      <div className="text-center py-12 text-gray-500">
-                        <svg className="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <div className="text-center py-12 text-foreground-muted">
+                        <svg className="mx-auto h-12 w-12 text-foreground-subtle mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                         <div className="font-medium">No players found</div>
@@ -699,4 +698,3 @@ export default function TournamentsPage() {
     </div>
   );
 }
-
