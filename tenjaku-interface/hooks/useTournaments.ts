@@ -17,6 +17,7 @@ interface Tournament {
   participantCount: number;
   rewardPools: any[];
   createdAt: string;
+  totalRewardPool?: number;
 }
 
 export function useTournaments() {
@@ -28,7 +29,18 @@ export function useTournaments() {
       setLoading(true);
       try {
         const response = await axios.get(`${getApiUrl()}/api/tournaments`);
-        setTournaments((response.data.tournaments || []).reverse());
+        const tournamentsData = response.data.tournaments || [];
+        
+        // Map tournaments and calculate total reward pool
+        const mappedTournaments = tournamentsData.map((tournament: any) => ({
+          ...tournament,
+          totalRewardPool: tournament.rewardPools?.reduce(
+            (sum: number, pool: any) => sum + Number(pool.totalAmount || 0),
+            0
+          ) || 0
+        }));
+        
+        setTournaments(mappedTournaments.reverse());
       } catch (error) {
         console.error("Error fetching tournaments:", error);
         setTournaments([]);

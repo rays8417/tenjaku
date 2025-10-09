@@ -10,6 +10,7 @@ interface Tournament {
   entryFee: string;
   maxParticipants: number | null;
   currentParticipants: number;
+  totalRewardPool?: number;
 }
 
 interface TournamentCardProps {
@@ -84,9 +85,19 @@ export default function TournamentCard({ tournament }: TournamentCardProps) {
           </div>
         )}
 
-        <div className="text-sm text-foreground-muted mt-1 pt-2 border-t border-border">
-          Entry Fee:{" "}
-          {tournament.entryFee === "0" ? "Free" : `₹${tournament.entryFee}`}
+        <div className="flex items-center justify-between gap-3 mt-1 pt-2 border-t border-border">
+          <div className="text-sm text-foreground-muted">
+            Entry Fee:{" "}
+            {tournament.entryFee === "0" ? "Free" : `₹${tournament.entryFee}`}
+          </div>
+          {tournament.totalRewardPool && tournament.totalRewardPool > 0 && (
+            <div className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+              <svg className="w-4 h-4 text-warning" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z" />
+              </svg>
+              <span>{tournament.totalRewardPool.toLocaleString()} BOSON</span>
+            </div>
+          )}
         </div>
       </div>
     </div>
