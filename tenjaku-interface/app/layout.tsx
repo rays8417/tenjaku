@@ -18,7 +18,10 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: "Tenjaku",
-  description: "Fantasy tournaments with on-chain teams",
+  description: "Cricket fantasy",
+  icons: {
+    icon: '/tenjakulogo-circular-white.png',
+  },
 };
 
 export default function RootLayout({

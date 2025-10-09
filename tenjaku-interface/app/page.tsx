@@ -56,7 +56,7 @@ export default function Home() {
           <div className="mt-14 flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-delayed-2">
             {account ? (
               <button
-                onClick={() => router.push("/tournaments")}
+                onClick={() => router.push("/swaps")}
                 className="group relative inline-flex items-center justify-center rounded-xl px-10 py-5 text-lg font-semibold text-primary-foreground bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 transition-all duration-300 shadow-2xl shadow-primary/30 hover:shadow-primary/50 hover:scale-105 transform"
               >
                 <span className="relative z-10">Start Playing</span>

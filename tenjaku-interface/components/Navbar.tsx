@@ -1,15 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useWallet } from "../contexts/WalletContext";
 import { useState } from "react";
+import HowToPlayModal from "./HowToPlayModal";
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { account, isConnecting, connectWallet, disconnectWallet } = useWallet();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [howToPlayOpen, setHowToPlayOpen] = useState(false);
 
   const isLanding = pathname === "/";
 
@@ -32,10 +35,18 @@ export default function Navbar() {
   };
 
   return (
+    <>
     <header className={`sticky top-0 z-40 ${isLanding ? "" : "border-b border-border"} bg-surface/80 backdrop-blur supports-[backdrop-filter]:bg-surface/60`}>
       <div className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
         {/* Brand */}
         <Link href="/" className="flex items-center gap-2 group">
+          <Image 
+            src="/tenjakulogo-nobg.png" 
+            alt="Tenjaku Logo" 
+            width={52} 
+            height={52}
+            className="object-contain"
+          />
           <span className="text-lg font-semibold tracking-tight text-foreground group-hover:text-foreground">
             Tenjaku
           </span>
@@ -49,6 +60,12 @@ export default function Navbar() {
               <NavLink href="/tournaments" label="Tournaments" />
               <NavLink href="/holdings" label="Holdings" />
               <NavLink href="/leaderboard" label="Leaderboard" />
+              <button
+                onClick={() => setHowToPlayOpen(true)}
+                className="px-3 py-2 text-sm font-medium rounded-md text-foreground-muted hover:text-foreground transition-colors"
+              >
+                How to Play
+              </button>
             </nav>
           )}
 
@@ -57,7 +74,7 @@ export default function Navbar() {
             {isLanding ? (
               account ? (
                 <button
-                  onClick={() => router.push("/my-teams")}
+                  onClick={() => router.push("/swaps")}
                   className="inline-flex items-center justify-center rounded-md border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
                 >
                   Enter App
@@ -127,9 +144,18 @@ export default function Navbar() {
           {!isLanding && (
             <nav className="mx-auto max-w-7xl px-4 py-3 flex flex-col gap-1">
               <NavLink href="/tournaments" label="Tournaments" />
-              <NavLink href="/my-teams" label="My Teams" />
+              <NavLink href="/holdings" label="Holdings" />
               <NavLink href="/swaps" label="Swaps" />
               <NavLink href="/leaderboard" label="Leaderboard" />
+              <button
+                onClick={() => {
+                  setHowToPlayOpen(true);
+                  setMobileOpen(false);
+                }}
+                className="text-left px-3 py-2 text-sm font-medium rounded-md text-foreground-muted hover:text-foreground transition-colors"
+              >
+                How to Play
+              </button>
             </nav>
           )}
           <div className="mx-auto max-w-7xl px-4 pb-4">
@@ -138,7 +164,7 @@ export default function Navbar() {
                 <button
                   onClick={() => {
                     setMobileOpen(false);
-                    router.push("/my-teams");
+                    router.push("/swaps");
                   }}
                   className="mt-2 w-full inline-flex items-center justify-center rounded-md border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
                 >
@@ -193,5 +219,10 @@ export default function Navbar() {
         </div>
       )}
     </header>
+    <HowToPlayModal 
+      isOpen={howToPlayOpen} 
+      onClose={() => setHowToPlayOpen(false)} 
+    />
+    </>
   );
 }
