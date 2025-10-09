@@ -130,6 +130,7 @@ async function createTournament(tournamentData: TournamentData, createSnapshot: 
         status: tournamentData.status,
         entryFee: tournamentData.entryFee,
         maxParticipants: tournamentData.maxParticipants,
+        matchId: tournamentData.matchId?.toString(),
         currentParticipants: 0
       }
     });
