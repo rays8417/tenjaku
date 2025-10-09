@@ -1,3 +1,4 @@
+import { useState } from "react";
 import EmptyState from "../ui/EmptyState";
 
 interface LeaderboardEntry {
@@ -9,6 +10,7 @@ interface LeaderboardEntry {
 
 interface LeaderboardTableProps {
   entries: LeaderboardEntry[];
+  totalAddresses?: number;
   className?: string;
 }
 
@@ -24,23 +26,56 @@ const formatRewards = (amount: number) => {
   }).format(amount);
 };
 
-export default function LeaderboardTable({ entries, className = "" }: LeaderboardTableProps) {
+export default function LeaderboardTable({ entries, totalAddresses, className = "" }: LeaderboardTableProps) {
+  const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
+
+  const handleCopyAddress = async (address: string) => {
+    try {
+      await navigator.clipboard.writeText(address);
+      setCopiedAddress(address);
+      setTimeout(() => setCopiedAddress(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy address:", err);
+    }
+  };
   return (
-    <div className={`border border-border rounded-xl overflow-hidden bg-card ${className}`}>
-      {/* Table Header */}
-      <div className="bg-surface border-b border-border">
-        <div className="grid grid-cols-3 gap-4 px-6 py-4">
-          <div className="text-sm font-semibold text-foreground-muted uppercase tracking-wide">
-            Rank
+    <div className={className}>
+      {/* Header Section */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Leaderboard</h1>
+            <p className="text-foreground-muted text-sm mt-1">
+              Top earners across all tournaments
+            </p>
+            {totalAddresses !== undefined && (
+              <p className="text-foreground-subtle text-xs mt-1">
+                Total Participants: {totalAddresses.toLocaleString()}
+              </p>
+            )}
           </div>
-          <div className="text-sm font-semibold text-foreground-muted uppercase tracking-wide">
-            Wallet Address
-          </div>
-          <div className="text-sm font-semibold text-foreground-muted uppercase tracking-wide text-right">
-            Rewards
-          </div>
+          <svg className="h-8 w-8 text-warning" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z" />
+          </svg>
         </div>
       </div>
+
+      {/* Table */}
+      <div className="border border-border rounded-xl overflow-hidden bg-card">
+        {/* Table Header */}
+        <div className="bg-surface border-b border-border">
+          <div className="grid grid-cols-3 gap-4 px-6 py-4">
+            <div className="text-sm font-semibold text-foreground-muted uppercase tracking-wide">
+              Rank
+            </div>
+            <div className="text-sm font-semibold text-foreground-muted uppercase tracking-wide">
+              Wallet Address
+            </div>
+            <div className="text-sm font-semibold text-foreground-muted uppercase tracking-wide text-right">
+              Rewards
+            </div>
+          </div>
+        </div>
 
       {/* Table Body */}
       <div className="divide-y divide-border">
@@ -56,10 +91,22 @@ export default function LeaderboardTable({ entries, className = "" }: Leaderboar
               </div>
 
               {/* Wallet Address */}
-              <div className="flex items-center">
-                <div className="font-mono text-sm text-foreground bg-muted px-3 py-1 rounded-md border border-border">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleCopyAddress(entry.walletAddress)}
+                  className="font-mono text-sm text-foreground bg-muted px-3 py-1 rounded-md border border-border hover:bg-surface-elevated hover:border-primary transition-all cursor-pointer"
+                  title="Click to copy full address"
+                >
                   {formatWalletAddress(entry.walletAddress)}
-                </div>
+                </button>
+                {copiedAddress === entry.walletAddress && (
+                  <div className="flex items-center gap-1 text-xs text-white font-medium animate-in fade-in slide-in-from-left-2 duration-200">
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Copied</span>
+                  </div>
+                )}
               </div>
 
               {/* Rewards */}
@@ -91,6 +138,7 @@ export default function LeaderboardTable({ entries, className = "" }: Leaderboar
             description="Try adjusting your search"
           />
         )}
+      </div>
       </div>
     </div>
   );

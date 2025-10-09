@@ -50,7 +50,7 @@ export default function PlayerPerformanceRow({
         </div>
       </div>
       <div className="flex items-center gap-8">
-        <div className="bg-primary text-primary-foreground text-sm font-bold px-4 py-1.5 rounded min-w-[80px] text-center">
+        <div className="bg-primary text-primary-foreground text-sm font-bold px-4 py-1.5 rounded-md min-w-[80px] text-center">
           {player.points}
         </div>
         <div className="text-foreground font-semibold text-sm min-w-[100px] text-right">

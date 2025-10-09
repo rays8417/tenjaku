@@ -4,9 +4,6 @@ import { Network } from "@aptos-labs/ts-sdk";
 export const NETWORK = Network.TESTNET;
 export const APTOS_FULLNODE_URL = "https://api.testnet.aptoslabs.com/v1";
 
-// ===== API CONFIGURATION =====
-export const CRICBUZZ_API_HOST = "cricbuzz-cricket.p.rapidapi.com";
-
 // API keys - prefer environment variables, fallback to empty string
 export const getApiUrl = () => process.env.NEXT_PUBLIC_API_URL || "";
 export const getRapidApiKey = () => process.env.NEXT_PUBLIC_RAPIDAPI_KEY || "";

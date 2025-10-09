@@ -19,7 +19,7 @@ export default function EmptyState({
   return (
     <div className={`text-center py-12 text-foreground-muted ${className}`}>
       {icon ? (
-        <div className="mx-auto mb-3">{icon}</div>
+        <div className="flex items-center justify-center mb-3">{icon}</div>
       ) : (
         <svg
           className="mx-auto h-12 w-12 text-foreground-subtle mb-3"

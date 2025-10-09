@@ -102,7 +102,7 @@ export default function TournamentsPage() {
         <div className="grid grid-cols-12 gap-8">
           <aside className="col-span-12 lg:col-span-4 space-y-6">
             <div className="border border-border rounded-xl p-6 bg-card">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-5">
                 <h2 className="text-lg font-bold text-foreground">Active Tournament</h2>
                 <div className="h-2 w-2 bg-error rounded-full animate-pulse" />
               </div>
@@ -130,7 +130,7 @@ export default function TournamentsPage() {
             </div>
 
             <div className="border border-border rounded-xl p-6 bg-card">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-5">
                 <h2 className="text-lg font-bold text-foreground">Past Tournaments</h2>
                 <div className="h-2 w-2 bg-foreground-subtle rounded-full" />
               </div>
@@ -167,7 +167,7 @@ export default function TournamentsPage() {
 
           <section className="col-span-12 lg:col-span-8">
             <div className="border border-border rounded-xl p-6 bg-card">
-              <div className="mb-8">
+              <div className="mb-6">
                 <h2 className="text-2xl font-bold text-foreground">Eligible Players for this Tournament</h2>
                 <p className="text-foreground-muted text-sm mt-1">
                   Track player performance and your holdings

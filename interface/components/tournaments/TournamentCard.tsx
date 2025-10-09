@@ -30,9 +30,15 @@ export default function TournamentCard({ tournament, onClick }: TournamentCardPr
     hour12: true,
   });
 
+  const isClickable = onClick && tournament.status === "COMPLETED";
+
   return (
     <div 
-      className={`flex flex-col gap-4 p-5 border border-border rounded-xl hover:bg-surface-elevated transition-all bg-card ${onClick ? 'cursor-pointer' : ''}`}
+      className={`flex flex-col gap-4 p-5 border border-border rounded-xl transition-all bg-card ${
+        isClickable 
+          ? 'cursor-pointer hover:bg-surface-elevated/70 hover:border-border-hover hover:shadow-md hover:scale-[1.02]' 
+          : ''
+      }`}
       onClick={onClick}
     >
       {/* Teams */}
@@ -61,7 +67,7 @@ export default function TournamentCard({ tournament, onClick }: TournamentCardPr
       </div>
 
       {/* Match Details */}
-      <div className="flex flex-col gap-2 pt-3 border-t border-border">
+      <div className="flex flex-col gap-2.5 pt-3 border-t border-border">
         <div className="flex items-center justify-between gap-3">
           <div className="text-sm font-semibold text-foreground-muted">
             {dateStr} • {timeStr}
@@ -89,19 +95,33 @@ export default function TournamentCard({ tournament, onClick }: TournamentCardPr
           </div>
         )}
 
-        <div className="flex items-center justify-start mt- pt-2 ">
-          <div className="text-sm text-foreground-muted">
-          </div>
-              {/* <svg className="w-4 h-4 text-warning" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z" />
-              </svg> */}
-          {tournament.totalRewardPool && tournament.totalRewardPool > 0 && (
-            <div className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-              <span>{tournament.totalRewardPool.toLocaleString()} BOSON</span>
+        {tournament.totalRewardPool && tournament.totalRewardPool > 0 && (
+          <div className="flex items-center justify-between mt-1 pt-2 border-t border-border">
+            <div className="text-sm font-bold text-foreground">
+              {tournament.totalRewardPool.toLocaleString()} BOSON
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
+
+      {/* Click indicator for completed tournaments */}
+      {isClickable && (
+        <div className="flex items-center justify-center gap-2 text-xs text-foreground-muted group-hover:text-foreground transition-colors">
+          <span>Click to view details</span>
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            className="h-4 w-4" 
+            viewBox="0 0 20 20" 
+            fill="currentColor"
+          >
+            <path 
+              fillRule="evenodd" 
+              d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" 
+              clipRule="evenodd" 
+            />
+          </svg>
+        </div>
+      )}
     </div>
   );
 }

@@ -4,7 +4,6 @@ import { useState } from "react";
 import SearchBar from "@/components/ui/SearchBar";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import ErrorDisplay from "@/components/ui/ErrorDisplay";
-import LeaderboardHeader from "@/components/leaderboard/LeaderboardHeader";
 import LeaderboardTable from "@/components/leaderboard/LeaderboardTable";
 import { useLeaderboardData } from "@/hooks/useLeaderboardData";
 
@@ -19,17 +18,6 @@ export default function LeaderboardPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl px-6 py-8">
-        <LeaderboardHeader totalAddresses={totalAddresses} />
-          
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <SearchBar
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder="Search wallet addresses..."
-            className="flex-1"
-          />
-        </div>
-
         {loading ? (
           <LoadingSpinner size="lg" text="Loading leaderboard..." />
         ) : error ? (
@@ -39,7 +27,19 @@ export default function LeaderboardPage() {
           />
         ) : (
           <>
-            <LeaderboardTable entries={filteredData} />
+            <LeaderboardTable 
+              entries={filteredData} 
+              totalAddresses={totalAddresses}
+            />
+            
+            <div className="flex flex-col sm:flex-row gap-4 my-6">
+              <SearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Search wallet addresses..."
+                className="flex-1"
+              />
+            </div>
             
             {filteredData.length > 0 && (
               <div className="mt-6 text-center text-sm text-foreground-muted">

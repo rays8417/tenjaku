@@ -23,7 +23,7 @@ export default function PlayerPerformanceTable({
       {players.length > 0 ? (
         <>
           {/* Table Header */}
-          <div className="flex items-center justify-between py-3 border-b border-border bg-surface-elevated/30">
+          <div className="flex items-center justify-between py-3 px-1 border-b border-border bg-surface-elevated/30 rounded-t-lg">
             <div className="flex items-center gap-4 flex-1">
               <div className="text-xs font-semibold text-foreground-muted uppercase w-16">
                 Position
@@ -42,9 +42,11 @@ export default function PlayerPerformanceTable({
             </div>
           </div>
           {/* Table Rows */}
-          {players.map((player, idx) => (
-            <PlayerPerformanceRow key={player.id} player={player} index={idx} />
-          ))}
+          <div className="bg-card rounded-b-lg overflow-hidden">
+            {players.map((player, idx) => (
+              <PlayerPerformanceRow key={player.id} player={player} index={idx} />
+            ))}
+          </div>
         </>
       ) : (
         <EmptyState
