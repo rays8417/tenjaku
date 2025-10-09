@@ -27,6 +27,7 @@
     "tournament:update-scores-file": "ts-node src/scripts/tournament.ts update-scores-file",
     "tournament:update-sample-scores": "ts-node src/scripts/tournament.ts update-sample-scores",
     "tournament:help": "ts-node src/scripts/tournament.ts --help",
+    "tournament:create-upcoming": "ts-node src/scripts/create-upcoming-tournament.ts",
     "scores:update": "ts-node src/scripts/update-player-scores.ts update",
     "scores:get": "ts-node src/scripts/update-player-scores.ts get",
     "scores:fetch-api": "ts-node src/scripts/update-player-scores.ts fetch-from-api",
