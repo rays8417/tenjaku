@@ -243,6 +243,59 @@ router.get('/address/:address/tournament/:tournamentId', async (req, res) => {
 });
 
 /**
+ * GET /api/user-rewards/leaderboard/universal
+ * Get universal leaderboard - top earners across all tournaments
+ */
+router.get('/leaderboard/universal', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 100;
+
+    // Get all rewards grouped by address
+    const rewards = await prisma.userReward.findMany({
+      select: {
+        address: true,
+        amount: true
+      }
+    });
+
+    // Aggregate rewards by address
+    const addressTotals = new Map<string, number>();
+    
+    rewards.forEach(reward => {
+      const currentTotal = addressTotals.get(reward.address) || 0;
+      addressTotals.set(reward.address, currentTotal + Number(reward.amount));
+    });
+
+    // Convert to array and sort by total amount
+    const leaderboard = Array.from(addressTotals.entries())
+      .map(([address, amount]) => ({
+        address,
+        amount
+      }))
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, limit)
+      .map((entry, index) => ({
+        rank: index + 1,
+        address: entry.address,
+        amount: entry.amount
+      }));
+
+    res.json({
+      success: true,
+      leaderboard,
+      totalAddresses: addressTotals.size
+    });
+
+  } catch (error) {
+    console.error('Error fetching universal leaderboard:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch universal leaderboard',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
  * GET /api/user-rewards/leaderboard/:tournamentId
  * Get top earners for a tournament
  */
@@ -319,4 +372,3 @@ router.get('/leaderboard/:tournamentId', async (req, res) => {
 });
 
 export default router;
-
