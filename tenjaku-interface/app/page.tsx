@@ -2,40 +2,73 @@
 
 import { useRouter } from "next/navigation";
 import { useWallet } from "../contexts/WalletContext";
+import LiquidEther from "../components/LiquidEther";
 
 export default function Home() {
   const router = useRouter();
   const { account, isConnecting, connectWallet } = useWallet();
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#0a0a0f]">
       {/* Hero */}
-      <section className="relative flex items-center justify-center min-h-[calc(100vh-4rem)]">
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-1/4 right-0 h-[600px] w-[600px] rounded-full bg-brand-gradient blur-3xl opacity-20" />
-          <div className="absolute bottom-0 left-0 h-[500px] w-[500px] rounded-full bg-brand-gradient blur-3xl opacity-15" />
+      <section className="relative flex items-center justify-center min-h-[calc(100vh-4rem)] bg-gradient-to-b from-[#0a0a0f] via-[#0d0d15] to-[#0a0a0f] overflow-hidden">
+        {/* Liquid Ether Background */}
+        <div className="absolute inset-0 overflow-hidden">
+          <LiquidEther
+            colors={['#3b82f6', '#60a5fa', '#93c5fd', '#2563eb']}
+            mouseForce={30}
+            cursorSize={180}
+            resolution={0.6}
+            autoDemo={true}
+            autoSpeed={0.5}
+            autoIntensity={2.5}
+            autoResumeDelay={2000}
+            viscous={30}
+            className="w-full h-full opacity-60"
+          />
         </div>
+
+        {/* Radial gradient overlay for depth */}
+        <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-[#0a0a0f] pointer-events-none"></div>
         
-        <div className="relative mx-auto max-w-6xl px-6 py-20 text-center">
-          <h1 className="text-6xl md:text-8xl font-bold tracking-tight text-white">
-            <span className="block">Predict.</span>
-            <span className="block bg-clip-text text-transparent bg-gradient-to-r from-brand-400 via-brand-500 to-brand-300">
+        <div className="relative mx-auto max-w-7xl px-6 py-20 text-center z-10 pointer-events-auto">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full bg-white/5 backdrop-blur-md border border-white/10 animate-fade-in">
+            <div className="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></div>
+            <span className="text-sm font-medium text-white/80">Beta is now live</span>
+          </div>
+
+          <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tight text-white animate-fade-in-up">
+            <span className="block mb-2">Predict.</span>
+            <span className="block mb-2 bg-clip-text text-transparent bg-gradient-to-r from-brand-400 via-brand-500 to-brand-300 animate-gradient-x">
               Compete.
             </span>
             <span className="block">Win.</span>
           </h1>
           
-          <p className="mt-8 mx-auto max-w-2xl text-xl md:text-2xl text-white/60 leading-relaxed font-light">
-            Cricket Fan Score Predictions
+          <p className="mt-10 mx-auto max-w-3xl text-xl md:text-2xl lg:text-3xl text-white/70 leading-relaxed font-light animate-fade-in-delayed">
+            Trade cricket player tokens. Compete in real-time tournaments.{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-brand-300 font-medium">
+              Win real rewards.
+            </span>
           </p>
 
-          <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="mt-14 flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-delayed-2">
             {account ? (
               <button
                 onClick={() => router.push("/tournaments")}
-                className="inline-flex items-center justify-center rounded-lg px-8 py-4 text-base font-medium text-white bg-brand-gradient hover:opacity-90 transition-opacity shadow-xl shadow-brand-500/20"
+                className="group relative inline-flex items-center justify-center rounded-xl px-10 py-5 text-lg font-semibold text-white bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 transition-all duration-300 shadow-2xl shadow-brand-500/30 hover:shadow-brand-500/50 hover:scale-105 transform"
               >
-                Enter App
+                <span className="relative z-10">Start Playing</span>
+                <svg 
+                  className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-brand-400 to-brand-600 blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
               </button>
             ) : (
               <button
@@ -43,37 +76,46 @@ export default function Home() {
                   await connectWallet();
                 }}
                 disabled={isConnecting}
-                className="inline-flex items-center justify-center rounded-lg px-8 py-4 text-base font-medium text-white bg-brand-gradient hover:opacity-90 transition-opacity shadow-xl shadow-brand-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="group relative inline-flex items-center justify-center rounded-xl px-10 py-5 text-lg font-semibold text-white bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 transition-all duration-300 shadow-2xl shadow-brand-500/30 hover:shadow-brand-500/50 hover:scale-105 transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
-                {isConnecting ? "Connecting..." : "Get Started"}
+                <span className="relative z-10">{isConnecting ? "Connecting..." : "Get Started"}</span>
+                {!isConnecting && (
+                  <svg 
+                    className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                )}
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-brand-400 to-brand-600 blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
               </button>
             )}
           </div>
-
-          {/* Stats Bar */}
-          <div className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <StatCard value="Live" label="Real-time Tournaments" />
-            <StatCard value="On-chain" label="Transparent & Fair" />
-            <StatCard value="Instant" label="Automated Payouts" />
-          </div>
         </div>
       </section>
-
-      
     </div>
   );
 }
 
 type StatCardProps = {
+  icon: React.ReactNode;
   value: string;
   label: string;
 };
 
-function StatCard({ value, label }: StatCardProps) {
+function StatCard({ icon, value, label }: StatCardProps) {
   return (
-    <div className="bg-card border border-white/10 rounded-xl px-6 py-8 text-center backdrop-blur-sm hover:border-brand-500/50 transition-colors">
-      <div className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-brand-300">{value}</div>
-      <div className="mt-2 text-sm text-white/70 font-medium">{label}</div>
+    <div className="group relative bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-2xl px-6 py-8 text-center backdrop-blur-sm hover:border-brand-500/50 hover:shadow-lg hover:shadow-brand-500/10 transition-all duration-300 hover:-translate-y-1">
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-brand-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      <div className="relative">
+        <div className="inline-flex items-center justify-center w-12 h-12 mb-4 rounded-xl bg-gradient-to-br from-brand-500/20 to-brand-600/20 text-brand-400 group-hover:scale-110 transition-transform duration-300">
+          {icon}
+        </div>
+        <div className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-brand-500 to-brand-300">{value}</div>
+        <div className="mt-3 text-sm text-white/60 font-medium group-hover:text-white/80 transition-colors">{label}</div>
+      </div>
     </div>
   );
 }
