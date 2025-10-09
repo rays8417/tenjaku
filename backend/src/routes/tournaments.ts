@@ -1,6 +1,7 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { getEligiblePlayers } from "../services/cricketApiService";
+import { getTokenBalanceFromAllModules } from "../services/aptosService";
 
 const prisma = new PrismaClient();
 
@@ -150,6 +151,7 @@ router.get("/:id/players", async (req, res) => {
 router.get("/:id/eligible-players", async (req, res) => {
   try {
     const { id } = req.params;
+    const { address } = req.query;
 
     // Get tournament details including matchId
     const tournament = await prisma.tournament.findUnique({
@@ -177,6 +179,36 @@ router.get("/:id/eligible-players", async (req, res) => {
     // Fetch eligible players from Cricbuzz API
     const eligiblePlayers = await getEligiblePlayers(Number(tournament.matchId));
 
+    // If address is provided, fetch holdings for each eligible player
+    let playersWithHoldings = eligiblePlayers;
+    
+    if (address && typeof address === 'string') {
+      console.log(`🔍 Fetching holdings for address: ${address}`);
+      
+      try {
+        // Fetch all holdings for this address
+        const holdings = await getTokenBalanceFromAllModules(address);
+        console.log(`📊 Found ${holdings.length} holdings for address`);
+        
+        // Create a map of moduleName to balance for quick lookup
+        const holdingsMap = new Map(
+          holdings.map(h => [h.moduleName, h.balance])
+        );
+        
+        // Add holdings to each eligible player
+        playersWithHoldings = eligiblePlayers.map(player => ({
+          ...player,
+          holdings: holdingsMap.get(player.moduleName) || BigInt(0),
+          formattedHoldings: ((Number(holdingsMap.get(player.moduleName) || BigInt(0))) / 100000000).toFixed(2)
+        }));
+        
+        console.log(`✅ Added holdings data to ${playersWithHoldings.length} players`);
+      } catch (holdingsError) {
+        console.error("Error fetching holdings:", holdingsError);
+        // Continue without holdings data if there's an error
+      }
+    }
+
     res.json({
       success: true,
       tournament: {
@@ -186,14 +218,17 @@ router.get("/:id/eligible-players", async (req, res) => {
         team2: tournament.team2,
         status: tournament.status
       },
-      totalPlayers: eligiblePlayers.length,
-      players: eligiblePlayers.map(player => ({
+      address: address || null,
+      totalPlayers: playersWithHoldings.length,
+      players: playersWithHoldings.map(player => ({
         id: player.id,
         name: player.name,
         moduleName: player.moduleName,
         role: player.role,
         teamName: player.teamName,
-        teamId: player.teamId
+        teamId: player.teamId,
+        holdings: player.holdings ? player.holdings.toString() : undefined,
+        formattedHoldings: player.formattedHoldings || undefined
       }))
     });
   } catch (error: any) {

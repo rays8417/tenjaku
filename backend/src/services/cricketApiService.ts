@@ -43,50 +43,123 @@ export async function fetchMatchScorecard(matchId: number): Promise<any> {
 }
 
 /**
- * Map player name to module name
+ * Map player name to module name with multiple matching strategies
  * This maps actual cricket player names to your smart contract module names
  */
 function mapPlayerNameToModuleName(playerName: string): string | null {
   // Remove special characters and spaces for matching
   const cleanName = playerName.toLowerCase().replace(/[^a-z]/g, '');
   
-  // Player name mapping - add more players as needed
+  // Try to extract last name for fallback matching
+  const nameParts = playerName.trim().split(/\s+/);
+  const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1].toLowerCase().replace(/[^a-z]/g, '') : '';
+  const firstName = nameParts.length > 0 ? nameParts[0].toLowerCase().replace(/[^a-z]/g, '') : '';
+  
+  // Player name mapping with multiple variations
   const nameMap: { [key: string]: string } = {
+    // Virat Kohli variations
     'viratkholi': 'ViratKohli',
     'viratkohli': 'ViratKohli',
     'vkohli': 'ViratKohli',
+    'kohli': 'ViratKohli',
+    'vkoli': 'ViratKohli',
+    
+    // Rohit Sharma variations (not in modules but kept for reference)
     'rohitsharma': 'RohitSharma',
     'rsharma': 'RohitSharma',
+    'rohit': 'RohitSharma',
+    
+    // Hardik Pandya variations
     'hardikpandya': 'HardikPandya',
     'hpandya': 'HardikPandya',
+    'hardik': 'HardikPandya',
+    'pandya': 'HardikPandya',
+    
+    // Jasprit Bumrah variations
     'jaspritbumrah': 'JaspreetBumhrah',
     'jbumrah': 'JaspreetBumhrah',
+    'bumrah': 'JaspreetBumhrah',
+    'jaspreetbumrah': 'JaspreetBumhrah',
+    'jasprit': 'JaspreetBumhrah',
+    
+    // Shubman Gill variations
     'shubhmangill': 'ShubhmanGill',
     'shubmangill': 'ShubhmanGill',
     'sgill': 'ShubhmanGill',
+    'gill': 'ShubhmanGill',
+    'shubman': 'ShubhmanGill',
+    
+    // Kane Williamson variations
     'kanewilliamson': 'KaneWilliamson',
     'kwilliamson': 'KaneWilliamson',
+    'williamson': 'KaneWilliamson',
+    'kane': 'KaneWilliamson',
+    
+    // Ben Stokes variations
     'benstokes': 'BenStokes',
     'bstokes': 'BenStokes',
+    'stokes': 'BenStokes',
+    'benstoke': 'BenStokes',
+    'benjaminstokes': 'BenStokes',
+    
+    // Glenn Maxwell variations
     'glenmaxwell': 'GlenMaxwell',
     'gmaxwell': 'GlenMaxwell',
     'glennmaxwell': 'GlenMaxwell',
+    'maxwell': 'GlenMaxwell',
+    'glenn': 'GlenMaxwell',
+    
+    // Abhishek Sharma variations
     'abhisheksharma': 'AbhishekSharma',
     'asharma': 'AbhishekSharma',
+    'abhishek': 'AbhishekSharma',
+    
+    // Shubham/Shivam Dube variations
     'shubhamdube': 'ShubhamDube',
     'shivamdube': 'ShubhamDube',
     'sdube': 'ShubhamDube',
+    'dube': 'ShubhamDube',
+    'shubham': 'ShubhamDube',
+    'shivam': 'ShubhamDube',
+    
+    // Travis Head variations
     'travishead': 'TravisHead',
     'thead': 'TravisHead',
+    'head': 'TravisHead',
+    'travis': 'TravisHead',
+    
+    // MS Dhoni variations (not in current modules)
     'msdhoni': 'MSDhoni',
     'mahendrasinghdhoni': 'MSDhoni',
     'mdhoni': 'MSDhoni',
+    'dhoni': 'MSDhoni',
+    
+    // Suryakumar Yadav variations
     'suryakumaryadav': 'SuryakumarYadav',
     'skyadav': 'SuryakumarYadav',
-    'surya': 'SuryakumarYadav'
+    'surya': 'SuryakumarYadav',
+    'suryakumar': 'SuryakumarYadav',
+    'yadav': 'SuryakumarYadav',
+    'sky': 'SuryakumarYadav'
   };
   
-  return nameMap[cleanName] || null;
+  // Try matching strategies in order of preference
+  // 1. Try full name match
+  if (nameMap[cleanName]) {
+    return nameMap[cleanName];
+  }
+  
+  // 2. Try last name match (most reliable for cricket)
+  if (lastName && nameMap[lastName]) {
+    return nameMap[lastName];
+  }
+  
+  // 3. Try first name match as last resort
+  if (firstName && nameMap[firstName]) {
+    return nameMap[firstName];
+  }
+  
+  return null;
 }
 
 /**
@@ -444,11 +517,18 @@ export async function getEligiblePlayers(matchId: number): Promise<any[]> {
         return;
       }
       
-      // Iterate through the player categories (playing XI, bench, support staff, etc.)
+      // Categories to exclude (support staff, coaches, etc.)
+      const excludedCategories = ['support staff', 'coaching staff', 'coach'];
+      
+      // Iterate through the player categories (playing XI, bench, squad, etc.)
       teamData.player.forEach((category: any) => {
-        // Only process playing XI and bench categories (skip support staff)
-        if (category.category === 'playing XI' || category.category === 'bench') {
+        const categoryName = (category.category || '').toLowerCase();
+        
+        // Skip support staff and coaching categories
+        if (!excludedCategories.includes(categoryName)) {
+          console.log(`📂 Processing category: "${category.category}" for team ${teamName}`);
           if (Array.isArray(category.player)) {
+            console.log(`   Found ${category.player.length} players in this category`);
             category.player.forEach((player: any) => {
               allPlayers.push({
                 id: player.id,
@@ -461,6 +541,8 @@ export async function getEligiblePlayers(matchId: number): Promise<any[]> {
               });
             });
           }
+        } else {
+          console.log(`⏭️  Skipping category: "${category.category}" (excluded)`);
         }
       });
     };
@@ -473,11 +555,28 @@ export async function getEligiblePlayers(matchId: number): Promise<any[]> {
     
     console.log(`👥 Total players found: ${allPlayers.length}`);
     
+    // Log all player names for debugging
+    console.log('📋 All player names:', allPlayers.map(p => p.name).join(', '));
+    
     // Step 4: Filter to only eligible players (those we have modules for)
+    const unmatchedPlayers: string[] = [];
     const eligiblePlayers = allPlayers.filter(player => {
       const moduleName = mapPlayerNameToModuleName(player.name);
-      return moduleName && AVAILABLE_PLAYER_MODULES.includes(moduleName);
+      const isEligible = moduleName && AVAILABLE_PLAYER_MODULES.includes(moduleName);
+      
+      if (isEligible) {
+        console.log(`✓ Matched: "${player.name}" → ${moduleName}`);
+      } else {
+        unmatchedPlayers.push(player.name);
+      }
+      
+      return isEligible;
     });
+    
+    // Log unmatched players for debugging
+    if (unmatchedPlayers.length > 0) {
+      console.log(`ℹ️  Unmatched players (${unmatchedPlayers.length}):`, unmatchedPlayers.join(', '));
+    }
     
     // Step 5: Enrich eligible players with module name
     const enrichedPlayers = eligiblePlayers.map(player => ({
@@ -486,6 +585,9 @@ export async function getEligiblePlayers(matchId: number): Promise<any[]> {
     }));
     
     console.log(`✅ Eligible players found: ${enrichedPlayers.length}`);
+    if (enrichedPlayers.length === 0) {
+      console.log('⚠️  No eligible players matched. Check if player names match the mapping.');
+    }
     
     return enrichedPlayers;
   } catch (error) {
