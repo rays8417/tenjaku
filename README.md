@@ -24,6 +24,7 @@ A decentralized cricket prediction platform that lets fans hold player cards, jo
 
 ---
 
+
 ## Scoring System
 Total user score for a tournament is the sum of scores contributed by each held player card across snapshots.
 
