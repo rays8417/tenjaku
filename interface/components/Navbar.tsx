@@ -16,6 +16,11 @@ export default function Navbar() {
 
   const isLanding = pathname === "/";
 
+  // Don't render navbar on landing page
+  if (isLanding) {
+    return null;
+  }
+
   const NavLink = ({ href, label }: { href: string; label: string }) => {
     const isActive = pathname === href;
     return (

@@ -9,13 +9,13 @@ export default function Home() {
   const { account, isConnecting, connectWallet } = useWallet();
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Hero */}
-      <section className="relative flex items-center justify-center min-h-[calc(100vh-4rem)] bg-gradient-to-b from-background via-background-elevated to-background overflow-hidden">
+      <section className="relative flex items-center justify-center flex-1 bg-gradient-to-b from-background via-background-elevated to-background overflow-hidden">
         {/* Liquid Ether Background */}
         <div className="absolute inset-0 overflow-hidden">
           <LiquidEther
-            colors={['#3b82f6', '#60a5fa', '#93c5fd', '#2563eb']}
+            colors={['##1c9cf0', '#5B9FFF', '#7AAFFF', '#3A80EF']}
             mouseForce={30}
             cursorSize={180}
             resolution={0.6}
@@ -57,7 +57,7 @@ export default function Home() {
             {account ? (
               <button
                 onClick={() => router.push("/swaps")}
-                className="group relative inline-flex items-center justify-center rounded-xl px-10 py-5 text-lg font-semibold text-primary-foreground bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 transition-all duration-300 shadow-2xl shadow-primary/30 hover:shadow-primary/50 hover:scale-105 transform"
+                className="group relative inline-flex items-center justify-center rounded-xl px-10 py-5 text-lg font-semibold text-primary-foreground bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 transition-all duration-300 shadow-lg shadow-primary/15 hover:shadow-primary/25 hover:scale-105 transform"
               >
                 <span className="relative z-10">Start Playing</span>
                 <svg 
@@ -68,7 +68,7 @@ export default function Home() {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-brand-400 to-brand-600 blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-brand-400 to-brand-600 blur-lg opacity-20 group-hover:opacity-30 transition-opacity"></div>
               </button>
             ) : (
               <button
@@ -76,7 +76,7 @@ export default function Home() {
                   await connectWallet();
                 }}
                 disabled={isConnecting}
-                className="group relative inline-flex items-center justify-center rounded-xl px-10 py-5 text-lg font-semibold text-primary-foreground bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 transition-all duration-300 shadow-2xl shadow-primary/30 hover:shadow-primary/50 hover:scale-105 transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="group relative inline-flex items-center justify-center rounded-xl px-10 py-5 text-lg font-semibold text-primary-foreground bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 transition-all duration-300 shadow-lg shadow-primary/15 hover:shadow-primary/25 hover:scale-105 transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 <span className="relative z-10">{isConnecting ? "Connecting..." : "Get Started"}</span>
                 {!isConnecting && (
@@ -89,7 +89,7 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 )}
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-brand-400 to-brand-600 blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-brand-400 to-brand-600 blur-lg opacity-20 group-hover:opacity-30 transition-opacity"></div>
               </button>
             )}
           </div>

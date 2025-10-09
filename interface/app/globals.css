@@ -22,13 +22,13 @@
   --border-strong: 64 64 64; /* #404040 - Strong borders */
   
   /* Brand/Primary Colors */
-  --primary: 59 130 246; /* #3b82f6 - Brand blue */
-  --primary-hover: 37 99 235; /* #2563eb - Brand blue hover */
+  --primary: 28 156 240; /* #1c9cf0 - Brand blue */
+  --primary-hover: 24 137 214; /* #1889d6 - Brand blue hover */
   --primary-foreground: 255 255 255; /* #ffffff - Text on primary */
   
   /* Accent Colors */
-  --accent: 96 165 250; /* #60a5fa - Accent blue */
-  --accent-hover: 147 197 253; /* #93c5fd - Accent blue hover */
+  --accent: 61 170 243; /* #3daaf3 - Accent blue */
+  --accent-hover: 94 184 245; /* #5eb8f5 - Accent blue hover */
   --accent-foreground: 10 10 15; /* #0a0a0f - Text on accent */
   
   /* Status Colors */
@@ -59,12 +59,12 @@
   --input-bg: 24 24 32; /* #181820 - Input background */
   
   /* Ring/Focus Colors */
-  --ring: 96 165 250; /* #60a5fa - Focus ring */
+  --ring: 28 156 240; /* #1c9cf0 - Focus ring */
   
   /* Gradient Brand Colors (for gradients) */
-  --brand-from: #3b82f6; /* blue-500 */
-  --brand-via: #60a5fa; /* blue-400 */
-  --brand-to: #93c5fd;  /* blue-300 */
+  --brand-from: #1889d6; /* vibrant blue */
+  --brand-via: #1c9cf0; /* bright blue */
+  --brand-to: #3daaf3;  /* light blue */
   
   /* Chart Colors */
   --chart-1: 220 70% 50%;
@@ -105,7 +105,7 @@ body {
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: #1f5fbf;
+    background: #1c9cf0;
   }
 
   /* Firefox */
@@ -181,7 +181,7 @@ body {
 
 /* Selection */
 ::selection {
-  background: rgba(37, 99, 235, 0.35);
+  background: rgba(28, 156, 240, 0.35);
   color: #fff;
 }
 

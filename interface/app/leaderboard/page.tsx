@@ -32,14 +32,14 @@ export default function LeaderboardPage() {
               totalAddresses={totalAddresses}
             />
             
-            <div className="flex flex-col sm:flex-row gap-4 my-6">
+            {/* <div className="flex flex-col sm:flex-row gap-4 my-6">
               <SearchBar
                 value={searchQuery}
                 onChange={setSearchQuery}
                 placeholder="Search wallet addresses..."
                 className="flex-1"
               />
-            </div>
+            </div> */}
             
             {filteredData.length > 0 && (
               <div className="mt-6 text-center text-sm text-foreground-muted">

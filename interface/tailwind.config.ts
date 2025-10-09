@@ -86,20 +86,20 @@ const config: Config = {
   			// Ring/Focus color
   			ring: 'rgb(var(--ring) / <alpha-value>)',
   			
-  			// Brand color scale (for gradients)
-  			brand: {
-  				'50': '#eff6ff',
-  				'100': '#dbeafe',
-  				'200': '#bfdbfe',
-  				'300': '#93c5fd',
-  				'400': '#60a5fa',
-  				'500': '#3b82f6',
-  				'600': '#2563eb',
-  				'700': '#1d4ed8',
-  				'800': '#1e40af',
-  				'900': '#1e3a8a',
-  				'950': '#0b1769'
-  			},
+		// Brand color scale (for gradients)
+		brand: {
+			'50': '#edf8ff',
+			'100': '#d6f0ff',
+			'200': '#b6e4ff',
+			'300': '#84d5ff',
+			'400': '#4bbeff',
+			'500': '#1c9cf0',
+			'600': '#0d7dd1',
+			'700': '#0c64aa',
+			'800': '#0e548c',
+			'900': '#124774',
+			'950': '#0c2c4d'
+		},
   			
   			// Chart colors
   			chart: {
@@ -110,9 +110,9 @@ const config: Config = {
   				'5': 'hsl(var(--chart-5))'
   			}
   		},
-  		backgroundImage: {
-  			'brand-gradient': 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #93c5fd 100%)'
-  		},
+	backgroundImage: {
+		'brand-gradient': 'linear-gradient(135deg, #1889d6 0%, #1c9cf0 50%, #3daaf3 100%)'
+	},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
