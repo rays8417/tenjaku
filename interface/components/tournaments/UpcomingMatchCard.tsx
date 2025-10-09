@@ -22,7 +22,7 @@ export default function UpcomingMatchCard({ match }: UpcomingMatchCardProps) {
       {/* Teams */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="h-10 w-10 flex-shrink-0 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg text-white text-sm font-bold flex items-center justify-center shadow-sm">
+          <div className="h-10 w-10 flex-shrink-0 bg-blue-600/90 rounded-lg text-white text-sm font-bold flex items-center justify-center shadow-sm">
             {team1.substring(0, 3).toUpperCase()}
           </div>
           <span className="text-base font-semibold text-foreground truncate">
@@ -38,7 +38,7 @@ export default function UpcomingMatchCard({ match }: UpcomingMatchCardProps) {
           <span className="text-base font-semibold text-foreground truncate">
             {team2}
           </span>
-          <div className="h-10 w-10 flex-shrink-0 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg text-white text-sm font-bold flex items-center justify-center shadow-sm">
+          <div className="h-10 w-10 flex-shrink-0 bg-slate-600/90 rounded-lg text-white text-sm font-bold flex items-center justify-center shadow-sm">
             {team2.substring(0, 3).toUpperCase()}
           </div>
         </div>

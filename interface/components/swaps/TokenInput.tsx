@@ -8,6 +8,7 @@ interface Token {
   team?: string;
   position?: string;
   avatar: string;
+  imageUrl?: string;
 }
 
 interface TokenInputProps {
@@ -147,8 +148,23 @@ export default function TokenInput({
           {showTokenSelector ? (
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
-                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary via-primary-hover to-primary shadow-lg flex items-center justify-center flex-shrink-0">
-                  <span className="text-primary-foreground font-bold text-sm">
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary via-primary-hover to-primary shadow-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {availableTokens.find((t) => t.name === selectedPlayerToken)?.imageUrl ? (
+                    <img
+                      src={availableTokens.find((t) => t.name === selectedPlayerToken)?.imageUrl}
+                      alt={availableTokens.find((t) => t.name === selectedPlayerToken)?.displayName || "Player"}
+                      className="h-full w-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                        const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                        if (fallback) fallback.style.display = "flex";
+                      }}
+                    />
+                  ) : null}
+                  <span 
+                    className="text-primary-foreground font-bold text-sm w-full h-full flex items-center justify-center"
+                    style={{ display: availableTokens.find((t) => t.name === selectedPlayerToken)?.imageUrl ? "none" : "flex" }}
+                  >
                     {availableTokens.find((t) => t.name === selectedPlayerToken)?.avatar || "AS"}
                   </span>
                 </div>
@@ -197,10 +213,25 @@ export default function TokenInput({
                                 isSelected ? "bg-primary/15 border-l-4 border-primary" : "border-l-4 border-transparent"
                               }`}
                             >
-                              <div className={`h-10 w-10 rounded-full bg-gradient-to-br from-primary via-primary-hover to-primary shadow-md flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 ${
+                              <div className={`h-10 w-10 rounded-full bg-gradient-to-br from-primary via-primary-hover to-primary shadow-md flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 overflow-hidden ${
                                 isSelected ? "ring-2 ring-primary ring-offset-2 ring-offset-surface" : ""
                               }`}>
-                                <span className="text-primary-foreground font-bold text-sm">
+                                {t.imageUrl ? (
+                                  <img
+                                    src={t.imageUrl}
+                                    alt={t.displayName}
+                                    className="h-full w-full object-cover"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = "none";
+                                      const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                      if (fallback) fallback.style.display = "flex";
+                                    }}
+                                  />
+                                ) : null}
+                                <span 
+                                  className="text-primary-foreground font-bold text-sm w-full h-full flex items-center justify-center"
+                                  style={{ display: t.imageUrl ? "none" : "flex" }}
+                                >
                                   {t.avatar}
                                 </span>
                               </div>
@@ -251,8 +282,25 @@ export default function TokenInput({
             </>
           ) : (
             <>
-              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary via-primary-hover to-primary shadow-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">{token.avatar}</span>
+              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary via-primary-hover to-primary shadow-lg flex items-center justify-center overflow-hidden">
+                {token.imageUrl ? (
+                  <img
+                    src={token.imageUrl}
+                    alt={token.displayName}
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                      const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                      if (fallback) fallback.style.display = "flex";
+                    }}
+                  />
+                ) : null}
+                <span 
+                  className="text-primary-foreground font-bold text-sm w-full h-full flex items-center justify-center"
+                  style={{ display: token.imageUrl ? "none" : "flex" }}
+                >
+                  {token.avatar}
+                </span>
               </div>
               <div className="text-left">
                 <div className="font-bold text-foreground text-lg leading-tight">

@@ -30,8 +30,9 @@ export function useLiquidityPairs() {
     team?: string;
     position?: string;
     avatar: string;
+    imageUrl: string;
   }>>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPairs = async () => {
@@ -63,9 +64,11 @@ export function useLiquidityPairs() {
 
             const token1Type = typeMatch[1];
             const token2Type = typeMatch[2];
-            const token1Name = token1Type.split("::").pop() || "Unknown";
-            const token2Name = token2Type.split("::").pop() || "Unknown";
+            const token1Name = token1Type.split("::").pop();
+            const token2Name = token2Type.split("::").pop();
 
+            // Skip if we couldn't parse token names or if neither is Boson
+            if (!token1Name || !token2Name) continue;
             if (token1Name !== "Boson" && token2Name !== "Boson") continue;
 
             const isPlayerTokenFirst = token1Name !== "Boson";
@@ -109,6 +112,7 @@ export function useLiquidityPairs() {
             team: playerInfo.team,
             position: playerInfo.position,
             avatar: playerInfo.avatar,
+            imageUrl: playerInfo.imageUrl,
           };
         });
 

@@ -7,10 +7,13 @@ const aptos = new Aptos(config);
 
 export function useTokenBalances(walletAddress?: string, availableTokens: any[] = []) {
   const [balances, setBalances] = useState<Record<string, number>>({});
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!walletAddress || availableTokens.length === 0) return;
+    if (!walletAddress || availableTokens.length === 0) {
+      setLoading(false);
+      return;
+    }
 
     const fetchBalances = async () => {
       setLoading(true);

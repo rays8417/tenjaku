@@ -6,7 +6,6 @@ export const APTOS_FULLNODE_URL = "https://api.testnet.aptoslabs.com/v1";
 
 // ===== API CONFIGURATION =====
 export const CRICBUZZ_API_HOST = "cricbuzz-cricket.p.rapidapi.com";
-export const CRICBUZZ_API_URL = "https://cricbuzz-cricket.p.rapidapi.com";
 
 // API keys - prefer environment variables, fallback to empty string
 export const getApiUrl = () => process.env.NEXT_PUBLIC_API_URL || "";
@@ -27,6 +26,7 @@ export const BOSON_TOKEN = {
   team: "Base",
   position: "Base" as const,
   avatar: "B",
+  imageUrl: "", // Base token, no player image
 };
 
 // ===== TRADING CONFIGURATION =====
@@ -41,6 +41,7 @@ export interface PlayerInfo {
   team: string;
   position: PlayerPosition;
   avatar: string;
+  imageUrl: string;
   tokenType: string;
 }
 
@@ -52,6 +53,7 @@ export const PLAYER_MAPPING: Record<string, PlayerInfo> = {
     team: "ENG",
     position: "AR",
     avatar: "BS",
+    imageUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=BenStokes",
     tokenType: `${ROUTER_ADDRESS}::BenStokes::BenStokes`,
   },
   TravisHead: {
@@ -60,6 +62,7 @@ export const PLAYER_MAPPING: Record<string, PlayerInfo> = {
     team: "AUS",
     position: "BAT",
     avatar: "TH",
+    imageUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=TravisHead",
     tokenType: `${ROUTER_ADDRESS}::TravisHead::TravisHead`,
   },
   ViratKohli: {
@@ -68,6 +71,7 @@ export const PLAYER_MAPPING: Record<string, PlayerInfo> = {
     team: "IND",
     position: "BAT",
     avatar: "VK",
+    imageUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=ViratKohli",
     tokenType: `${ROUTER_ADDRESS}::ViratKohli::ViratKohli`,
   },
   GlenMaxwell: {
@@ -76,6 +80,7 @@ export const PLAYER_MAPPING: Record<string, PlayerInfo> = {
     team: "AUS",
     position: "AR",
     avatar: "GM",
+    imageUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=GlennMaxwell",
     tokenType: `${ROUTER_ADDRESS}::GlenMaxwell::GlenMaxwell`,
   },
   ShubhamDube: {
@@ -84,6 +89,7 @@ export const PLAYER_MAPPING: Record<string, PlayerInfo> = {
     team: "IND",
     position: "AR",
     avatar: "SD",
+    imageUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=ShubhamDube",
     tokenType: `${ROUTER_ADDRESS}::ShubhamDube::ShubhamDube`,
   },
   HardikPandya: {
@@ -92,6 +98,7 @@ export const PLAYER_MAPPING: Record<string, PlayerInfo> = {
     team: "IND",
     position: "AR",
     avatar: "HP",
+    imageUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=HardikPandya",
     tokenType: `${ROUTER_ADDRESS}::HardikPandya::HardikPandya`,
   },
   ShubhmanGill: {
@@ -100,6 +107,7 @@ export const PLAYER_MAPPING: Record<string, PlayerInfo> = {
     team: "IND",
     position: "BAT",
     avatar: "SG",
+    imageUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=ShubmanGill",
     tokenType: `${ROUTER_ADDRESS}::ShubhmanGill::ShubhmanGill`,
   },
   KaneWilliamson: {
@@ -108,6 +116,7 @@ export const PLAYER_MAPPING: Record<string, PlayerInfo> = {
     team: "NZ",
     position: "BAT",
     avatar: "KW",
+    imageUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=KaneWilliamson",
     tokenType: `${ROUTER_ADDRESS}::KaneWilliamson::KaneWilliamson`,
   },
   AbhishekSharma: {
@@ -116,6 +125,7 @@ export const PLAYER_MAPPING: Record<string, PlayerInfo> = {
     team: "IND",
     position: "BAT",
     avatar: "AS",
+    imageUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=AbhishekSharma",
     tokenType: `${ROUTER_ADDRESS}::AbhishekSharma::AbhishekSharma`,
   },
   JaspreetBumhrah: {
@@ -124,6 +134,7 @@ export const PLAYER_MAPPING: Record<string, PlayerInfo> = {
     team: "IND",
     position: "BWL",
     avatar: "JB",
+    imageUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=JaspritBumrah",
     tokenType: `${ROUTER_ADDRESS}::JaspreetBumhrah::JaspreetBumhrah`,
   },
   SuryakumarYadav: {
@@ -132,31 +143,12 @@ export const PLAYER_MAPPING: Record<string, PlayerInfo> = {
     team: "IND",
     position: "BAT",
     avatar: "SY",
+    imageUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=SuryakumarYadav",
     tokenType: `${ROUTER_ADDRESS}::SuryakumarYadav::SuryakumarYadav`,
   },
 };
 
 // ===== HELPER FUNCTIONS =====
-
-/**
- * Create a default player entry for unknown players
- */
-export function createDefaultPlayer(playerName: string): Omit<PlayerInfo, "tokenType"> {
-  // Extract initials for avatar
-  const words = playerName.match(/[A-Z][a-z]+/g) || [playerName];
-  const avatar = words
-    .map((word) => word[0])
-    .join("")
-    .substring(0, 2);
-
-  return {
-    name: playerName.replace(/([A-Z])/g, " $1").trim(), // Add spaces before capital letters
-    displayName: playerName.replace(/([A-Z])/g, " $1").trim(),
-    team: "TBD", // To be determined
-    position: "BAT", // Default to batsman
-    avatar: avatar,
-  };
-}
 
 /**
  * Get player info by token name

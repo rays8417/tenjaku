@@ -56,6 +56,7 @@ export default function Navbar() {
           {/* Desktop Navigation (hidden on landing) */}
           {!isLanding && (
             <nav className="hidden md:flex items-center gap-1.5">
+              <NavLink href="/players" label="Players" />
               <NavLink href="/swaps" label="Swaps" />
               <NavLink href="/tournaments" label="Tournaments" />
               <NavLink href="/holdings" label="Holdings" />
@@ -144,6 +145,7 @@ export default function Navbar() {
           {!isLanding && (
             <nav className="mx-auto max-w-7xl px-4 py-3 flex flex-col gap-1">
               <NavLink href="/tournaments" label="Tournaments" />
+              <NavLink href="/players" label="Players" />
               <NavLink href="/holdings" label="Holdings" />
               <NavLink href="/swaps" label="Swaps" />
               <NavLink href="/leaderboard" label="Leaderboard" />
