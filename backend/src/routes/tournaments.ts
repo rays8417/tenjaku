@@ -1,5 +1,6 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
+import { getEligiblePlayers } from "../services/cricketApiService";
 
 const prisma = new PrismaClient();
 
@@ -145,5 +146,63 @@ router.get("/:id/players", async (req, res) => {
   }
 });
 
+// GET /api/tournaments/:id/eligible-players - Get eligible players for tournament from Cricbuzz
+router.get("/:id/eligible-players", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Get tournament details including matchId
+    const tournament = await prisma.tournament.findUnique({
+      where: { id },
+      select: { 
+        matchId: true,
+        name: true,
+        team1: true,
+        team2: true,
+        status: true
+      },
+    });
+
+    if (!tournament) {
+      return res.status(404).json({ error: "Tournament not found" });
+    }
+
+    if (!tournament.matchId) {
+      return res.status(400).json({ 
+        error: "Tournament does not have a match ID",
+        message: "Cannot fetch players without a valid match ID"
+      });
+    }
+
+    // Fetch eligible players from Cricbuzz API
+    const eligiblePlayers = await getEligiblePlayers(Number(tournament.matchId));
+
+    res.json({
+      success: true,
+      tournament: {
+        id: id,
+        name: tournament.name,
+        team1: tournament.team1,
+        team2: tournament.team2,
+        status: tournament.status
+      },
+      totalPlayers: eligiblePlayers.length,
+      players: eligiblePlayers.map(player => ({
+        id: player.id,
+        name: player.name,
+        moduleName: player.moduleName,
+        role: player.role,
+        teamName: player.teamName,
+        teamId: player.teamId
+      }))
+    });
+  } catch (error: any) {
+    console.error("Eligible players fetch error:", error);
+    res.status(500).json({ 
+      error: "Failed to fetch eligible players",
+      details: error.message
+    });
+  }
+});
 
 export default router;

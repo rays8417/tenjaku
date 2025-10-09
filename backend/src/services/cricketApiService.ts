@@ -332,3 +332,165 @@ export async function fetchPlayerScoresForTournament(matchId: number): Promise<{
   }
 }
 
+/**
+ * Fetch match info from Cricbuzz API
+ */
+export async function fetchMatchInfo(matchId: number): Promise<any> {
+  try {
+    console.log(`📡 Fetching match info for match ID: ${matchId}`);
+    
+    const options = {
+      method: 'GET',
+      url: `https://cricbuzz-cricket.p.rapidapi.com/mcenter/v1/${matchId}`,
+      headers: {
+        'x-rapidapi-key': RAPIDAPI_KEY,
+        'x-rapidapi-host': RAPIDAPI_HOST
+      }
+    };
+
+    const response = await axios.request(options);
+    console.log(`✅ Match info fetched successfully`);
+    
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error fetching match info:', error);
+    throw new Error(`Failed to fetch match info for match ${matchId}: ${error}`);
+  }
+}
+
+/**
+ * Fetch team players from Cricbuzz API
+ */
+export async function fetchTeamPlayers(matchId: number, teamId: number): Promise<any> {
+  try {
+    console.log(`📡 Fetching team players for match ID: ${matchId}, team ID: ${teamId}`);
+    
+    const options = {
+      method: 'GET',
+      url: `https://cricbuzz-cricket.p.rapidapi.com/mcenter/v1/${matchId}/team/${teamId}`,
+      headers: {
+        'x-rapidapi-key': RAPIDAPI_KEY,
+        'x-rapidapi-host': RAPIDAPI_HOST
+      }
+    };
+
+    const response = await axios.request(options);
+    console.log(`✅ Team players fetched successfully`);
+    console.log('Team players:-------------------', response.data);
+    
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error fetching team players:', error);
+    throw new Error(`Failed to fetch team players for match ${matchId}, team ${teamId}: ${error}`);
+  }
+}
+
+/**
+ * List of available player modules in our smart contract
+ */
+const AVAILABLE_PLAYER_MODULES = [
+  'ViratKohli',
+  'HardikPandya',
+  'JaspreetBumhrah',
+  'ShubhmanGill',
+  'KaneWilliamson',
+  'BenStokes',
+  'GlenMaxwell',
+  'AbhishekSharma',
+  'ShubhamDube',
+  'TravisHead',
+  'SuryakumarYadav'
+];
+
+/**
+ * Get eligible players for a match (players we have modules for)
+ */
+export async function getEligiblePlayers(matchId: number): Promise<any[]> {
+  try {
+    console.log(`📡 Fetching eligible players for match ID: ${matchId}`);
+    
+    // Step 1: Fetch match info to get team IDs
+    const matchInfo = await fetchMatchInfo(matchId);
+
+    
+    if (!matchInfo ) {
+      throw new Error('Invalid match info response');
+    }
+    
+   
+    const team1Id = matchInfo.team1?.teamid;
+    const team2Id = matchInfo.team2?.teamid;
+    const team1Name = matchInfo.team1?.teamname || matchInfo.team1?.teamsname;
+    const team2Name = matchInfo.team2?.teamname || matchInfo.team2?.teamsname;
+    
+    if (!team1Id || !team2Id) {
+      throw new Error('Could not find team IDs in match info');
+    }
+    
+    console.log(`📋 Team 1: ${team1Name} (ID: ${team1Id}), Team 2: ${team2Name} (ID: ${team2Id})`);
+    
+    // Step 2: Fetch both teams' players
+    const [team1Data, team2Data] = await Promise.all([
+      fetchTeamPlayers(matchId, team1Id),
+      fetchTeamPlayers(matchId, team2Id)
+    ]);
+    
+    // Step 3: Extract all players from both teams
+    const allPlayers: any[] = [];
+    
+    // Helper function to extract players from team data
+    const extractPlayers = (teamData: any, teamId: number, teamName: string) => {
+      if (!teamData || !teamData.player || !Array.isArray(teamData.player)) {
+        return;
+      }
+      
+      // Iterate through the player categories (playing XI, bench, support staff, etc.)
+      teamData.player.forEach((category: any) => {
+        // Only process playing XI and bench categories (skip support staff)
+        if (category.category === 'playing XI' || category.category === 'bench') {
+          if (Array.isArray(category.player)) {
+            category.player.forEach((player: any) => {
+              allPlayers.push({
+                id: player.id,
+                name: player.name,
+                fullName: player.name, // API doesn't have fullName, using name
+                role: player.role || 'Unknown',
+                teamId: teamId,
+                teamName: teamName,
+                category: category.category
+              });
+            });
+          }
+        }
+      });
+    };
+    
+    // Process team 1 players
+    extractPlayers(team1Data, team1Id, team1Name);
+    
+    // Process team 2 players
+    extractPlayers(team2Data, team2Id, team2Name);
+    
+    console.log(`👥 Total players found: ${allPlayers.length}`);
+    
+    // Step 4: Filter to only eligible players (those we have modules for)
+    const eligiblePlayers = allPlayers.filter(player => {
+      const moduleName = mapPlayerNameToModuleName(player.name);
+      return moduleName && AVAILABLE_PLAYER_MODULES.includes(moduleName);
+    });
+    
+    // Step 5: Enrich eligible players with module name
+    const enrichedPlayers = eligiblePlayers.map(player => ({
+      ...player,
+      moduleName: mapPlayerNameToModuleName(player.name)
+    }));
+    
+    console.log(`✅ Eligible players found: ${enrichedPlayers.length}`);
+    
+    return enrichedPlayers;
+  } catch (error) {
+    console.error('❌ Error fetching eligible players:', error);
+    throw error;
+  }
+}
+
