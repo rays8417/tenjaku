@@ -1,25 +1,19 @@
 interface LeaderboardHeaderProps {
-  currentTournament: {
-    team1: string;
-    team2: string;
-    matchDate: string;
-  } | null;
+  totalAddresses?: number;
 }
 
-export default function LeaderboardHeader({ currentTournament }: LeaderboardHeaderProps) {
+export default function LeaderboardHeader({ totalAddresses }: LeaderboardHeaderProps) {
   return (
     <div className="mb-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Leaderboard</h1>
+          <h1 className="text-3xl font-bold text-foreground">Universal Leaderboard</h1>
           <p className="text-foreground-muted text-sm mt-1">
-            {currentTournament
-              ? `${currentTournament.team1} vs ${currentTournament.team2}`
-              : "Tournament rewards and rankings"}
+            Top earners across all tournaments
           </p>
-          {currentTournament && (
+          {totalAddresses !== undefined && (
             <p className="text-foreground-subtle text-xs mt-1">
-              Match Date: {new Date(currentTournament.matchDate).toLocaleDateString()}
+              Total Participants: {totalAddresses.toLocaleString()}
             </p>
           )}
         </div>

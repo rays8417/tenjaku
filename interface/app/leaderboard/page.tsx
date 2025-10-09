@@ -10,7 +10,7 @@ import { useLeaderboardData } from "@/hooks/useLeaderboardData";
 
 export default function LeaderboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const { leaderboardData, currentTournament, loading, error } = useLeaderboardData();
+  const { leaderboardData, totalAddresses, loading, error } = useLeaderboardData();
 
   const filteredData = leaderboardData.filter(entry =>
     entry.walletAddress.toLowerCase().includes(searchQuery.toLowerCase())
@@ -19,7 +19,7 @@ export default function LeaderboardPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl px-6 py-8">
-        <LeaderboardHeader currentTournament={currentTournament} />
+        <LeaderboardHeader totalAddresses={totalAddresses} />
           
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <SearchBar
