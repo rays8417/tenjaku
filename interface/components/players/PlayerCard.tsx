@@ -1,3 +1,6 @@
+"use client";
+
+import { useRouter } from "next/navigation";
 import { PlayerInfo, PlayerPosition } from "@/lib/constants";
 
 interface PlayerCardProps {
@@ -19,8 +22,18 @@ const POSITION_COLORS: Record<PlayerPosition, string> = {
 };
 
 export default function PlayerCard({ player }: PlayerCardProps) {
+  const router = useRouter();
+
+  const handleClick = () => {
+    // Navigate to swaps page with player name as query param
+    router.push(`/swaps?player=${encodeURIComponent(player.name)}`);
+  };
+
   return (
-    <div className="border border-border rounded-lg p-5 bg-card hover:bg-card-subtle transition-all hover:shadow-md">
+    <div 
+      onClick={handleClick}
+      className="border border-border rounded-lg p-5 bg-card hover:bg-card-subtle transition-all hover:shadow-md cursor-pointer"
+    >
       <div className="flex items-start gap-4">
         {/* Avatar */}
         <div className="flex-shrink-0">

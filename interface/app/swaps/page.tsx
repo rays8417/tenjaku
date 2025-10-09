@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useWallet } from "../../contexts/WalletContext";
 import SwapCard from "@/components/swaps/SwapCard";
 import LivePricesCard from "@/components/swaps/LivePricesCard";
@@ -13,6 +14,7 @@ import { BOSON_TOKEN } from "@/lib/constants";
 
 export default function SwapsPage() {
   const { account } = useWallet();
+  const searchParams = useSearchParams();
   
   const [payAmount, setPayAmount] = useState("");
   const [isSwapped, setIsSwapped] = useState(false);
@@ -21,12 +23,31 @@ export default function SwapsPage() {
   const { availableTokens, loading: loadingPairs } = useLiquidityPairs();
   const { balances, loading: loadingBalances } = useTokenBalances(account?.address, availableTokens);
   
-  // Set initial selected player token when tokens load
+  // Set initial selected player token when tokens load or from query params
   useEffect(() => {
     if (availableTokens.length > 0 && !selectedPlayerToken) {
-      setSelectedPlayerToken(availableTokens[0].name);
+      const playerParam = searchParams.get("player");
+      
+      if (playerParam) {
+        // Try to find the player in available tokens
+        const playerToken = availableTokens.find(
+          token => token.name === playerParam || 
+                   token.displayName.replace(/\s+/g, "") === playerParam
+        );
+        
+        if (playerToken) {
+          setSelectedPlayerToken(playerToken.name);
+          // Set to buy the player token (BOSON -> Player)
+          setIsSwapped(false);
+        } else {
+          // Fallback to first available token if player not found
+          setSelectedPlayerToken(availableTokens[0].name);
+        }
+      } else {
+        setSelectedPlayerToken(availableTokens[0].name);
+      }
     }
-  }, [availableTokens, selectedPlayerToken]);
+  }, [availableTokens, selectedPlayerToken, searchParams]);
   
   const getCurrentTokens = () => {
     const selectedToken = availableTokens.find(token => token.name === selectedPlayerToken);
