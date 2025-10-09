@@ -4,10 +4,9 @@ import EmptyState from "../ui/EmptyState";
 interface PlayerRow {
   id: string;
   name: string;
-  role: "Batsmen" | "Bowlers" | "All-rounders" | "Wicketkeepers";
   points: number;
-  avg?: number;
-  strikeRate?: number;
+  holdings: number;
+  moduleName: string;
 }
 
 interface PlayerPerformanceTableProps {
@@ -22,9 +21,31 @@ export default function PlayerPerformanceTable({
   return (
     <div className={`space-y-0 ${className}`}>
       {players.length > 0 ? (
-        players.map((player, idx) => (
-          <PlayerPerformanceRow key={player.id} player={player} index={idx} />
-        ))
+        <>
+          {/* Table Header */}
+          <div className="flex items-center justify-between py-3 border-b border-border bg-surface-elevated/30">
+            <div className="flex items-center gap-4 flex-1">
+              <div className="text-xs font-semibold text-foreground-muted uppercase w-16">
+                Position
+              </div>
+              <div className="text-xs font-semibold text-foreground-muted uppercase flex-1">
+                Player
+              </div>
+            </div>
+            <div className="flex items-center gap-8">
+              <div className="text-xs font-semibold text-foreground-muted uppercase text-center min-w-[80px]">
+                Score
+              </div>
+              <div className="text-xs font-semibold text-foreground-muted uppercase text-right min-w-[100px]">
+                Holdings
+              </div>
+            </div>
+          </div>
+          {/* Table Rows */}
+          {players.map((player, idx) => (
+            <PlayerPerformanceRow key={player.id} player={player} index={idx} />
+          ))}
+        </>
       ) : (
         <EmptyState
           icon={

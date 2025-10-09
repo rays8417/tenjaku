@@ -6,7 +6,7 @@ export function useTokenPairPrice(token1Type?: string, token2Type?: string) {
     current: null as any,
     lastUpdated: null as Date | null,
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const fetchPrice = async (tokenA: string, tokenB: string) => {
     setLoading(true);
@@ -62,6 +62,8 @@ export function useTokenPairPrice(token1Type?: string, token2Type?: string) {
       }, 30000);
 
       return () => clearInterval(priceInterval);
+    } else {
+      setLoading(false);
     }
   }, [token1Type, token2Type]);
 

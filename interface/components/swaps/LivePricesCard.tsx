@@ -2,6 +2,7 @@ interface Token {
   name: string;
   displayName: string;
   avatar: string;
+  imageUrl?: string;
 }
 
 interface LivePricesCardProps {
@@ -109,8 +110,23 @@ export default function LivePricesCard({
                       ${tokenPrices.current.reserves.abhishekPriceUSD.toFixed(6)}
                     </div>
                   </div>
-                  <div className="h-14 w-14 bg-primary-foreground rounded-2xl shadow-lg flex items-center justify-center transform -rotate-12 hover:rotate-0 transition-transform">
-                    <span className="text-primary font-black text-lg">
+                  <div className="h-14 w-14 bg-primary-foreground rounded-2xl shadow-lg flex items-center justify-center transform -rotate-12 hover:rotate-0 transition-transform overflow-hidden">
+                    {selectedToken?.imageUrl ? (
+                      <img
+                        src={selectedToken.imageUrl}
+                        alt={selectedToken.displayName}
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                          const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                          if (fallback) fallback.style.display = "flex";
+                        }}
+                      />
+                    ) : null}
+                    <span 
+                      className="text-primary font-black text-lg w-full h-full flex items-center justify-center"
+                      style={{ display: selectedToken?.imageUrl ? "none" : "flex" }}
+                    >
                       {selectedToken?.avatar || "P"}
                     </span>
                   </div>

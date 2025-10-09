@@ -16,48 +16,34 @@ export default function SwapsPage() {
   
   const [payAmount, setPayAmount] = useState("");
   const [isSwapped, setIsSwapped] = useState(false);
-  const [selectedPlayerToken, setSelectedPlayerToken] = useState("AbhishekSharma");
+  const [selectedPlayerToken, setSelectedPlayerToken] = useState<string>("");
 
   const { availableTokens, loading: loadingPairs } = useLiquidityPairs();
   const { balances, loading: loadingBalances } = useTokenBalances(account?.address, availableTokens);
   
+  // Set initial selected player token when tokens load
+  useEffect(() => {
+    if (availableTokens.length > 0 && !selectedPlayerToken) {
+      setSelectedPlayerToken(availableTokens[0].name);
+    }
+  }, [availableTokens, selectedPlayerToken]);
+  
   const getCurrentTokens = () => {
     const selectedToken = availableTokens.find(token => token.name === selectedPlayerToken);
     
+    // If no token is selected yet, return null to show loading state
     if (!selectedToken) {
-      const fallbackToken = {
-        name: "AbhishekSharma",
-        type: `${BOSON_TOKEN.type.split("::")[0]}::AbhishekSharma::AbhishekSharma`,
-        displayName: "Abhishek Sharma",
-        team: "IND",
-        position: "AR" as const,
-        avatar: "AS",
-      };
-      
-      if (isSwapped) {
-        return {
-          from: fallbackToken,
-          to: BOSON_TOKEN,
-          fromBalance: balances[fallbackToken.name.toLowerCase()] || 0,
-          toBalance: balances.boson || 0,
-        };
-      } else {
-        return {
-          from: BOSON_TOKEN,
-          to: fallbackToken,
-          fromBalance: balances.boson || 0,
-          toBalance: balances[fallbackToken.name.toLowerCase()] || 0,
-        };
-      }
+      return null;
     }
 
     const tokenWithDefaults = {
       name: selectedToken.name,
       type: selectedToken.type,
-      displayName: selectedToken.displayName || selectedToken.name,
-      team: selectedToken.team || "Unknown",
-      position: selectedToken.position || "Unknown",
-      avatar: selectedToken.avatar || selectedToken.name.charAt(0),
+      displayName: selectedToken.displayName,
+      team: selectedToken.team,
+      position: selectedToken.position,
+      avatar: selectedToken.avatar,
+      imageUrl: selectedToken.imageUrl,
     };
 
     if (isSwapped) {
@@ -86,14 +72,16 @@ export default function SwapsPage() {
   );
 
   const { receiveAmount, loading: quoteLoading, fetchQuote, setReceiveAmount } = useSwapQuote(
-    tokens.from.type,
-    tokens.to.type,
+    tokens?.from.type || "",
+    tokens?.to.type || "",
     tokenPrices
   );
 
   const { executeSwap, loading: swapLoading } = useSwapTransaction();
 
   const handleSwap = async () => {
+    if (!tokens) return;
+    
     const result = await executeSwap(
       account,
       payAmount,
@@ -117,6 +105,8 @@ export default function SwapsPage() {
   };
 
   const setPercent = (pct: number) => {
+    if (!tokens) return;
+    
     const currentBalance = tokens.fromBalance;
     const amt = ((currentBalance * pct) / 100).toString();
     setPayAmount(amt);
@@ -124,6 +114,8 @@ export default function SwapsPage() {
   };
 
   const handlePayChange = (v: string) => {
+    if (!tokens) return;
+    
     const cleaned = v.replace(/[^0-9.]/g, "");
     setPayAmount(cleaned);
     fetchQuote(cleaned, tokens.from.type, tokens.to.type);
@@ -142,6 +134,86 @@ export default function SwapsPage() {
     price: priceLoading,
     liquidity: loadingPairs,
   };
+
+  // Show loading skeleton while tokens are being fetched or no token selected yet
+  if (loadingPairs || !tokens) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4">
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-1">Token Swap</h1>
+              <p className="text-foreground-muted text-sm sm:text-base">
+                Exchange your tokens instantly with live pricing
+              </p>
+            </div>
+
+            {account ? (
+              <div className="flex items-center gap-3 bg-surface-elevated border border-border rounded-xl px-4 py-3">
+                <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse" />
+                <div className="text-left">
+                  <a 
+                    href="https://boson-faucet.vercel.app/" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+                  >
+                    Get Testnet BOSON
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-warning-bg border border-warning rounded-xl px-4 py-3">
+                <p className="text-sm font-medium text-warning mb-1">Wallet not connected</p>
+                <p className="text-xs text-warning">Use the Connect Wallet button in the navbar</p>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+            <div className="lg:col-span-7">
+              <div className="bg-card border border-border rounded-2xl shadow-xl overflow-hidden">
+                <div className="bg-gradient-to-r from-surface-elevated to-surface px-6 py-4 border-b border-border">
+                  <div className="h-6 bg-surface-elevated rounded w-32 animate-pulse"></div>
+                </div>
+                <div className="p-6 space-y-4">
+                  <div className="bg-surface border-2 border-border rounded-2xl p-5">
+                    <div className="h-4 bg-surface-elevated rounded w-16 mb-4 animate-pulse"></div>
+                    <div className="h-12 bg-surface-elevated rounded mb-3 animate-pulse"></div>
+                    <div className="h-4 bg-surface-elevated rounded w-24 animate-pulse"></div>
+                  </div>
+                  <div className="flex justify-center">
+                    <div className="h-14 w-14 rounded-2xl bg-surface-elevated animate-pulse"></div>
+                  </div>
+                  <div className="bg-surface-elevated border-2 border-primary/30 rounded-2xl p-5">
+                    <div className="h-4 bg-surface rounded w-20 mb-4 animate-pulse"></div>
+                    <div className="h-12 bg-surface rounded mb-3 animate-pulse"></div>
+                    <div className="h-4 bg-surface rounded w-28 animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="lg:col-span-5">
+              <div className="bg-card border border-border rounded-2xl shadow-xl overflow-hidden sticky top-6">
+                <div className="bg-gradient-to-r from-primary to-primary-hover px-6 py-4 border-b border-border">
+                  <div className="h-6 bg-primary-foreground/20 rounded w-24 animate-pulse"></div>
+                </div>
+                <div className="p-6 space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="bg-surface rounded-xl p-5 animate-pulse">
+                      <div className="h-4 bg-surface-elevated rounded w-1/3 mb-3" />
+                      <div className="h-8 bg-surface-elevated rounded w-2/3" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

@@ -59,7 +59,7 @@ export default function RewardsSummary({ userRewards, isLoading, address }: Rewa
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-sm font-medium text-foreground-muted uppercase tracking-wide">
-              Total Rewards
+              Tournaments Participated
             </h3>
             <div className="mt-2">
               {isLoading ? (
@@ -69,7 +69,7 @@ export default function RewardsSummary({ userRewards, isLoading, address }: Rewa
               ) : (
                 <div className="flex items-center gap-2">
                   <span className="text-2xl font-bold text-foreground">
-                    {userRewards?.totalRewards?.toFixed(2) || "0.00"}
+                    {userRewards?.totalRewards || "0"}
                   </span>
                 </div>
               )}

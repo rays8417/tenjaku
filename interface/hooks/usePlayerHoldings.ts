@@ -5,7 +5,6 @@ import {
   ROUTER_ADDRESS,
   APTOS_FULLNODE_URL,
   PLAYER_MAPPING,
-  createDefaultPlayer,
   type PlayerPosition,
 } from "@/lib/constants";
 
@@ -18,10 +17,10 @@ interface Holding {
   team: string;
   position: PlayerPosition;
   price: number;
-  change1h: number;
   shares: number;
   holdings: number;
   avatar: string;
+  imageUrl: string;
 }
 
 interface TokenPairReserve {
@@ -105,7 +104,10 @@ export function usePlayerHoldings(walletAddress?: string) {
             const playerName = extractPlayerName(reserve.type);
             if (!playerName) return null;
 
-            const playerInfo = PLAYER_MAPPING[playerName] || createDefaultPlayer(playerName);
+            // Only include players that are in the PLAYER_MAPPING (no fallback data)
+            const playerInfo = PLAYER_MAPPING[playerName];
+            if (!playerInfo) return null;
+            
             const isBosonFirst = reserve.type.includes("Boson::Boson,") &&
               !reserve.type.includes(`, ${ROUTER_ADDRESS}::Boson::Boson`);
 
@@ -115,7 +117,6 @@ export function usePlayerHoldings(walletAddress?: string) {
               isBosonFirst
             );
 
-            const change1h = (Math.random() - 0.5) * 4;
             const balance = balances.find((b) => b?.playerName === playerName)?.balance as number;
 
             if (!balance) return null;
@@ -126,10 +127,10 @@ export function usePlayerHoldings(walletAddress?: string) {
               team: playerInfo.team,
               position: playerInfo.position,
               price,
-              change1h,
               shares: balance,
               holdings: balance * price,
               avatar: playerInfo.avatar,
+              imageUrl: playerInfo.imageUrl || "",
             };
           })
           .filter(Boolean) as Holding[];

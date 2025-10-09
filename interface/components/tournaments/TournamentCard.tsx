@@ -15,9 +15,10 @@ interface Tournament {
 
 interface TournamentCardProps {
   tournament: Tournament;
+  onClick?: () => void;
 }
 
-export default function TournamentCard({ tournament }: TournamentCardProps) {
+export default function TournamentCard({ tournament, onClick }: TournamentCardProps) {
   const matchDate = new Date(tournament.matchDate);
   const dateStr = matchDate.toLocaleDateString("en-US", {
     month: "short",
@@ -30,11 +31,14 @@ export default function TournamentCard({ tournament }: TournamentCardProps) {
   });
 
   return (
-    <div className="flex flex-col gap-4 p-5 border border-border rounded-xl hover:bg-surface-elevated transition-all bg-card">
+    <div 
+      className={`flex flex-col gap-4 p-5 border border-border rounded-xl hover:bg-surface-elevated transition-all bg-card ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick}
+    >
       {/* Teams */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="h-10 w-10 flex-shrink-0 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg text-white text-sm font-bold flex items-center justify-center shadow-sm">
+          <div className="h-10 w-10 flex-shrink-0 bg-blue-600/90 rounded-lg text-white text-sm font-bold flex items-center justify-center shadow-sm">
             {tournament.team1.substring(0, 3).toUpperCase()}
           </div>
           <span className="text-base font-semibold text-foreground truncate">
@@ -50,7 +54,7 @@ export default function TournamentCard({ tournament }: TournamentCardProps) {
           <span className="text-base font-semibold text-foreground truncate">
             {tournament.team2}
           </span>
-          <div className="h-10 w-10 flex-shrink-0 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg text-white text-sm font-bold flex items-center justify-center shadow-sm">
+          <div className="h-10 w-10 flex-shrink-0 bg-slate-600/90 rounded-lg text-white text-sm font-bold flex items-center justify-center shadow-sm">
             {tournament.team2.substring(0, 3).toUpperCase()}
           </div>
         </div>
@@ -63,7 +67,7 @@ export default function TournamentCard({ tournament }: TournamentCardProps) {
             {dateStr} • {timeStr}
           </div>
           <div
-            className={`px-3 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${
+            className={`px-3 py-1 rounded-full text-xs font-bold flex-shrink-0 ${
               tournament.status === "UPCOMING"
                 ? "bg-info-bg text-info"
                 : tournament.status === "LIVE"
