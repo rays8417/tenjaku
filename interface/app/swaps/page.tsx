@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useWallet } from "../../contexts/WalletContext";
 import SwapCard from "@/components/swaps/SwapCard";
@@ -12,7 +12,7 @@ import { useSwapTransaction } from "@/hooks/useSwapTransaction";
 import { useTokenPairPrice } from "@/hooks/useTokenPairPrice";
 import { BOSON_TOKEN } from "@/lib/constants";
 
-export default function SwapsPage() {
+function SwapsPageContent() {
   const { account } = useWallet();
   const searchParams = useSearchParams();
   
@@ -317,5 +317,35 @@ export default function SwapsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SwapsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4">
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-1">Token Swap</h1>
+              <p className="text-foreground-muted text-sm sm:text-base">
+                Exchange your tokens instantly with live pricing
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+            <div className="lg:col-span-7">
+              <div className="bg-card border border-border rounded-2xl shadow-xl overflow-hidden">
+                <div className="bg-gradient-to-r from-surface-elevated to-surface px-6 py-4 border-b border-border">
+                  <div className="h-6 bg-surface-elevated rounded w-32 animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <SwapsPageContent />
+    </Suspense>
   );
 }
