@@ -29,7 +29,7 @@ interface Tournament {
   team1: string;
   team2: string;
   venue: string | null;
-  status: "UPCOMING" | "LIVE" | "COMPLETED";
+  status: "UPCOMING" | "ONGOING" | "COMPLETED";
   entryFee: string;
   maxParticipants: number | null;
   currentParticipants: number;
@@ -46,7 +46,7 @@ export default function TournamentsPage() {
   
   // Filter tournaments by status
   const activeTournaments = useMemo(() => 
-    tournaments.filter(t => t.status === "UPCOMING" || t.status === "LIVE"),
+    tournaments.filter(t => t.status === "UPCOMING" || t.status === "ONGOING"),
     [tournaments]
   );
   const pastTournaments = useMemo(() => 
@@ -62,7 +62,8 @@ export default function TournamentsPage() {
   
   const { players: tournamentPlayers, loading: isLoadingPlayers } = useTournamentPlayers(
     activeTournament?.id,
-    activeTournament?.status
+    activeTournament?.status,
+    account?.address
   );
   const { holdings, loading: isLoadingHoldings } = usePlayerHoldings(account?.address);
 

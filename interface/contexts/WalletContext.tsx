@@ -22,6 +22,23 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [account, setAccount] = useState<any>(null);
   const [isConnecting, setIsConnecting] = useState(false);
 
+  // Track user connection to backend
+  const trackUser = async (address: string) => {
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+      await fetch(`${backendUrl}/api/users/track`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ address }),
+      });
+    } catch (error) {
+      // Silently fail - don't block user experience if tracking fails
+      console.error("Failed to track user:", error);
+    }
+  };
+
   // Wallet connection functions
   const connectWallet = async () => {
     try {
@@ -37,11 +54,15 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       if (isConnected) {
         const account = await window.aptos.account();
         setAccount(account);
+        // Track user connection
+        await trackUser(account.address);
         return;
       }
       
       const response = await window.aptos.connect();
       setAccount(response);
+      // Track user connection
+      await trackUser(response.address);
       console.log("✅ Connected to wallet:", response);
     } catch (error) {
       console.error("❌ Wallet connection failed:", error);
@@ -72,6 +93,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           if (isConnected) {
             const account = await window.aptos.account();
             setAccount(account);
+            // Track user if already connected
+            await trackUser(account.address);
           }
         }
       } catch (error) {

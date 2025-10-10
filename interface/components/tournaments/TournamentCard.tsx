@@ -6,7 +6,7 @@ interface Tournament {
   team1: string;
   team2: string;
   venue: string | null;
-  status: "UPCOMING" | "LIVE" | "COMPLETED";
+  status: "UPCOMING" | "ONGOING" | "COMPLETED";
   entryFee: string;
   maxParticipants: number | null;
   currentParticipants: number;
@@ -44,7 +44,7 @@ export default function TournamentCard({ tournament, onClick }: TournamentCardPr
       {/* Teams */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="h-10 w-10 flex-shrink-0 bg-blue-600/90 rounded-lg text-white text-sm font-bold flex items-center justify-center shadow-sm">
+          <div className="h-10 w-10 flex-shrink-0 bg-slate-700/60 rounded-lg text-foreground text-sm font-bold flex items-center justify-center shadow-sm border border-border">
             {tournament.team1.substring(0, 3).toUpperCase()}
           </div>
           <span className="text-base font-semibold text-foreground truncate">
@@ -60,13 +60,12 @@ export default function TournamentCard({ tournament, onClick }: TournamentCardPr
           <span className="text-base font-semibold text-foreground truncate">
             {tournament.team2}
           </span>
-          <div className="h-10 w-10 flex-shrink-0 bg-slate-600/90 rounded-lg text-white text-sm font-bold flex items-center justify-center shadow-sm">
+          <div className="h-10 w-10 flex-shrink-0 bg-slate-700/60 rounded-lg text-foreground text-sm font-bold flex items-center justify-center shadow-sm border border-border">
             {tournament.team2.substring(0, 3).toUpperCase()}
           </div>
         </div>
       </div>
 
-      {/* Match Details */}
       <div className="flex flex-col gap-2.5 pt-3 border-t border-border">
         <div className="flex items-center justify-between gap-3">
           <div className="text-sm font-semibold text-foreground-muted">
@@ -76,7 +75,7 @@ export default function TournamentCard({ tournament, onClick }: TournamentCardPr
             className={`px-3 py-1 rounded-full text-xs font-bold flex-shrink-0 ${
               tournament.status === "UPCOMING"
                 ? "bg-info-bg text-info"
-                : tournament.status === "LIVE"
+                : tournament.status === "ONGOING"
                 ? "bg-error-bg text-error"
                 : "bg-success-bg text-success"
             }`}

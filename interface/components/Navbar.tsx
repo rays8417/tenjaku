@@ -46,7 +46,7 @@ export default function Navbar() {
         {/* Brand */}
         <Link href="/" className="flex items-center gap-2 group">
           <Image 
-            src="/tenjakulogo-nobg.png" 
+            src="/tenjakulogo-white-nobg.png" 
             alt="Tenjaku Logo" 
             width={52} 
             height={52}
