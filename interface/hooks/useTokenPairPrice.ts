@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { APTOS_FULLNODE_URL, ROUTER_ADDRESS, DECIMAL_MULTIPLIER } from "@/lib/constants";
+import { APTOS_FULLNODE_URL, ROUTER_ADDRESS, DECIMAL_MULTIPLIER, BOSON_TOKEN } from "@/lib/constants";
 
 export function useTokenPairPrice(token1Type?: string, token2Type?: string) {
   const [tokenPrices, setTokenPrices] = useState({
@@ -12,35 +12,58 @@ export function useTokenPairPrice(token1Type?: string, token2Type?: string) {
     setLoading(true);
 
     try {
-      const resourceType = `${ROUTER_ADDRESS}::swap::TokenPairMetadata<${tokenA},%20${tokenB}>`;
-      const url = `${APTOS_FULLNODE_URL}/accounts/${ROUTER_ADDRESS}/resource/${encodeURIComponent(resourceType)}`;
+      // Helper to try fetching a resource for a given ordering
+      const tryFetch = async (firstType: string, secondType: string) => {
+        const resourceType = `${ROUTER_ADDRESS}::swap::TokenPairMetadata<${firstType}, ${secondType}>`;
+        const url = `${APTOS_FULLNODE_URL}/accounts/${ROUTER_ADDRESS}/resource/${encodeURIComponent(resourceType)}`;
+        const resp = await fetch(url, { method: "GET", headers: { "Content-Type": "application/json" } });
+        if (!resp.ok) {
+          return null;
+        }
+        const json = await resp.json();
+        return { json, usedFirst: firstType, usedSecond: secondType };
+      };
 
-      const response = await fetch(url, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
+      // Try Player,BOSON order first; if not found, try BOSON,Player
+      let fetched = await tryFetch(tokenA, tokenB);
+      if (!fetched) {
+        fetched = await tryFetch(tokenB, tokenA);
+      }
+      if (!fetched) throw new Error("TokenPairMetadata not found in either order");
 
-      if (!response.ok) throw new Error(`API request failed: ${response.status}`);
+      const data = fetched.json;
 
-      const data = await response.json();
+      // Normalize reserves so that playerReserves always refer to the non-BOSON token
+      const firstIsBoson = fetched.usedFirst === BOSON_TOKEN.type || fetched.usedFirst.endsWith("::Boson::Boson");
+      const rawX = Number(data?.data?.balance_x?.value || 0);
+      const rawY = Number(data?.data?.balance_y?.value || 0);
+
+      const bosonRaw = firstIsBoson ? rawX : rawY;
+      const playerRaw = firstIsBoson ? rawY : rawX;
+
+      const boson = bosonRaw / DECIMAL_MULTIPLIER;
+      const player = playerRaw / DECIMAL_MULTIPLIER;
+
       const priceInfo = {
         ...data,
-        token1: tokenA.split("::").pop(),
-        token2: tokenB.split("::").pop(),
-        reserves: data?.data?.balance_x && data?.data?.balance_y
+        token1: fetched.usedFirst.split("::").pop(),
+        token2: fetched.usedSecond.split("::").pop(),
+        reserves: rawX && rawY
           ? {
-              tokenX: data.data.balance_x.value,
-              tokenY: data.data.balance_y.value,
-              formattedX: Number(data.data.balance_x.value) / DECIMAL_MULTIPLIER,
-              formattedY: Number(data.data.balance_y.value) / DECIMAL_MULTIPLIER,
-              ratio: Number(data.data.balance_x.value) / Number(data.data.balance_y.value),
+              // Raw and formatted reserves (normalized)
+              bosonRaw,
+              playerRaw,
+              bosonFormatted: boson,
+              playerFormatted: player,
+              // Exchange rates (normalized)
+              playerPriceInBoson: player > 0 ? boson / player : 0, // BOSON per 1 PLAYER
+              bosonPriceInPlayer: boson > 0 ? player / boson : 0, // PLAYER per 1 BOSON
+              // USD pricing assuming BOSON = $1
               bosonPriceUSD: 1,
-              abhishekPriceUSD: ((Number(data.data.balance_y.value) / DECIMAL_MULTIPLIER) * 1) / (Number(data.data.balance_x.value) / DECIMAL_MULTIPLIER),
-              abhishekPriceInBoson: Number(data.data.balance_y.value) / DECIMAL_MULTIPLIER / (Number(data.data.balance_x.value) / DECIMAL_MULTIPLIER),
-              bosonPriceInAbhishek: Number(data.data.balance_x.value) / DECIMAL_MULTIPLIER / (Number(data.data.balance_y.value) / DECIMAL_MULTIPLIER),
+              playerPriceUSD: player > 0 ? boson / player : 0,
             }
           : null,
-      };
+      } as any;
 
       setTokenPrices({ current: priceInfo, lastUpdated: new Date() });
       return priceInfo;

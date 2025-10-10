@@ -54,9 +54,11 @@ export function useSwapQuote(
           const fromName = fromType.split("::").pop();
 
           if (fromName !== "Boson") {
-            fallbackOutput = Number(inputAmount) * tokenPrices.current.reserves.abhishekPriceInBoson;
+            // Converting Player -> BOSON: multiply by BOSON per Player
+            fallbackOutput = Number(inputAmount) * tokenPrices.current.reserves.playerPriceInBoson;
           } else {
-            fallbackOutput = Number(inputAmount) * tokenPrices.current.reserves.bosonPriceInAbhishek;
+            // Converting BOSON -> Player: multiply by Player per BOSON
+            fallbackOutput = Number(inputAmount) * tokenPrices.current.reserves.bosonPriceInPlayer;
           }
 
           setReceiveAmount(fallbackOutput.toString());

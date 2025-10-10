@@ -107,7 +107,7 @@ export default function LivePricesCard({
                       {selectedToken?.displayName || "Player Token"}
                     </div>
                     <div className="text-3xl font-black mb-1 text-primary-foreground">
-                      ${tokenPrices.current.reserves.abhishekPriceUSD.toFixed(6)}
+                      ${tokenPrices.current.reserves.playerPriceUSD.toFixed(6)}
                     </div>
                   </div>
                   <div className="h-14 w-14 bg-primary-foreground rounded-2xl shadow-lg flex items-center justify-center transform -rotate-12 hover:rotate-0 transition-transform overflow-hidden">
@@ -153,14 +153,13 @@ export default function LivePricesCard({
                     1 {selectedToken?.displayName || "Player Token"}
                   </span>
                   <span className="text-sm font-bold text-foreground">
-                    {tokenPrices.current.reserves.abhishekPriceInBoson.toFixed(6)} BOSON
+                    {tokenPrices.current.reserves.playerPriceInBoson.toFixed(6)} BOSON
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-surface-elevated rounded-lg border border-border">
                   <span className="text-sm text-foreground-muted font-medium">1 BOSON</span>
                   <span className="text-sm font-bold text-foreground">
-                    {tokenPrices.current.reserves.bosonPriceInAbhishek.toFixed(2)}{" "}
-                    {selectedToken?.displayName || "Player Token"}
+                    {tokenPrices.current.reserves.bosonPriceInPlayer.toFixed(2)} {selectedToken?.displayName || "Player Token"}
                   </span>
                 </div>
               </div>
@@ -199,10 +198,7 @@ export default function LivePricesCard({
                       </span>
                       <span className="text-2xl font-black text-success">
                         $
-                        {(
-                          Number(receiveAmount) *
-                          tokenPrices.current.reserves.abhishekPriceUSD
-                        ).toFixed(4)}
+                        {(Number(receiveAmount) * tokenPrices.current.reserves.playerPriceUSD).toFixed(4)}
                       </span>
                     </div>
                   </div>
