@@ -10,7 +10,7 @@ interface Tournament {
   team1: string;
   team2: string;
   venue: string | null;
-  status: "UPCOMING" | "LIVE" | "COMPLETED";
+  status: "UPCOMING" | "ONGOING" | "COMPLETED";
   entryFee: string;
   maxParticipants: number | null;
   currentParticipants: number;
