@@ -44,7 +44,8 @@ export default function TournamentCard({ tournament, onClick }: TournamentCardPr
       {/* Teams */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="h-10 w-10 flex-shrink-0 bg-slate-700/60 rounded-lg text-foreground text-sm font-bold flex items-center justify-center shadow-</div>der border-border"></div>       {tournament.team1.substring(0, 3).toUpperCase()}
+          <div className="h-10 w-10 flex-shrink-0 bg-slate-700/60 rounded-lg text-foreground text-sm font-bold flex items-center justify-center shadow-sm border border-border">
+            {tournament.team1.substring(0, 3).toUpperCase()}
           </div>
           <span className="text-base font-semibold text-foreground truncate">
             {tournament.team1}
