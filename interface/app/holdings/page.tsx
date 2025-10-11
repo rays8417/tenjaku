@@ -29,7 +29,7 @@ export default function MyTeamsPage() {
       <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-7xl px-6 py-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">My Teams</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Rewards & Player Holdings</h1>
             <p className="text-foreground-muted text-sm">
               Track your player holdings and accumulated rewards
             </p>
@@ -45,7 +45,7 @@ export default function MyTeamsPage() {
       <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-7xl px-6 py-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">My Teams</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Rewards & Player Holdings</h1>
             <p className="text-foreground-muted text-sm">
               Track your player holdings and accumulated rewards
             </p>
@@ -60,7 +60,7 @@ export default function MyTeamsPage() {
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-7xl px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">My Teams</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Rewards & Player Holdings</h1>
           <p className="text-foreground-muted text-sm">
             Track your player holdings and accumulated rewards
           </p>
