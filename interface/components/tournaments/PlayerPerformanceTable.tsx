@@ -34,7 +34,7 @@ export default function PlayerPerformanceTable({
             </div>
             <div className="flex items-center gap-8">
               <div className="text-xs font-black text-foreground uppercase tracking-wider text-center min-w-[80px]">
-                Score
+                Fantasy Points
               </div>
               <div className="text-xs font-black text-foreground uppercase tracking-wider text-right min-w-[100px]">
                 Holdings
