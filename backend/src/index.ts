@@ -11,6 +11,7 @@ import adminRoutes from './routes/admin';
 import snapshotRoutes from './routes/snapshots';
 import userRewardsRoutes from './routes/user-rewards';
 import usersRoutes from './routes/users';
+import aptosRoutes from './routes/aptos';
 
 // Load environment variables
 dotenv.config();
@@ -37,6 +38,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/snapshots', snapshotRoutes);
 app.use('/api/user-rewards', userRewardsRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/aptos', aptosRoutes);
 
 // Error handling middleware
 app.use(

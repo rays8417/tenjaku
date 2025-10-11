@@ -2,7 +2,7 @@ import { Network } from "@aptos-labs/ts-sdk";
 
 // ===== NETWORK CONFIGURATION =====
 export const NETWORK = Network.TESTNET;
-export const APTOS_FULLNODE_URL = "https://api.testnet.aptoslabs.com/v1";
+export const APTOS_FULLNODE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000") + "/api/aptos";
 
 // API keys - prefer environment variables, fallback to empty string
 export const getApiUrl = () => process.env.NEXT_PUBLIC_API_URL || "";
