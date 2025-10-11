@@ -17,7 +17,14 @@ export default function LeaderboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-6xl px-6 py-8">
+      <div className="mx-auto max-w-7xl px-6 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">Leaderboard</h1>
+          <p className="text-foreground-muted text-sm">
+            Top performers ranked by total portfolio value
+          </p>
+        </div>
+
         {loading ? (
           <LoadingSpinner size="lg" text="Loading leaderboard..." />
         ) : error ? (

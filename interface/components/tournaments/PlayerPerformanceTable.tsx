@@ -23,26 +23,26 @@ export default function PlayerPerformanceTable({
       {players.length > 0 ? (
         <>
           {/* Table Header */}
-          <div className="flex items-center justify-between py-3 px-1 border-b border-border bg-surface-elevated/30 rounded-t-lg">
+          <div className="flex items-center justify-between py-4 px-5 border-b-2 border-border bg-gradient-to-r from-surface-elevated to-surface rounded-t-xl shadow-sm">
             <div className="flex items-center gap-4 flex-1">
-              <div className="text-xs font-semibold text-foreground-muted uppercase w-16">
-                Position
+              <div className="text-xs font-black text-foreground uppercase tracking-wider w-16">
+                Pos
               </div>
-              <div className="text-xs font-semibold text-foreground-muted uppercase flex-1">
+              <div className="text-xs font-black text-foreground uppercase tracking-wider flex-1">
                 Player
               </div>
             </div>
             <div className="flex items-center gap-8">
-              <div className="text-xs font-semibold text-foreground-muted uppercase text-center min-w-[80px]">
+              <div className="text-xs font-black text-foreground uppercase tracking-wider text-center min-w-[80px]">
                 Score
               </div>
-              <div className="text-xs font-semibold text-foreground-muted uppercase text-right min-w-[100px]">
+              <div className="text-xs font-black text-foreground uppercase tracking-wider text-right min-w-[100px]">
                 Holdings
               </div>
             </div>
           </div>
           {/* Table Rows */}
-          <div className="bg-card rounded-b-lg overflow-hidden">
+          <div className="bg-card rounded-b-xl overflow-hidden border-2 border-t-0 border-border shadow-lg">
             {players.map((player, idx) => (
               <PlayerPerformanceRow key={player.id} player={player} index={idx} />
             ))}

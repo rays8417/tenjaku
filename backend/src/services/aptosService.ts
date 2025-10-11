@@ -190,53 +190,13 @@ export async function getTokenBalance(address: string, moduleName: string): Prom
       }
     }
 
-    let response;
-    try {
-      // Try using the REST API directly
-      const baseUrl = 'https://api.testnet.aptoslabs.com';
-      const fetchResponse = await fetch(`${baseUrl}/v1/view`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          function: functionName,
-          arguments: [address],
-          type_arguments: [],
-        }),
-      });
-
-      if (!fetchResponse.ok) {
-        throw new Error(`HTTP error! status: ${fetchResponse.status}`);
-      }
-
-      const data = await fetchResponse.json();
-      response = data;
-    } catch (error) {
-      if (error instanceof Error) {
-        console.log(`[DEBUG] REST API method failed: ${error.message}`);
-      } else {
-        console.log(`[DEBUG] REST API method failed:`, error);
-      }
-      
-      // Fallback to SDK method
-      try {
-        response = await aptos.view({
-          payload: {
-            function: functionName as `${string}::${string}::${string}`,
-            functionArguments: [address],
-            typeArguments: [],
-          },
-        });
-      } catch (sdkError) {
-        if (sdkError instanceof Error) {
-          console.log(`[DEBUG] SDK method also failed: ${sdkError.message}`);
-        } else {
-          console.log(`[DEBUG] SDK method also failed:`, sdkError);
-        }
-        throw sdkError;
-      }
-    }
+    const response = await aptos.view({
+      payload: {
+        function: functionName as `${string}::${string}::${string}`,
+        functionArguments: [address],
+        typeArguments: [],
+      },
+    });
 
 
     // Assuming the balance is returned as a string or number

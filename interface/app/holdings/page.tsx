@@ -26,10 +26,13 @@ export default function MyTeamsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-6">
-        <div className="mx-auto max-w-7xl">
+      <div className="min-h-screen bg-background">
+        <div className="mx-auto max-w-7xl px-6 py-8">
           <div className="mb-8">
-            <h1 className="text-2xl font-semibold text-foreground">My Teams</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Rewards & Player Holdings</h1>
+            <p className="text-foreground-muted text-sm">
+              Track your player holdings and accumulated rewards
+            </p>
           </div>
           <LoadingSpinner size="lg" text="Loading player data..." />
         </div>
@@ -39,10 +42,13 @@ export default function MyTeamsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background p-6">
-        <div className="mx-auto max-w-7xl">
+      <div className="min-h-screen bg-background">
+        <div className="mx-auto max-w-7xl px-6 py-8">
           <div className="mb-8">
-            <h1 className="text-2xl font-semibold text-foreground">My Teams</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Rewards & Player Holdings</h1>
+            <p className="text-foreground-muted text-sm">
+              Track your player holdings and accumulated rewards
+            </p>
           </div>
           <ErrorDisplay message={error} onRetry={() => window.location.reload()} />
         </div>
@@ -51,10 +57,13 @@ export default function MyTeamsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="mx-auto max-w-7xl">
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto max-w-7xl px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-foreground">My Teams</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Rewards & Player Holdings</h1>
+          <p className="text-foreground-muted text-sm">
+            Track your player holdings and accumulated rewards
+          </p>
         </div>
 
         <RewardsSummary 

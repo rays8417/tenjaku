@@ -114,6 +114,25 @@ export function useTournamentPlayers(
             fantasyPoints: player.formattedHoldings || "0",
           }))
         );
+          // Fallback: Fetch eligible players from Cricbuzz API with holdings
+          const url = walletAddress
+            ? `${getApiUrl()}/api/tournaments/${tournamentId}/eligible-players?address=${walletAddress}`
+            : `${getApiUrl()}/api/tournaments/${tournamentId}/eligible-players`;
+          
+          const response = await axios.get(url);
+          const eligiblePlayers = response.data.players || [];
+
+          setPlayers(
+            eligiblePlayers.map((player: any) => ({
+              id: player.id,
+              moduleName: player.moduleName,
+              name: player.name,
+              team: player.teamName || "",
+              role: player.role || "",
+              fantasyPoints: "0",
+            }))
+          );
+        }
       } catch (error) {
         console.error("Error fetching tournament players:", error);
         setPlayers([]);
