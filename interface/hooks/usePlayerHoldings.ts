@@ -14,6 +14,7 @@ const aptos = new Aptos(config);
 interface Holding {
   id: string;
   playerName: string;
+  moduleName: string;
   team: string;
   position: PlayerPosition;
   price: number;
@@ -124,6 +125,7 @@ export function usePlayerHoldings(walletAddress?: string) {
             return {
               id: index.toString(),
               playerName: playerInfo.name,
+              moduleName: playerName,
               team: playerInfo.team,
               position: playerInfo.position,
               price,
