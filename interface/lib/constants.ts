@@ -6,7 +6,7 @@ export const APTOS_FULLNODE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://lo
 
 // API keys - prefer environment variables, fallback to empty string
 export const getApiUrl = () => process.env.NEXT_PUBLIC_API_URL || "";
-export const getRapidApiKey = () => process.env.NEXT_PUBLIC_RAPIDAPI_KEY || "";
+
 
 // ===== CONTRACT ADDRESSES =====
 export const ROUTER_ADDRESS =

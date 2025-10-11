@@ -100,14 +100,22 @@ export default function TournamentsPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-7xl px-6 py-8">
-        <div className="grid grid-cols-12 gap-8">
+        {/* Page Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">Tournaments</h1>
+          <p className="text-foreground-muted text-sm">
+            Join tournaments, track player performance, and compete for rewards
+          </p>
+        </div>
+
+        <div className="grid grid-cols-12 gap-6 lg:gap-8">
           <aside className="col-span-12 lg:col-span-4 space-y-6">
-            <div className="border border-border rounded-xl p-6 bg-card">
+            <div className="border border-border rounded-2xl p-6 bg-card shadow-xl">
               <div className="flex items-center justify-between mb-5">
-                <h2 className="text-lg font-bold text-foreground">Active Tournament</h2>
-                <div className="h-2 w-2 bg-error rounded-full animate-pulse" />
+                <h2 className="text-xl font-bold text-foreground">Active Tournament</h2>
+                <div className="h-2.5 w-2.5 bg-error rounded-full animate-pulse" />
               </div>
-              <div className="space-y-3 max-h-[600px] overflow-y-auto scrollbar-thin pr-2">
+              <div className="space-y-3 max-h-[600px] overflow-y-auto scrollbar-thin">
                 {isLoadingTournaments ? (
                   Array.from({ length: 2 }).map((_, index) => (
                     <TournamentShimmer key={index} />
@@ -130,12 +138,12 @@ export default function TournamentsPage() {
               </div>
             </div>
 
-            <div className="border border-border rounded-xl p-6 bg-card">
+            <div className="border border-border rounded-2xl p-6 bg-card shadow-xl sticky top-6">
               <div className="flex items-center justify-between mb-5">
-                <h2 className="text-lg font-bold text-foreground">Past Tournaments</h2>
-                <div className="h-2 w-2 bg-foreground-subtle rounded-full" />
+                <h2 className="text-xl font-bold text-foreground">Past Tournaments</h2>
+                <div className="h-2.5 w-2.5 bg-foreground-subtle rounded-full" />
               </div>
-              <div className="space-y-4 max-h-[500px] overflow-y-auto scrollbar-thin pr-2">
+              <div className="space-y-4 max-h-[500px] overflow-y-auto scrollbar-thin">
                 {isLoadingTournaments ? (
                   Array.from({ length: 2 }).map((_, index) => (
                     <TournamentShimmer key={index} />
@@ -167,33 +175,56 @@ export default function TournamentsPage() {
           </aside>
 
           <section className="col-span-12 lg:col-span-8">
-            <div className="border border-border rounded-xl p-6 bg-card">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-foreground">Eligible Players for this Tournament</h2>
-                <p className="text-foreground-muted text-sm mt-1">
-                  Track player performance and your holdings
-                </p>
-              </div>
+            <div className="border border-border rounded-2xl p-6 bg-card shadow-xl">
+              <div>
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-foreground mb-2">Eligible Players for this Tournament</h2>
+                  <p className="text-foreground-muted text-sm">
+                    Track player performance and your holdings
+                  </p>
+                </div>
 
-              <div className="flex flex-col gap-6">
-                <SearchBar
-                  value={query}
-                  onChange={setQuery}
-                  placeholder="Search players by name..."
-                />
+                <div className="flex flex-col gap-6">
+                  <SearchBar
+                    value={query}
+                    onChange={setQuery}
+                    placeholder="Search players by name..."
+                  />
 
-                <div className="space-y-1">
-                  <div className="text-sm font-medium text-foreground mb-4">
-                    {visiblePlayers.length} {visiblePlayers.length === 1 ? 'Player' : 'Players'}
-                  </div>
-                  <div className="space-y-0">
-                    {isLoadingPlayers || isLoadingHoldings ? (
-                      Array.from({ length: 5 }).map((_, index) => (
-                        <PlayerShimmer key={index} />
-                      ))
-                    ) : (
-                      <PlayerPerformanceTable players={visiblePlayers} />
-                    )}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between mb-4 bg-surface-elevated/50 rounded-xl px-4 py-3 border border-border">
+                      <span className="text-sm font-bold text-foreground flex items-center gap-2">
+                        <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        {visiblePlayers.length} {visiblePlayers.length === 1 ? 'Player' : 'Players'}
+                      </span>
+                      {/* {activeTournament && (
+                        <span className="flex items-center gap-2 text-xs px-3 py-1.5 bg-primary/20 text-primary rounded-full font-bold border border-primary/30">
+                          <div className="h-1.5 w-1.5 bg-primary rounded-full animate-pulse" />
+                          Live Stats
+                        </span>
+                      )} */}
+                    </div>
+                    <div className="space-y-0">
+                      {isLoadingPlayers || isLoadingHoldings ? (
+                        Array.from({ length: 5 }).map((_, index) => (
+                          <PlayerShimmer key={index} />
+                        ))
+                      ) : (
+                        <PlayerPerformanceTable players={visiblePlayers} />
+                      )}
+                    </div>
+                    
+                    {/* Info Note */}
+                    <div className="flex items-start gap-2 mt-4 px-4 py-3">
+                      <svg className="w-4 h-4 text-foreground-muted mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="text-sm text-foreground-muted">
+                        Scores will be updated once the match starts.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>

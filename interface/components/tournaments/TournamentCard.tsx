@@ -34,9 +34,9 @@ export default function TournamentCard({ tournament, onClick }: TournamentCardPr
 
   return (
     <div 
-      className={`flex flex-col gap-4 p-5 border border-border rounded-xl transition-all bg-card ${
+      className={`flex flex-col gap-4 p-5 border-2 border-border rounded-xl transition-all bg-gradient-to-br from-surface to-card shadow-lg ${
         isClickable 
-          ? 'cursor-pointer hover:bg-surface-elevated/70 hover:border-border-hover hover:shadow-md hover:scale-[1.02]' 
+          ? 'cursor-pointer hover:bg-surface-elevated hover:border-primary/30 hover:shadow-xl hover:scale-[1.02] group' 
           : ''
       }`}
       onClick={onClick}
@@ -44,59 +44,66 @@ export default function TournamentCard({ tournament, onClick }: TournamentCardPr
       {/* Teams */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="h-10 w-10 flex-shrink-0 bg-slate-700/60 rounded-lg text-foreground text-sm font-bold flex items-center justify-center shadow-sm border border-border">
+          <div className="h-10 w-10 flex-shrink-0 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg text-primary text-xs font-black flex items-center justify-center shadow-md border-2 border-primary/20 transition-transform group-hover:scale-110">
             {tournament.team1.substring(0, 3).toUpperCase()}
           </div>
-          <span className="text-base font-semibold text-foreground truncate">
+          <span className="text-base font-bold text-foreground truncate">
             {tournament.team1}
           </span>
         </div>
 
-        <span className="text-sm text-foreground-subtle font-semibold flex-shrink-0">
+        <span className="text-xs text-foreground-subtle font-black flex-shrink-0 bg-surface-elevated px-2 py-1 rounded-lg border border-border">
           VS
         </span>
 
         <div className="flex items-center gap-3 min-w-0">
-          <span className="text-base font-semibold text-foreground truncate">
+          <span className="text-base font-bold text-foreground truncate">
             {tournament.team2}
           </span>
-          <div className="h-10 w-10 flex-shrink-0 bg-slate-700/60 rounded-lg text-foreground text-sm font-bold flex items-center justify-center shadow-sm border border-border">
+          <div className="h-10 w-10 flex-shrink-0 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg text-primary text-xs font-black flex items-center justify-center shadow-md border-2 border-primary/20 transition-transform group-hover:scale-110">
             {tournament.team2.substring(0, 3).toUpperCase()}
           </div>
         </div>
       </div>
 
-      <div className="flex flex-col gap-2.5 pt-3 border-t border-border">
+      <div className="flex flex-col gap-3 pt-3 border-t border-border/50">
         <div className="flex items-center justify-between gap-3">
-          <div className="text-sm font-semibold text-foreground-muted">
+          <div className="flex items-center gap-2 text-sm font-semibold text-foreground-muted">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
             {dateStr} • {timeStr}
           </div>
           <div
-            className={`px-3 py-1 rounded-full text-xs font-bold flex-shrink-0 ${
+            className={`px-3 py-1.5 rounded-full text-xs font-black flex-shrink-0 border-2 shadow-sm ${
               tournament.status === "UPCOMING"
-                ? "bg-info-bg text-info"
+                ? "bg-info/10 text-info border-info/30"
                 : tournament.status === "ONGOING"
-                ? "bg-error-bg text-error"
-                : "bg-success-bg text-success"
+                ? "bg-error/10 text-error border-error/30 animate-pulse"
+                : "bg-success/10 text-success border-success/30"
             }`}
           >
             {tournament.status}
           </div>
         </div>
 
-        <div className="text-sm text-foreground-muted">
+        <div className="flex items-center gap-2 text-sm text-foreground-muted bg-surface-elevated/50 px-3 py-2 rounded-lg">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
           {tournament.venue || "Venue TBD"}
         </div>
 
         {tournament.description && (
-          <div className="text-sm text-foreground-muted line-clamp-1">
+          <div className="text-sm text-foreground-muted line-clamp-2 bg-surface-elevated/30 px-3 py-2 rounded-lg italic">
             {tournament.description}
           </div>
         )}
 
         {tournament.totalRewardPool && tournament.totalRewardPool > 0 && (
-          <div className="flex items-center justify-between mt-1 pt-2 border-t border-border">
-            <div className="text-sm font-bold text-foreground">
+          <div className="mt-1 pt-3 border-t border-border/50">
+            <div className="text-base font-bold text-foreground">
               {tournament.totalRewardPool.toLocaleString()} BOSON
             </div>
           </div>
@@ -105,11 +112,11 @@ export default function TournamentCard({ tournament, onClick }: TournamentCardPr
 
       {/* Click indicator for completed tournaments */}
       {isClickable && (
-        <div className="flex items-center justify-center gap-2 text-xs text-foreground-muted group-hover:text-foreground transition-colors">
-          <span>Click to view details</span>
+        <div className="flex items-center justify-center gap-2 text-xs text-foreground-muted group-hover:text-primary transition-colors pt-2 border-t border-border/50 mt-2">
+          <span className="font-semibold">Click to view details</span>
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
-            className="h-4 w-4" 
+            className="h-4 w-4 group-hover:translate-x-1 transition-transform" 
             viewBox="0 0 20 20" 
             fill="currentColor"
           >
