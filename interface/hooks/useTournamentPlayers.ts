@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { getApiUrl } from "@/lib/constants";
+import { useLiveScores } from "./useLiveScores";
 
 interface Player {
   id: string;
@@ -45,7 +46,18 @@ export function useTournamentPlayers(
 ) {
   const [players, setPlayers] = useState<TournamentPlayerData[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
 
+  const liveScores = useLiveScores(
+    tournamentStatus === "ONGOING" ? tournamentId : undefined,
+    {
+      refreshInterval: 30000, // Check every 30 seconds
+      autoStartPolling: true, // Automatically start backend polling
+      pollingIntervalMinutes: 5, // Backend polls every 5 minutes
+    }
+  );
+
+  // Initial load for ONGOING tournaments (structure only, runs once)
   useEffect(() => {
     if (!tournamentId || !tournamentStatus) {
       setPlayers([]);
@@ -60,37 +72,48 @@ export function useTournamentPlayers(
       return;
     }
 
+    // For ONGOING tournaments, set up player structure once
+    if (tournamentStatus === "ONGOING") {
+      if (liveScores.players && liveScores.players.length > 0 && !initialLoadDone) {
+        // Initial load: Create player structure
+        setPlayers(
+          liveScores.players.map((player) => ({
+            id: player.moduleName,
+            moduleName: player.moduleName,
+            name: player.moduleName.replace(/([A-Z])/g, " $1").trim(),
+            team: "", // Team info not available in live scores
+            role: "", // Role info not available in live scores
+            fantasyPoints: player.fantasyPoints.toString(),
+          }))
+        );
+        setInitialLoadDone(true);
+      }
+      setLoading(liveScores.loading && !initialLoadDone);
+      return;
+    }
+
+    // For UPCOMING tournaments, fetch eligible players
     const fetchPlayers = async () => {
       setLoading(true);
       try {
-        if (tournamentStatus === "UPCOMING" || tournamentStatus === "ONGOING") {
-          // For upcoming/ONGOING tournaments, first try to get player scores
-          try {
-            const tournamentResponse = await axios.get(
-              `${getApiUrl()}/api/tournaments/${tournamentId}`
-            );
-            console.log('Tournament response:-------------------', tournamentResponse.data);
-            const playerScores = tournamentResponse.data.tournament.playerScores || [];
+        // Fallback: Fetch eligible players from Cricbuzz API with holdings
+        const url = walletAddress
+          ? `${getApiUrl()}/api/tournaments/${tournamentId}/eligible-players?address=${walletAddress}`
+          : `${getApiUrl()}/api/tournaments/${tournamentId}/eligible-players`;
+        
+        const response = await axios.get(url);
+        const eligiblePlayers = response.data.players || [];
 
-            const matchId = tournamentResponse.data.tournament.matchId;
-            if (playerScores.length > 0 && tournamentStatus === "ONGOING") {
-              // Use actual scores for ONGOING tournaments if available
-              setPlayers(
-                playerScores.map((score: PlayerScore) => ({
-                  id: score.id,
-                  moduleName: score.moduleName,
-                  name: score.moduleName.replace(/([A-Z])/g, " $1").trim(),
-                  team: "", // Team info not available in playerScores
-                  role: "", // Role info not available in playerScores
-                  fantasyPoints: score.fantasyPoints,
-                }))
-              );
-              return;
-            }
-          } catch (err) {
-            console.log("No player scores yet, fetching eligible players");
-          }
-
+        setPlayers(
+          eligiblePlayers.map((player: any) => ({
+            id: player.id,
+            moduleName: player.moduleName,
+            name: player.name,
+            team: player.teamName || "",
+            role: player.role || "",
+            fantasyPoints: player.formattedHoldings || "0",
+          }))
+        );
           // Fallback: Fetch eligible players from Cricbuzz API with holdings
           const url = walletAddress
             ? `${getApiUrl()}/api/tournaments/${tournamentId}/eligible-players?address=${walletAddress}`
@@ -119,20 +142,42 @@ export function useTournamentPlayers(
     };
 
     fetchPlayers();
+  }, [tournamentId, tournamentStatus, walletAddress, liveScores.players.length, initialLoadDone, liveScores.loading]);
 
-    // For ONGOING tournaments, refresh every 1 minute
-    let interval: NodeJS.Timeout | null = null;
-    if (tournamentStatus === "ONGOING") {
-      interval = setInterval(fetchPlayers, 60000); // 60 seconds
-    }
+  // Update only fantasy points when live scores change (smooth updates)
+  useEffect(() => {
+    if (tournamentStatus !== "ONGOING" || !initialLoadDone) return;
+    if (!liveScores.players || liveScores.players.length === 0) return;
 
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
-  }, [tournamentId, tournamentStatus, walletAddress]);
+    // Only update fantasy points, don't recreate entire player objects
+    setPlayers((currentPlayers) =>
+      currentPlayers.map((player) => {
+        const livePlayer = liveScores.players.find(
+          (lp) => lp.moduleName === player.moduleName
+        );
+        if (livePlayer) {
+          return {
+            ...player,
+            fantasyPoints: livePlayer.fantasyPoints.toString(),
+          };
+        }
+        return player;
+      })
+    );
+  }, [liveScores.players, tournamentStatus, initialLoadDone]);
 
-  return { players, loading };
+  return { 
+    players, 
+    loading,
+    // Expose live scores info for ONGOING tournaments
+    liveInfo: tournamentStatus === "ONGOING" ? {
+      lastUpdated: liveScores.lastUpdated,
+      isPollingActive: liveScores.isPollingActive,
+      error: liveScores.error,
+      refresh: liveScores.refresh,
+      startPolling: liveScores.startPolling,
+      stopPolling: liveScores.stopPolling,
+    } : undefined
+  };
 }
 
