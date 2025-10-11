@@ -73,11 +73,9 @@ export default function TournamentsPage() {
     return tournamentPlayers
       .map((player) => {
         // Match holdings by player module name
-        const holding = holdings.find(h => {
-          const holdingName = h.playerName.replace(/\s+/g, '');
-          const playerModuleName = player.moduleName.replace(/\s+/g, '');
-          return holdingName.toLowerCase() === playerModuleName.toLowerCase();
-        });
+        const holding = holdings.find(h => 
+          h.moduleName === player.moduleName
+        );
 
         return {
           id: player.id,

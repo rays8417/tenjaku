@@ -106,7 +106,7 @@ export function useTournamentPlayers(
               name: player.name,
               team: player.teamName || "",
               role: player.role || "",
-              fantasyPoints: player.formattedHoldings || "0",
+              fantasyPoints: "0",
             }))
           );
         }
