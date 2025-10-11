@@ -500,7 +500,21 @@ const AVAILABLE_PLAYER_MODULES = [
   'AbhishekSharma',
   'ShubhamDube',
   'TravisHead',
-  'SuryakumarYadav'
+  'SuryakumarYadav',
+  'AlickAthanaze',
+  'HarryBrook',
+  'JoeRoot',
+  'JohnCampbell',
+  'JosButtler',
+  'JoshInglis',
+  'KLRahul',
+  'KharyPierre',
+  'MohammedSiraj',
+  'RishabhPant',
+  'RohitSharma',
+  'ShaiHope',
+  'WashingtonSundar',
+  'YashasviJaiswal'
 ];
 
 /**
