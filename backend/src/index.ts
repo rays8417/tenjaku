@@ -12,6 +12,7 @@ import snapshotRoutes from './routes/snapshots';
 import userRewardsRoutes from './routes/user-rewards';
 import usersRoutes from './routes/users';
 import aptosRoutes from './routes/aptos';
+import liveScoresRoutes from './routes/live-scores';
 
 // Load environment variables
 dotenv.config();
@@ -39,6 +40,7 @@ app.use('/api/snapshots', snapshotRoutes);
 app.use('/api/user-rewards', userRewardsRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/aptos', aptosRoutes);
+app.use('/api/live-scores', liveScoresRoutes);
 
 // Error handling middleware
 app.use(

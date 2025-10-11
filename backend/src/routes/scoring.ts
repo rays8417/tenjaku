@@ -1,6 +1,7 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { getTokenHoldersWithBalances } from "../services/aptosService";
+import { calculateTotalFantasyPoints } from "../utils/fantasyPointsCalculator";
 
 const prisma = new PrismaClient();
 
@@ -44,27 +45,17 @@ router.post("/player-scores", async (req, res) => {
           runOuts,
         } = scoreData;
 
-        // Calculate fantasy points based on cricket scoring system
-        let fantasyPoints = 0;
-
-        // Batting points
-        fantasyPoints += runs * 1; // 1 point per run
-        fantasyPoints += Math.floor(ballsFaced / 2) * 1; // 1 point per 2 balls faced (bonus for staying)
-
-        // Bowling points
-        fantasyPoints += wickets * 25; // 25 points per wicket
-        fantasyPoints += Math.floor(oversBowled * 2) * 1; // 1 point per 2 balls bowled
-        if (oversBowled >= 2) {
-          const economy = runsConceded / oversBowled;
-          if (economy < 4) fantasyPoints += 6; // Bonus for good economy
-          else if (economy < 6) fantasyPoints += 4;
-          else if (economy < 8) fantasyPoints += 2;
-        }
-
-        // Fielding points
-        fantasyPoints += catches * 8; // 8 points per catch
-        fantasyPoints += stumpings * 10; // 10 points per stumping
-        fantasyPoints += runOuts * 6; // 6 points per run out
+        // Calculate fantasy points using shared calculator
+        const fantasyPoints = calculateTotalFantasyPoints({
+          runs,
+          ballsFaced,
+          wickets,
+          oversBowled,
+          runsConceded,
+          catches,
+          stumpings,
+          runOuts,
+        });
 
         // Store player score with moduleName (contract-based)
         const playerScore = await tx.playerScore.create({

@@ -17,7 +17,35 @@ export interface CricketPlayerScore {
 }
 
 /**
+ * Fetch live matches from Cricbuzz API
+ * Returns all currently live matches
+ */
+export async function fetchLiveMatches(): Promise<any> {
+  try {
+    console.log(`📡 Fetching live matches...`);
+    
+    const options = {
+      method: 'GET',
+      url: `https://cricbuzz-cricket.p.rapidapi.com/matches/v1/live`,
+      headers: {
+        'x-rapidapi-key': RAPIDAPI_KEY,
+        'x-rapidapi-host': RAPIDAPI_HOST
+      }
+    };
+
+    const response = await axios.request(options);
+    console.log(`✅ Live matches fetched successfully`);
+    
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error fetching live matches:', error);
+    throw new Error(`Failed to fetch live matches: ${error}`);
+  }
+}
+
+/**
  * Fetch scorecard from Cricbuzz API
+ * This endpoint provides detailed statistics after match completion or during match
  */
 export async function fetchMatchScorecard(matchId: number): Promise<any> {
   try {
