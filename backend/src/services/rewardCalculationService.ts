@@ -43,7 +43,9 @@ export interface RewardCalculation {
   };
   holdings: {
     moduleName: string;
-    balance: string;
+    preBalance: string;
+    postBalance: string;
+    maintainedBalance: string;
     playerScore: number;
     points: number;
   }[];
@@ -87,29 +89,43 @@ async function getPlayerScores(tournamentId: string): Promise<PlayerScoreData[]>
 }
 
 /**
- * Calculate user score based on token holdings and player performance
+ * Calculate user score based on MAINTAINED token holdings and player performance
+ * Only counts tokens that were held BOTH pre-match AND post-match
  */
 function calculateUserScore(
-  holdings: ContractHolder['holdings'],
+  preMatchHoldings: ContractHolder['holdings'],
+  postMatchHoldings: ContractHolder['holdings'],
   playerScores: PlayerScoreData[]
 ): { totalScore: number; detailedScores: any[] } {
   let totalScore = 0;
   const detailedScores = [];
 
-  for (const holding of holdings) {
-    const playerScore = playerScores.find(ps => ps.moduleName === holding.moduleName);
+  // Create a map of post-match holdings for quick lookup
+  const postHoldingsMap = new Map(
+    postMatchHoldings.map(h => [h.moduleName, BigInt(h.balance)])
+  );
+
+  for (const preHolding of preMatchHoldings) {
+    const playerScore = playerScores.find(ps => ps.moduleName === preHolding.moduleName);
     
     if (playerScore) {
-      // Calculate points based on token amount (proportional to holdings)
-      const tokenAmount = BigInt(holding.balance);
-      const tokenRatio = Number(tokenAmount) / 100000000; // Normalize token amount
+      const preBalance = BigInt(preHolding.balance);
+      const postBalance = postHoldingsMap.get(preHolding.moduleName) || BigInt(0);
+      
+      // Use MINIMUM of pre and post - only count maintained tokens
+      const maintainedBalance = preBalance < postBalance ? preBalance : postBalance;
+      
+      // Calculate points based on MAINTAINED tokens only
+      const tokenRatio = Number(maintainedBalance) / 100000000;
       const weightedPoints = playerScore.fantasyPoints * tokenRatio;
       
       totalScore += weightedPoints;
       
       detailedScores.push({
-        moduleName: holding.moduleName,
-        balance: holding.balance,
+        moduleName: preHolding.moduleName,
+        preBalance: preHolding.balance,
+        postBalance: postBalance.toString(),
+        maintainedBalance: maintainedBalance.toString(),
         playerScore: playerScore.fantasyPoints,
         points: weightedPoints
       });
@@ -157,31 +173,57 @@ export async function calculateRewardsFromSnapshots(
     const rewardCalculations: RewardCalculation[] = [];
     let totalScore = 0;
 
-    for (const holder of preMatchSnapshot.holders) {
-      if (ignored.has(holder.address.toLowerCase())) {
+    // Step 3: Get post-match snapshot for comparison
+    console.log('[REWARD_CALC] Getting post-match snapshot...');
+    const postMatchSnapshot = await getContractSnapshot(tournamentId, 'POST_MATCH');
+    
+    if (!postMatchSnapshot) {
+      throw new Error('Post-match snapshot not found');
+    }
+
+    console.log(`[REWARD_CALC] Post-match snapshot: ${postMatchSnapshot.uniqueAddresses} addresses`);
+
+    // Create a map of post-match holdings by address
+    const postMatchHoldersMap = new Map(
+      postMatchSnapshot.holders.map(h => [h.address, h])
+    );
+
+    for (const preHolder of preMatchSnapshot.holders) {
+      if (ignored.has(preHolder.address.toLowerCase())) {
         continue;
       }
+      
       try {
-        // Calculate user score based on holdings
+        // Get post-match holdings for this address
+        const postHolder = postMatchHoldersMap.get(preHolder.address);
+        
+        if (!postHolder) {
+          // User had tokens pre-match but sold everything - not eligible
+          console.log(`[REWARD_CALC] Address ${preHolder.address} not eligible: sold all tokens`);
+          continue;
+        }
+
+        // Calculate user score based on MAINTAINED holdings (min of pre and post)
         const { totalScore: userScore, detailedScores } = calculateUserScore(
-          holder.holdings,
+          preHolder.holdings,
+          postHolder.holdings,
           playerScores
         );
 
-        // Calculate total tokens held
-        const totalTokens = holder.holdings.reduce((sum, h) => {
-          return sum + BigInt(h.balance);
+        // Calculate total MAINTAINED tokens
+        const totalTokens = detailedScores.reduce((sum, h) => {
+          return sum + BigInt(h.maintainedBalance);
         }, BigInt(0)).toString();
 
         // Check reward eligibility
-        const eligibility = await calculateRewardEligibility(tournamentId, holder.address);
+        const eligibility = await calculateRewardEligibility(tournamentId, preHolder.address);
 
         // Only include eligible holders with non-zero score in reward calculation
         if (eligibility.eligible && userScore > 0) {
           totalScore += userScore;
           
           rewardCalculations.push({
-            address: holder.address,
+            address: preHolder.address,
             totalTokens,
             totalScore: userScore,
             rewardAmount: 0, // Will be calculated after we know total score
@@ -189,12 +231,12 @@ export async function calculateRewardsFromSnapshots(
             holdings: detailedScores
           });
         } else if (!eligibility.eligible) {
-          console.log(`[REWARD_CALC] Address ${holder.address} not eligible: ${eligibility.eligibilityPercentage}% maintained`);
+          console.log(`[REWARD_CALC] Address ${preHolder.address} not eligible: ${eligibility.eligibilityPercentage}% maintained`);
         } else if (userScore === 0) {
-          console.log(`[REWARD_CALC] Address ${holder.address} skipped: no player holdings or zero score`);
+          console.log(`[REWARD_CALC] Address ${preHolder.address} skipped: no maintained holdings or zero score`);
         }
       } catch (error) {
-        console.error(`[REWARD_CALC] Error calculating reward for ${holder.address}:`, error);
+        console.error(`[REWARD_CALC] Error calculating reward for ${preHolder.address}:`, error);
       }
     }
 

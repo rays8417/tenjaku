@@ -543,7 +543,10 @@ export async function calculateRewardEligibility(
     }
 
     const eligibilityPercentage = totalHoldings > 0 ? (maintainedHoldings / totalHoldings) * 100 : 0;
-    const eligible = eligibilityPercentage >= 50; // 50% threshold for eligibility
+    
+    // Eligible if user was in pre-match snapshot (had any holdings before match)
+    // Rewards are automatically proportional to maintained holdings via MIN(pre, post) calculation
+    const eligible = preMatch !== null && totalHoldings > 0;
 
     return {
       eligible,
