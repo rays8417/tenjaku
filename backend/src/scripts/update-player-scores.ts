@@ -1,10 +1,9 @@
 #!/usr/bin/env ts-node
 
-import { PrismaClient } from '@prisma/client';
 import { Command } from 'commander';
+import { prisma } from '../prisma';
 import { parseScorecard } from '../services/cricketApiService';
-
-const prisma = new PrismaClient();
+import { calculateTotalFantasyPoints } from '../utils/fantasyPointsCalculator';
 
 /**
  * Update Player Scores Script
@@ -130,47 +129,10 @@ const sampleScoresData = {
 };
 
 /**
- * Calculate fantasy points based on cricket statistics
+ * Calculate fantasy points - using shared calculator
  */
 function calculateFantasyPoints(playerData: any): number {
-  let points = 0;
-  
-  // Batting points
-  points += playerData.runs * 1; // 1 point per run
-  
-  // Bonus points for milestones
-  if (playerData.runs >= 50) points += 8; // Half century bonus
-  if (playerData.runs >= 100) points += 16; // Century bonus
-  
-  // Strike rate bonus (if balls faced > 0)
-  if (playerData.ballsFaced > 0) {
-    const strikeRate = (playerData.runs / playerData.ballsFaced) * 100;
-    if (strikeRate >= 150) points += 6; // High strike rate bonus
-    else if (strikeRate >= 120) points += 4;
-    else if (strikeRate >= 100) points += 2;
-  }
-  
-  // Bowling points
-  points += playerData.wickets * 25; // 25 points per wicket
-  
-  // Bonus points for bowling milestones
-  if (playerData.wickets >= 3) points += 8; // 3-wicket haul bonus
-  if (playerData.wickets >= 5) points += 16; // 5-wicket haul bonus
-  
-  // Economy rate bonus (if overs bowled > 0)
-  if (playerData.oversBowled > 0) {
-    const economyRate = (playerData.runs / playerData.oversBowled);
-    if (economyRate <= 4) points += 6; // Excellent economy bonus
-    else if (economyRate <= 6) points += 4;
-    else if (economyRate <= 8) points += 2;
-  }
-  
-  // Fielding points
-  points += playerData.catches * 8; // 8 points per catch
-  points += playerData.stumpings * 12; // 12 points per stumping
-  points += playerData.runOuts * 10; // 10 points per run out
-  
-  return Math.round(points * 100) / 100; // Round to 2 decimal places
+  return calculateTotalFantasyPoints(playerData);
 }
 
 /**
@@ -236,6 +198,7 @@ async function updatePlayerScores(tournamentId: string, customScores?: any) {
           ballsFaced: playerScore.ballsFaced,
           wickets: playerScore.wickets,
           oversBowled: playerScore.oversBowled,
+          runsConceded: playerScore.runsConceded || 0,
           catches: playerScore.catches,
           stumpings: playerScore.stumpings,
           runOuts: playerScore.runOuts,
@@ -248,6 +211,7 @@ async function updatePlayerScores(tournamentId: string, customScores?: any) {
           ballsFaced: playerScore.ballsFaced,
           wickets: playerScore.wickets,
           oversBowled: playerScore.oversBowled,
+          runsConceded: playerScore.runsConceded || 0,
           catches: playerScore.catches,
           stumpings: playerScore.stumpings,
           runOuts: playerScore.runOuts,

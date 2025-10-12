@@ -1,8 +1,12 @@
 #!/usr/bin/env ts-node
 
-import { PrismaClient, TournamentStatus } from '@prisma/client';
+import { TournamentStatus } from '@prisma/client';
+import { prisma } from '../prisma';
 
-const prisma = new PrismaClient();
+/**
+ * Create Upcoming Tournament Script
+ * Creates a tournament with UPCOMING status (no snapshot until match starts)
+ */
 
 interface TournamentData {
   name: string;
@@ -17,48 +21,43 @@ interface TournamentData {
 }
 
 /**
- * Create an upcoming tournament with reward pool (no snapshot)
+ * Create an upcoming tournament with reward pool
  */
 async function createUpcomingTournament(tournamentData: TournamentData) {
-  try {
-    console.log('\n🏏 Creating Upcoming Tournament');
-    console.log('================================\n');
-    console.log(`Name: ${tournamentData.name}`);
-    console.log(`Teams: ${tournamentData.team1} vs ${tournamentData.team2}`);
-    console.log(`Venue: ${tournamentData.venue}`);
-    console.log(`Match Date: ${tournamentData.matchDate.toISOString()}`);
-    console.log(`Match ID: ${tournamentData.matchId}`);
-    console.log(`Reward Pool: ${tournamentData.rewardPoolAmount} BOSON`);
-    console.log('');
+  console.log('\n🏏 Creating Upcoming Tournament');
+  console.log('================================\n');
+  console.log(`Name: ${tournamentData.name}`);
+  console.log(`Teams: ${tournamentData.team1} vs ${tournamentData.team2}`);
+  console.log(`Venue: ${tournamentData.venue}`);
+  console.log(`Match Date: ${tournamentData.matchDate.toISOString()}`);
+  console.log(`Match ID: ${tournamentData.matchId}`);
+  console.log(`Reward Pool: ${tournamentData.rewardPoolAmount} BOSON`);
+  console.log('');
 
-    // Create tournament
-    console.log('📝 Creating tournament...');
-    const tournament = await prisma.tournament.create({
-      data: {
-        name: tournamentData.name,
-        description: tournamentData.description,
-        matchDate: tournamentData.matchDate,
-        team1: tournamentData.team1,
-        team2: tournamentData.team2,
-        venue: tournamentData.venue,
-        status: TournamentStatus.UPCOMING,
-        entryFee: tournamentData.entryFee,
-        matchId: tournamentData.matchId,
-        currentParticipants: 0,
-        maxParticipants: null
-      }
-    });
+  // Create tournament
+  console.log('📝 Creating tournament...');
+  const tournament = await prisma.tournament.create({
+    data: {
+      name: tournamentData.name,
+      description: tournamentData.description,
+      matchDate: tournamentData.matchDate,
+      team1: tournamentData.team1,
+      team2: tournamentData.team2,
+      venue: tournamentData.venue,
+      status: TournamentStatus.UPCOMING,
+      entryFee: tournamentData.entryFee,
+      matchId: tournamentData.matchId,
+      currentParticipants: 0,
+      maxParticipants: null
+    }
+  });
 
-    console.log(`✅ Tournament created successfully!`);
-    console.log(`   ID: ${tournament.id}`);
-    console.log(`   Name: ${tournament.name}`);
-    console.log(`   Status: ${tournament.status}`);
-    console.log(`   Teams: ${tournament.team1} vs ${tournament.team2}`);
-    console.log(`   Match Date: ${tournament.matchDate.toISOString()}`);
-    console.log(`   Match ID: ${tournament.matchId}`);
-    console.log('');
+  console.log(`✅ Tournament created!`);
+  console.log(`   ID: ${tournament.id}`);
+  console.log(`   Status: ${tournament.status}\n`);
 
-    // Create reward pool
+  // Create reward pool
+  if (tournamentData.rewardPoolAmount > 0) {
     console.log('💰 Creating reward pool...');
     const rewardPool = await prisma.rewardPool.create({
       data: {
@@ -69,58 +68,46 @@ async function createUpcomingTournament(tournamentData: TournamentData) {
         distributionType: 'PERCENTAGE',
         distributionRules: {
           type: 'snapshot_based',
-          description: 'Rewards distributed based on player token holdings and fantasy scores',
-          createdAt: new Date().toISOString()
+          description: 'Rewards distributed based on holdings and performance'
         }
       }
     });
 
-    console.log(`✅ Reward pool created successfully!`);
-    console.log(`   Pool ID: ${rewardPool.id}`);
-    console.log(`   Total Amount: ${rewardPool.totalAmount} BOSON`);
-    console.log(`   Distribution Type: ${rewardPool.distributionType}`);
-    console.log('');
-
-    console.log('🎉 Tournament setup complete!');
-    console.log(`   Tournament ID: ${tournament.id}`);
-    console.log(`   Ready for players to join`);
-    console.log('');
-
-    return tournament;
-
-  } catch (error) {
-    console.error('❌ Error creating tournament:', error);
-    throw error;
-  } finally {
-    await prisma.$disconnect();
+    console.log(`✅ Reward pool created: ${rewardPool.totalAmount} BOSON\n`);
   }
+
+  console.log('🎯 Next Steps:');
+  console.log('   1. When match starts → Update tournament status to ONGOING');
+  console.log('   2. Take pre-match snapshot');
+  console.log('   3. After match ends → Use end:with-snapshot command\n');
+  console.log(`Tournament ID: ${tournament.id}`);
+
+  return tournament;
 }
 
-// Tournament data from the user
-const tournamentData: TournamentData = {
-  name: "India vs West Indies - Test",
-  description: "West Indies tour of India, 2025",
-  matchDate: new Date("2025-10-10T04:00:00.000Z"),
-  team1: "India",
-  team2: "West Indies",
-  venue: "Arun Jaitley Stadium",
+// Sample data (customize as needed)
+const sampleTournament: TournamentData = {
+  name: "Australia vs England - Ashes 2025",
+  description: "Test match series",
+  matchDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+  team1: "Australia",
+  team2: "England",
+  venue: "Melbourne Cricket Ground",
   entryFee: 0,
-  matchId: "117362",
-  rewardPoolAmount: 50000 // 50000 BOSON tokens reward pool
+  matchId: "999999", // Replace with actual Cricbuzz match ID
+  rewardPoolAmount: 100
 };
 
-// Run the script
-if (require.main === module) {
-  createUpcomingTournament(tournamentData)
-    .then(() => {
-      console.log('✅ Script completed successfully');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('❌ Script failed:', error);
-      process.exit(1);
-    });
-}
-
-export { createUpcomingTournament };
-
+// Run script
+createUpcomingTournament(sampleTournament)
+  .then(() => {
+    console.log('✅ Script completed successfully!');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('❌ Script failed:', error);
+    process.exit(1);
+  })
+  .finally(() => {
+    prisma.$disconnect();
+  });
