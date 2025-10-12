@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { prisma } from "../prisma";
 import { getEligiblePlayers } from "../services/cricketApiService";
 import { getTokenBalanceFromAllModules } from "../services/aptosService";
+import { formatTournamentResponse, formatPlayerResponse, validateTournament } from "../utils/controllerHelpers";
 
 /**
  * Tournaments Controller
@@ -11,38 +12,7 @@ import { getTokenBalanceFromAllModules } from "../services/aptosService";
 // Helper Functions
 
 /**
- * Format tournament response - eliminates redundancy (used 2 times)
- */
-const formatTournamentResponse = (tournament: any) => ({
-  id: tournament.id,
-  name: tournament.name,
-  description: tournament.description,
-  matchDate: tournament.matchDate,
-  team1: tournament.team1,
-  team2: tournament.team2,
-  venue: tournament.venue,
-  status: tournament.status,
-  entryFee: tournament.entryFee,
-  maxParticipants: tournament.maxParticipants,
-  currentParticipants: tournament.currentParticipants,
-  rewardPools: tournament.rewardPools,
-  createdAt: tournament.createdAt,
-  ...(tournament.playerScores && { playerScores: tournament.playerScores }),
-});
-
-/**
- * Format player response - eliminates redundancy
- */
-const formatPlayerResponse = (player: any) => ({
-  id: player.id,
-  name: player.name,
-  team: player.team,
-  role: player.role,
-  tokenPrice: player.tokenPrice,
-});
-
-/**
- * Format eligible player response - eliminates redundancy
+ * Format eligible player response - specific to this controller
  */
 const formatEligiblePlayerResponse = (player: any) => ({
   id: player.id,
@@ -54,22 +24,6 @@ const formatEligiblePlayerResponse = (player: any) => ({
   holdings: player.holdings ? player.holdings.toString() : undefined,
   formattedHoldings: player.formattedHoldings || undefined
 });
-
-/**
- * Validate tournament exists - eliminates redundancy (used 3 times)
- */
-const validateTournament = async (id: string, select?: any) => {
-  const tournament = await prisma.tournament.findUnique({
-    where: { id },
-    ...(select && { select }),
-  });
-
-  if (!tournament) {
-    return { error: { status: 404, message: "Tournament not found" } };
-  }
-
-  return { tournament };
-};
 
 // Controller Functions
 

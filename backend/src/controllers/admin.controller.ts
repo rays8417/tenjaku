@@ -1,37 +1,11 @@
 import { Request, Response } from "express";
 import { prisma } from "../prisma";
+import { formatTournamentResponse, formatPlayerResponse } from "../utils/controllerHelpers";
 
 /**
  * Admin Controller
  * Handles all admin-related operations for tournaments, players, and statistics
  */
-
-// Helper function to format tournament response
-const formatTournamentResponse = (tournament: any) => ({
-  id: tournament.id,
-  name: tournament.name,
-  description: tournament.description,
-  matchDate: tournament.matchDate,
-  team1: tournament.team1,
-  team2: tournament.team2,
-  venue: tournament.venue,
-  entryFee: tournament.entryFee,
-  maxParticipants: tournament.maxParticipants,
-  status: tournament.status,
-  currentParticipants: tournament.currentParticipants,
-  rewardPools: tournament.rewardPools,
-  createdAt: tournament.createdAt,
-  updatedAt: tournament.updatedAt,
-});
-
-// Helper function to format player response
-const formatPlayerResponse = (player: any) => ({
-  id: player.id,
-  name: player.name,
-  team: player.team,
-  role: player.role,
-  isActive: player.isActive,
-});
 
 /**
  * POST /api/admin/tournaments

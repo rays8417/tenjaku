@@ -9,6 +9,7 @@ import {
   getRewardSummary,
 } from "../services/rewardCalculationService";
 import { REWARD_CONFIG, parseIgnoredAddresses } from "../config/reward.config";
+import { validateTournament } from "../utils/controllerHelpers";
 
 /**
  * Rewards Controller
@@ -16,21 +17,6 @@ import { REWARD_CONFIG, parseIgnoredAddresses } from "../config/reward.config";
  */
 
 // Helper Functions
-
-/**
- * Validate tournament exists - eliminates redundancy (used 5 times)
- */
-const validateTournament = async (tournamentId: string) => {
-  const tournament = await prisma.tournament.findUnique({
-    where: { id: tournamentId }
-  });
-
-  if (!tournament) {
-    return { error: { status: 404, message: "Tournament not found" } };
-  }
-
-  return { tournament };
-};
 
 /**
  * Create admin account from private key - eliminates duplication

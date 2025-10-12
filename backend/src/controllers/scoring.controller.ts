@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { prisma } from "../prisma";
 import { getTokenHoldersWithBalances } from "../services/aptosService";
 import { calculateTotalFantasyPoints } from "../utils/fantasyPointsCalculator";
+import { validateTournament, groupBy } from "../utils/controllerHelpers";
 
 /**
  * Scoring Controller
@@ -9,21 +10,6 @@ import { calculateTotalFantasyPoints } from "../utils/fantasyPointsCalculator";
  */
 
 // Helper Functions
-
-/**
- * Validate tournament exists - eliminates redundancy (used 2 times)
- */
-const validateTournament = async (tournamentId: string) => {
-  const tournament = await prisma.tournament.findUnique({
-    where: { id: tournamentId },
-  });
-
-  if (!tournament) {
-    return { error: { status: 404, message: "Tournament not found" } };
-  }
-
-  return { tournament };
-};
 
 /**
  * Format player score response - eliminates redundancy
@@ -42,17 +28,10 @@ const formatPlayerScore = (ps: any) => ({
 });
 
 /**
- * Group token holders by address - extracted for clarity
+ * Group token holders by address - using shared helper
  */
 const groupHoldersByAddress = (tokenHolders: any[]) => {
-  const holdersByAddress = new Map();
-  tokenHolders.forEach(holder => {
-    if (!holdersByAddress.has(holder.address)) {
-      holdersByAddress.set(holder.address, []);
-    }
-    holdersByAddress.get(holder.address).push(holder);
-  });
-  return holdersByAddress;
+  return groupBy(tokenHolders, (holder) => holder.address);
 };
 
 // Controller Functions

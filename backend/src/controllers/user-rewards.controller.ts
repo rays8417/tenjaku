@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { prisma } from "../prisma";
+import { validateTournament, formatTournamentInfo, calculateTotalAmount } from "../utils/controllerHelpers";
 
 /**
  * User Rewards Controller
@@ -9,23 +10,9 @@ import { prisma } from "../prisma";
 // Helper Functions
 
 /**
- * Calculate total earnings from rewards - eliminates redundancy
+ * Calculate total earnings from rewards - using shared helper
  */
-const calculateTotalEarnings = (rewards: any[]) => {
-  return rewards.reduce((sum, reward) => sum + Number(reward.amount), 0);
-};
-
-/**
- * Format tournament info - eliminates redundancy (used 3 times)
- */
-const formatTournamentInfo = (tournament: any) => ({
-  id: tournament.id,
-  name: tournament.name,
-  team1: tournament.team1,
-  team2: tournament.team2,
-  matchDate: tournament.matchDate,
-  status: tournament.status
-});
+const calculateTotalEarnings = calculateTotalAmount;
 
 /**
  * Format reward response - eliminates redundancy
@@ -57,20 +44,6 @@ const formatLeaderboardEntry = (reward: any, index: number) => ({
   status: reward.status
 });
 
-/**
- * Validate tournament exists - eliminates redundancy
- */
-const validateTournament = async (tournamentId: string) => {
-  const tournament = await prisma.tournament.findUnique({
-    where: { id: tournamentId }
-  });
-
-  if (!tournament) {
-    return { error: { status: 404, message: "Tournament not found" } };
-  }
-
-  return { tournament };
-};
 
 // Controller Functions
 

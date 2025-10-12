@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { prisma } from "../prisma";
 import { parseScorecard, CricketPlayerScore, fetchLiveMatches } from "../services/cricketApiService";
 import { calculateFantasyPoints } from "../utils/fantasyPointsCalculator";
+import { formatTournamentInfo, validateTournament } from "../utils/controllerHelpers";
 
 /**
  * Live Scores Controller
@@ -40,17 +41,6 @@ const liveScoreCache = new Map<string, LiveScoreCache>();
 const pollingIntervals = new Map<string, NodeJS.Timeout>();
 
 // Helper Functions
-
-/**
- * Format tournament response - eliminates redundancy
- */
-const formatTournamentInfo = (tournament: any) => ({
-  id: tournament.id,
-  name: tournament.name,
-  team1: tournament.team1,
-  team2: tournament.team2,
-  status: tournament.status,
-});
 
 /**
  * Calculate fantasy points for a player
@@ -161,25 +151,24 @@ const stopPolling = (tournamentId: string) => {
 };
 
 /**
- * Validate tournament for live scores - eliminates redundancy
+ * Validate tournament for live scores - extends shared validation
  */
-const validateTournament = async (tournamentId: string) => {
-  const tournament = await prisma.tournament.findUnique({
-    where: { id: tournamentId },
-    select: {
-      id: true,
-      name: true,
-      matchId: true,
-      status: true,
-      team1: true,
-      team2: true,
-      matchDate: true,
-    },
+const validateTournamentForLiveScores = async (tournamentId: string) => {
+  const validation = await validateTournament(tournamentId, {
+    id: true,
+    name: true,
+    matchId: true,
+    status: true,
+    team1: true,
+    team2: true,
+    matchDate: true,
   });
 
-  if (!tournament) {
-    return { error: { status: 404, message: "Tournament not found" } };
+  if (validation.error) {
+    return validation;
   }
+
+  const tournament = validation.tournament!;
 
   if (!tournament.matchId) {
     return { 
@@ -266,12 +255,12 @@ export const getLiveScores = async (req: Request, res: Response) => {
     const { startPolling: shouldStartPolling, intervalMinutes } = req.query;
     
     // Validate tournament
-    const validation = await validateTournament(tournamentId);
+    const validation = await validateTournamentForLiveScores(tournamentId);
     if (validation.error) {
       return res.status(validation.error.status).json({ 
         success: false,
         error: validation.error.message,
-        ...(validation.error.details && { message: validation.error.details })
+        ...('details' in validation.error && validation.error.details && { message: validation.error.details })
       });
     }
 
@@ -342,12 +331,12 @@ export const startPollingEndpoint = async (req: Request, res: Response) => {
     const { intervalMinutes = 5 } = req.body;
     
     // Validate tournament
-    const validation = await validateTournament(tournamentId);
+    const validation = await validateTournamentForLiveScores(tournamentId);
     if (validation.error) {
       return res.status(validation.error.status).json({ 
         success: false,
         error: validation.error.message,
-        ...(validation.error.details && { message: validation.error.details })
+        ...('details' in validation.error && validation.error.details && { message: validation.error.details })
       });
     }
 
