@@ -4,8 +4,10 @@ import { TournamentStatus } from '@prisma/client';
 import { prisma } from '../prisma';
 
 /**
- * Create Upcoming Tournament Script
- * Creates a tournament with UPCOMING status (no snapshot until match starts)
+ * STEP 1: Create Upcoming Tournament
+ * Creates a tournament with UPCOMING status
+ * 
+ * Usage: npm run tournament:create
  */
 
 interface TournamentData {
@@ -20,22 +22,32 @@ interface TournamentData {
   rewardPoolAmount: number;
 }
 
+// Sample tournament data (customize as needed)
+const sampleTournament: TournamentData = {
+  name: "India vs Pakistan - Asia Cup 2025",
+  description: "High stakes match",
+  matchDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+  team1: "India",
+  team2: "Pakistan",
+  venue: "Dubai International Cricket Stadium",
+  entryFee: 0,
+  matchId: "130179", // Replace with actual Cricbuzz match ID
+  rewardPoolAmount: 100 // 100 BOSON tokens
+};
+
 /**
- * Create an upcoming tournament with reward pool
+ * Create upcoming tournament
  */
-async function createUpcomingTournament(tournamentData: TournamentData) {
-  console.log('\n🏏 Creating Upcoming Tournament');
-  console.log('================================\n');
+async function createTournament(tournamentData: TournamentData) {
+  console.log('\n🏏 STEP 1: CREATE UPCOMING TOURNAMENT');
+  console.log('====================================\n');
   console.log(`Name: ${tournamentData.name}`);
   console.log(`Teams: ${tournamentData.team1} vs ${tournamentData.team2}`);
-  console.log(`Venue: ${tournamentData.venue}`);
   console.log(`Match Date: ${tournamentData.matchDate.toISOString()}`);
   console.log(`Match ID: ${tournamentData.matchId}`);
-  console.log(`Reward Pool: ${tournamentData.rewardPoolAmount} BOSON`);
-  console.log('');
+  console.log(`Reward Pool: ${tournamentData.rewardPoolAmount} BOSON\n`);
 
   // Create tournament
-  console.log('📝 Creating tournament...');
   const tournament = await prisma.tournament.create({
     data: {
       name: tournamentData.name,
@@ -58,7 +70,6 @@ async function createUpcomingTournament(tournamentData: TournamentData) {
 
   // Create reward pool
   if (tournamentData.rewardPoolAmount > 0) {
-    console.log('💰 Creating reward pool...');
     const rewardPool = await prisma.rewardPool.create({
       data: {
         tournamentId: tournament.id,
@@ -73,35 +84,22 @@ async function createUpcomingTournament(tournamentData: TournamentData) {
       }
     });
 
-    console.log(`✅ Reward pool created: ${rewardPool.totalAmount} BOSON\n`);
+    console.log(`💰 Reward pool created: ${rewardPool.totalAmount} BOSON\n`);
   }
 
   console.log('🎯 Next Steps:');
-  console.log('   1. When match starts → Update tournament status to ONGOING');
-  console.log('   2. Take pre-match snapshot');
-  console.log('   3. After match ends → Use end:with-snapshot command\n');
-  console.log(`Tournament ID: ${tournament.id}`);
+  console.log('   → When match is about to start: npm run tournament:start -- <tournament-id>');
+  console.log('   → This will change status to ONGOING and take pre-match snapshot\n');
+  console.log(`📋 Tournament ID: ${tournament.id}`);
+  console.log('   Copy this ID for the next steps!\n');
 
   return tournament;
 }
 
-// Sample data (customize as needed)
-const sampleTournament: TournamentData = {
-  name: "Australia vs England - Ashes 2025",
-  description: "Test match series",
-  matchDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-  team1: "Australia",
-  team2: "England",
-  venue: "Melbourne Cricket Ground",
-  entryFee: 0,
-  matchId: "999999", // Replace with actual Cricbuzz match ID
-  rewardPoolAmount: 100
-};
-
 // Run script
-createUpcomingTournament(sampleTournament)
+createTournament(sampleTournament)
   .then(() => {
-    console.log('✅ Script completed successfully!');
+    console.log('✅ Step 1 completed successfully!\n');
     process.exit(0);
   })
   .catch((error) => {
@@ -111,3 +109,4 @@ createUpcomingTournament(sampleTournament)
   .finally(() => {
     prisma.$disconnect();
   });
+
