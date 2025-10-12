@@ -1,4 +1,3 @@
-import { PrismaClient } from '@prisma/client';
 import { 
   getContractSnapshot, 
   comparePrePostMatchSnapshots,
@@ -6,22 +5,11 @@ import {
   ContractSnapshotData,
   ContractHolder
 } from './contractSnapshotService';
+import { prisma } from '../prisma';
+import { parseIgnoredAddresses } from '../config/reward.config';
 import dotenv from 'dotenv';
 
 dotenv.config();
-
-function parseIgnoredAddresses(): Set<string> {
-  const raw = process.env.IGNORED_HOLDER_ADDRESSES;
-  if (!raw) return new Set();
-  return new Set(
-    raw
-      .split(',')
-      .map(v => v.trim().toLowerCase())
-      .filter(Boolean)
-  );
-}
-
-const prisma = new PrismaClient();
 
 // New interfaces for contract-based reward calculation
 export interface PlayerScoreData {

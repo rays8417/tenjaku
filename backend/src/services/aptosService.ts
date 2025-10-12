@@ -40,19 +40,9 @@ export const CONTRACT_CONFIG = {
   DEFAULT_MODULE_NAME: 'AbhishekSharma',
 };
 
-// Build a normalized ignore-set from env
-function parseIgnoredAddressesFromEnv(): Set<string> {
-  const raw = process.env.IGNORED_HOLDER_ADDRESSES;
-  if (!raw) return new Set();
-  // Only comma-separated values are supported
-  const tokens = raw
-    .split(',')
-    .map(v => v.trim().toLowerCase())
-    .filter(Boolean);
-  return new Set(tokens);
-}
+import { parseIgnoredAddresses } from '../config/reward.config';
 
-const IGNORED_ADDRESS_SET = parseIgnoredAddressesFromEnv();
+const IGNORED_ADDRESS_SET = parseIgnoredAddresses();
 
 export interface TokenHolder {
   address: string;
@@ -388,9 +378,8 @@ export async function getTokenHoldersWithBalances(): Promise<TokenHolderBalance[
  */
 export async function getPlayersWithModules() {
   try {
-    // Import PrismaClient here to avoid circular dependency
-    const { PrismaClient } = await import('@prisma/client');
-    const prisma = new PrismaClient();
+    // Import prisma singleton
+    const { prisma } = await import('../prisma');
     
     const players = await prisma.player.findMany({
       where: {

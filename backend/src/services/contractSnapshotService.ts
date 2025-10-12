@@ -1,10 +1,9 @@
-import { PrismaClient } from '@prisma/client';
 import { getTokenHoldersWithBalances, getCurrentBlockNumber, TokenHolderBalance } from './aptosService';
+import { prisma } from '../prisma';
+import { parseIgnoredAddresses } from '../config/reward.config';
 import dotenv from 'dotenv';
 
 dotenv.config();
-
-const prisma = new PrismaClient();
 
 // New simplified interfaces for contract-only approach
 export interface ContractHolder {
@@ -74,16 +73,6 @@ function groupHoldersByAddress(aptosHolders: TokenHolderBalance[]): ContractHold
   return groupedHolders;
 }
 
-function parseIgnoredAddresses(): Set<string> {
-  const raw = process.env.IGNORED_HOLDER_ADDRESSES;
-  if (!raw) return new Set();
-  return new Set(
-    raw
-      .split(',')
-      .map(v => v.trim().toLowerCase())
-      .filter(Boolean)
-  );
-}
 
 /**
  * Calculate statistics from grouped holders
