@@ -1,9 +1,12 @@
-import { getTokenHoldersWithBalances, getCurrentBlockNumber, TokenHolderBalance } from './aptosService';
+import { blockchain, TokenHolder } from '../blockchain';
 import { prisma } from '../prisma';
 import { parseIgnoredAddresses } from '../config/reward.config';
 import dotenv from 'dotenv';
 
 dotenv.config();
+
+// Type alias for backward compatibility
+type TokenHolderBalance = TokenHolder;
 
 // New simplified interfaces for contract-only approach
 export interface ContractHolder {
@@ -120,10 +123,10 @@ export async function createContractSnapshot(
 
     // Step 1: Get Aptos contract data
     console.log('[CONTRACT_SNAPSHOT] Fetching data from Aptos contract...');
-    const aptosHolders = await getTokenHoldersWithBalances();
+    const aptosHolders = await blockchain.getTokenHoldersWithBalances();
     const ignored = parseIgnoredAddresses();
     const filteredAptosHolders = aptosHolders.filter(h => !ignored.has(h.address.toLowerCase()));
-    const currentBlockNumber = await getCurrentBlockNumber();
+    const currentBlockNumber = await blockchain.getCurrentBlockNumber();
 
     console.log(`[CONTRACT_SNAPSHOT] Found ${aptosHolders.length} token holders from contract`);
     if (ignored.size > 0) {
@@ -239,9 +242,9 @@ export async function createContractSnapshot(
     // Step 5: Store snapshot in database
     const snapshot = await prisma.contractSnapshot.create({
       data: {
-        contractType: snapshotType ,
+        contractType: snapshotType,
         contractAddress: snapshotData.contractAddress,
-        blockNumber: currentBlockNumber,
+        blockNumber: BigInt(currentBlockNumber || '0'),
         data: snapshotData as any // Type assertion for Prisma JSON field
       }
     });

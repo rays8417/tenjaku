@@ -7,6 +7,8 @@ import { createContractSnapshot, createSnapshotSummary } from '../services/contr
 import { calculateRewardsFromSnapshots, RewardCalculation } from '../services/rewardCalculationService';
 import { aptos } from '../services/aptosService';
 import { Ed25519PrivateKey, Ed25519Account } from '@aptos-labs/ts-sdk';
+import { REWARD_CONFIG } from '../config/reward.config';
+import { parsePrivateKey } from '../utils/crypto';
 
 /**
  * STEP 4: End Tournament
@@ -14,15 +16,6 @@ import { Ed25519PrivateKey, Ed25519Account } from '@aptos-labs/ts-sdk';
  * 
  * Usage: npm run tournament:end -- <tournament-id> --amount 100
  */
-
-// Reward configuration
-const REWARD_CONFIG = {
-  ADMIN_PRIVATE_KEY: process.env.ADMIN_PRIVATE_KEY,
-  ADMIN_ACCOUNT_ADDRESS: process.env.ADMIN_ACCOUNT_ADDRESS,
-  BOSON_COIN_TYPE: (process.env.BOSON_COIN_TYPE as string) || `${process.env.APTOS_CONTRACT_ADDRESS}::Boson::Boson`,
-  BOSON_DECIMALS: Number(process.env.BOSON_DECIMALS || 8),
-  MIN_REWARD_AMOUNT: 0.001,
-};
 
 /**
  * Take post-match snapshot
@@ -81,7 +74,7 @@ async function takePostMatchSnapshot(tournamentId: string) {
 }
 
 /**
- * Calculate rewards
+ * Calculate rewards and create reward pool
  */
 async function calculateRewards(tournamentId: string, totalRewardAmount?: number) {
   console.log(`\n💰 CALCULATING REWARDS`);
@@ -97,17 +90,33 @@ async function calculateRewards(tournamentId: string, totalRewardAmount?: number
   }
 
   // Use existing reward pool or provided amount
-  if (!totalRewardAmount) {
-    if (tournament.rewardPools.length > 0) {
-      totalRewardAmount = Number(tournament.rewardPools[0].totalAmount);
-      console.log(`Using existing reward pool: ${totalRewardAmount} BOSON`);
-    } else {
-      totalRewardAmount = 100; // Default
-      console.log(`Using default: ${totalRewardAmount} BOSON`);
-    }
+  let rewardPool;
+  if (tournament.rewardPools.length > 0) {
+    rewardPool = tournament.rewardPools[0];
+    totalRewardAmount = totalRewardAmount || Number(rewardPool.totalAmount);
+    console.log(`Using existing reward pool: ${rewardPool.id}`);
+    console.log(`Total Pool: ${totalRewardAmount} BOSON\n`);
+  } else {
+    totalRewardAmount = totalRewardAmount || 100; // Default
+    console.log(`Creating new reward pool: ${totalRewardAmount} BOSON\n`);
+    
+    // Create reward pool
+    rewardPool = await prisma.rewardPool.create({
+      data: {
+        tournamentId,
+        name: `${tournament.name} - Rewards`,
+        totalAmount: totalRewardAmount,
+        distributedAmount: 0,
+        distributionType: 'PERCENTAGE',
+        distributionRules: {
+          type: 'performance_based',
+          calculation: 'score_weighted'
+        }
+      }
+    });
+    
+    console.log(`✅ Reward pool created: ${rewardPool.id}\n`);
   }
-
-  console.log(`Total Pool: ${totalRewardAmount} BOSON\n`);
 
   const rewardDistribution = await calculateRewardsFromSnapshots(tournamentId, totalRewardAmount);
 
@@ -126,13 +135,20 @@ async function calculateRewards(tournamentId: string, totalRewardAmount?: number
     console.log(`   ${reward.rewardAmount.toFixed(6)} BOSON | Score: ${reward.totalScore.toFixed(2)}\n`);
   });
 
-  return rewardDistribution;
+  return {
+    rewardPool,
+    rewardDistribution
+  };
 }
 
 /**
- * Distribute rewards on-chain
+ * Distribute rewards on-chain and save to database
  */
-async function distributeRewards(rewardCalculations: RewardCalculation[]) {
+async function distributeRewards(
+  tournamentId: string,
+  rewardPoolId: string,
+  rewardCalculations: RewardCalculation[]
+) {
   console.log(`\n🚚 DISTRIBUTING REWARDS ON-CHAIN`);
   console.log('=================================\n');
 
@@ -140,20 +156,38 @@ async function distributeRewards(rewardCalculations: RewardCalculation[]) {
     throw new Error('Admin credentials not configured in .env');
   }
 
-  // Create admin account
-  const privateKeyBytes = REWARD_CONFIG.ADMIN_PRIVATE_KEY.split(',').map(Number);
-  const privateKey = new Ed25519PrivateKey(new Uint8Array(privateKeyBytes));
+  // Create admin account - support both hex and comma-separated formats
+  const privateKeyBytes = parsePrivateKey(REWARD_CONFIG.ADMIN_PRIVATE_KEY);
+  const privateKey = new Ed25519PrivateKey(privateKeyBytes);
   const adminAccount = new Ed25519Account({ privateKey });
   const adminAddress = privateKey.publicKey().authKey().derivedAddress();
 
   console.log(`Admin: ${adminAddress}\n`);
 
   let success = 0, failed = 0, skipped = 0;
+  let totalDistributed = 0;
 
   for (const reward of rewardCalculations) {
     try {
       if (reward.rewardAmount < REWARD_CONFIG.MIN_REWARD_AMOUNT) {
         console.log(`⏭️  Skip: ${reward.address.slice(0, 12)}... (too small)`);
+        
+        // Save skipped reward to database
+        await prisma.userReward.create({
+          data: {
+            address: reward.address,
+            rewardPoolId,
+            amount: reward.rewardAmount,
+            status: 'PENDING',
+            metadata: {
+              totalScore: reward.totalScore,
+              totalTokens: reward.totalTokens,
+              holdings: reward.holdings,
+              reason: 'Amount below minimum threshold'
+            }
+          }
+        });
+        
         skipped++;
         continue;
       }
@@ -162,6 +196,7 @@ async function distributeRewards(rewardCalculations: RewardCalculation[]) {
 
       console.log(`💸 ${reward.address.slice(0, 12)}... → ${reward.rewardAmount} BOSON`);
 
+      // Send transaction
       const transferTx = await aptos.transferCoinTransaction({
         sender: adminAddress.toString(),
         recipient: reward.address,
@@ -177,17 +212,63 @@ async function distributeRewards(rewardCalculations: RewardCalculation[]) {
       await aptos.waitForTransaction({ transactionHash: committed.hash });
 
       console.log(`   ✅ TX: ${committed.hash}\n`);
+      
+      // Save successful reward to database
+      await prisma.userReward.create({
+        data: {
+          address: reward.address,
+          rewardPoolId,
+          amount: reward.rewardAmount,
+          status: 'COMPLETED',
+          aptosTransactionId: committed.hash,
+          metadata: {
+            totalScore: reward.totalScore,
+            totalTokens: reward.totalTokens,
+            holdings: reward.holdings,
+            eligibility: reward.eligibility
+          }
+        }
+      });
+
       success++;
+      totalDistributed += reward.rewardAmount;
     } catch (error) {
-      console.log(`   ❌ Failed\n`);
+      console.log(`   ❌ Failed: ${error}\n`);
+      
+      // Save failed reward to database
+      await prisma.userReward.create({
+        data: {
+          address: reward.address,
+          rewardPoolId,
+          amount: reward.rewardAmount,
+          status: 'FAILED',
+          metadata: {
+            totalScore: reward.totalScore,
+            totalTokens: reward.totalTokens,
+            holdings: reward.holdings,
+            error: error instanceof Error ? error.message : String(error)
+          }
+        }
+      });
+      
       failed++;
     }
   }
 
+  // Update reward pool with distributed amount
+  await prisma.rewardPool.update({
+    where: { id: rewardPoolId },
+    data: { 
+      distributedAmount: totalDistributed,
+      updatedAt: new Date()
+    }
+  });
+
   console.log('📊 DISTRIBUTION SUMMARY:');
   console.log(`✅ Successful: ${success}`);
   console.log(`❌ Failed: ${failed}`);
-  console.log(`⏭️  Skipped: ${skipped}\n`);
+  console.log(`⏭️  Skipped: ${skipped}`);
+  console.log(`💰 Total Distributed: ${totalDistributed} BOSON\n`);
 }
 
 /**
@@ -224,12 +305,12 @@ async function endTournamentWithSnapshot(tournamentId: string, options: any = {}
   // Step 1: Post-match snapshot
   const snapshot = await takePostMatchSnapshot(tournamentId);
 
-  // Step 2: Calculate rewards
+  // Step 2: Calculate rewards and create reward pool
   const rewardAmount = options.amount ? parseFloat(options.amount) : undefined;
-  const rewardDistribution = await calculateRewards(tournamentId, rewardAmount);
+  const { rewardPool, rewardDistribution } = await calculateRewards(tournamentId, rewardAmount);
 
-  // Step 3: Distribute rewards
-  await distributeRewards(rewardDistribution.rewardCalculations);
+  // Step 3: Distribute rewards and save to database
+  await distributeRewards(tournamentId, rewardPool.id, rewardDistribution.rewardCalculations);
 
   // Step 4: Complete tournament
   const completedTournament = await completeTournament(tournamentId);

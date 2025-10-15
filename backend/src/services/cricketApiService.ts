@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getPlayerModuleNames } from '../config/players.config';
 
 const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY ;
 const RAPIDAPI_HOST = 'cricbuzz-cricket.p.rapidapi.com';
@@ -84,91 +85,172 @@ function mapPlayerNameToModuleName(playerName: string): string | null {
   const firstName = nameParts.length > 0 ? nameParts[0].toLowerCase().replace(/[^a-z]/g, '') : '';
   
   // Player name mapping with multiple variations
+  // TODO: Consider using fuzzy matching library (e.g., fuzzball) for better automation
   const nameMap: { [key: string]: string } = {
-    // Virat Kohli variations
-    'viratkholi': 'ViratKohli',
-    'viratkohli': 'ViratKohli',
-    'vkohli': 'ViratKohli',
-    'kohli': 'ViratKohli',
-    'vkoli': 'ViratKohli',
+    // Abhishek Sharma
+    'abhisheksharma': 'AbhishekSharma',
+    'asharma': 'AbhishekSharma',
+    'abhishek': 'AbhishekSharma',
+    'sharma': 'AbhishekSharma',
     
-    // Rohit Sharma variations (not in modules but kept for reference)
-    'rohitsharma': 'RohitSharma',
-    'rsharma': 'RohitSharma',
-    'rohit': 'RohitSharma',
+    // Alick Athanaze
+    'alickathanaze': 'AlickAthanaze',
+    'aathanaze': 'AlickAthanaze',
+    'athanaze': 'AlickAthanaze',
+    'alick': 'AlickAthanaze',
     
-    // Hardik Pandya variations
+    // Ben Stokes
+    'benstokes': 'BenStokes',
+    'bstokes': 'BenStokes',
+    'stokes': 'BenStokes',
+    'benjaminstokes': 'BenStokes',
+    'ben': 'BenStokes',
+    
+    // Glenn Maxwell
+    'glenmaxwell': 'GlenMaxwell',
+    'glennmaxwell': 'GlenMaxwell',
+    'gmaxwell': 'GlenMaxwell',
+    'maxwell': 'GlenMaxwell',
+    'glenn': 'GlenMaxwell',
+    
+    // Hardik Pandya
     'hardikpandya': 'HardikPandya',
     'hpandya': 'HardikPandya',
     'hardik': 'HardikPandya',
     'pandya': 'HardikPandya',
     
-    // Jasprit Bumrah variations
+    // Harry Brook
+    'harrybrook': 'HarryBrook',
+    'hbrook': 'HarryBrook',
+    'brook': 'HarryBrook',
+    'harry': 'HarryBrook',
+    
+    // Jasprit Bumrah
     'jaspritbumrah': 'JaspreetBumhrah',
+    'jaspreetbumrah': 'JaspreetBumhrah',
     'jbumrah': 'JaspreetBumhrah',
     'bumrah': 'JaspreetBumhrah',
-    'jaspreetbumrah': 'JaspreetBumhrah',
     'jasprit': 'JaspreetBumhrah',
+    'jaspreet': 'JaspreetBumhrah',
     
-    // Shubman Gill variations
+    // Joe Root
+    'joeroot': 'JoeRoot',
+    'jroot': 'JoeRoot',
+    'root': 'JoeRoot',
+    'joe': 'JoeRoot',
+    
+    // John Campbell
+    'johncampbell': 'JohnCampbell',
+    'jcampbell': 'JohnCampbell',
+    'campbell': 'JohnCampbell',
+    'john': 'JohnCampbell',
+    
+    // Jos Buttler
+    'josbuttler': 'JosButtler',
+    'jbuttler': 'JosButtler',
+    'buttler': 'JosButtler',
+    'butler': 'JosButtler', // Common misspelling
+    'jos': 'JosButtler',
+    'josephbuttler': 'JosButtler',
+    
+    // Josh Inglis
+    'joshinglis': 'JoshInglis',
+    'jinglis': 'JoshInglis',
+    'inglis': 'JoshInglis',
+    'josh': 'JoshInglis',
+    
+    // Kane Williamson
+    'kanewilliamson': 'KaneWilliamson',
+    'kwilliamson': 'KaneWilliamson',
+    'williamson': 'KaneWilliamson',
+    'kane': 'KaneWilliamson',
+    
+    // Khary Pierre
+    'kharypierre': 'KharyPierre',
+    'kpierre': 'KharyPierre',
+    'pierre': 'KharyPierre',
+    'khary': 'KharyPierre',
+    
+    // KL Rahul
+    'klrahul': 'KLRahul',
+    'krahul': 'KLRahul',
+    'rahul': 'KLRahul',
+    'lokeshrahul': 'KLRahul',
+    'kannurlokeshrahul': 'KLRahul',
+    
+    // Mohammed Siraj
+    'mohammedsiraj': 'MohammedSiraj',
+    'mohammadsiraj': 'MohammedSiraj',
+    'msiraj': 'MohammedSiraj',
+    'siraj': 'MohammedSiraj',
+    'mohammed': 'MohammedSiraj',
+    
+    // Rishabh Pant
+    'rishabhpant': 'RishabhPant',
+    'rpant': 'RishabhPant',
+    'pant': 'RishabhPant',
+    'rishabh': 'RishabhPant',
+    
+    // Rohit Sharma
+    'rohitsharma': 'RohitSharma',
+    'rsharma': 'RohitSharma',
+    'rohit': 'RohitSharma',
+    
+    // Shai Hope
+    'shaihope': 'ShaiHope',
+    'shope': 'ShaiHope',
+    'hope': 'ShaiHope',
+    'shai': 'ShaiHope',
+    
+    // Shubham Dube
+    'shubhamdube': 'ShubhamDube',
+    'shivamdube': 'ShubhamDube', // Common name variation
+    'sdube': 'ShubhamDube',
+    'dube': 'ShubhamDube',
+    'shubham': 'ShubhamDube',
+    'shivam': 'ShubhamDube',
+    
+    // Shubman Gill
     'shubhmangill': 'ShubhmanGill',
     'shubmangill': 'ShubhmanGill',
     'sgill': 'ShubhmanGill',
     'gill': 'ShubhmanGill',
     'shubman': 'ShubhmanGill',
     
-    // Kane Williamson variations
-    'kanewilliamson': 'KaneWilliamson',
-    'kwilliamson': 'KaneWilliamson',
-    'williamson': 'KaneWilliamson',
-    'kane': 'KaneWilliamson',
-    
-    // Ben Stokes variations
-    'benstokes': 'BenStokes',
-    'bstokes': 'BenStokes',
-    'stokes': 'BenStokes',
-    'benstoke': 'BenStokes',
-    'benjaminstokes': 'BenStokes',
-    
-    // Glenn Maxwell variations
-    'glenmaxwell': 'GlenMaxwell',
-    'gmaxwell': 'GlenMaxwell',
-    'glennmaxwell': 'GlenMaxwell',
-    'maxwell': 'GlenMaxwell',
-    'glenn': 'GlenMaxwell',
-    
-    // Abhishek Sharma variations
-    'abhisheksharma': 'AbhishekSharma',
-    'asharma': 'AbhishekSharma',
-    'abhishek': 'AbhishekSharma',
-    
-    // Shubham/Shivam Dube variations
-    'shubhamdube': 'ShubhamDube',
-    'shivamdube': 'ShubhamDube',
-    'sdube': 'ShubhamDube',
-    'dube': 'ShubhamDube',
-    'shubham': 'ShubhamDube',
-    'shivam': 'ShubhamDube',
-    
-    // Travis Head variations
-    'travishead': 'TravisHead',
-    'thead': 'TravisHead',
-    'head': 'TravisHead',
-    'travis': 'TravisHead',
-    
-    // MS Dhoni variations (not in current modules)
-    'msdhoni': 'MSDhoni',
-    'mahendrasinghdhoni': 'MSDhoni',
-    'mdhoni': 'MSDhoni',
-    'dhoni': 'MSDhoni',
-    
-    // Suryakumar Yadav variations
+    // Suryakumar Yadav
     'suryakumaryadav': 'SuryakumarYadav',
     'skyadav': 'SuryakumarYadav',
     'surya': 'SuryakumarYadav',
     'suryakumar': 'SuryakumarYadav',
     'yadav': 'SuryakumarYadav',
-    'sky': 'SuryakumarYadav'
+    'sky': 'SuryakumarYadav',
+    
+    // Travis Head
+    'travishead': 'TravisHead',
+    'thead': 'TravisHead',
+    'head': 'TravisHead',
+    'travis': 'TravisHead',
+    
+    // Virat Kohli
+    'viratkholi': 'ViratKohli',
+    'viratkohli': 'ViratKohli',
+    'vkohli': 'ViratKohli',
+    'kohli': 'ViratKohli',
+    'virat': 'ViratKohli',
+    
+    // Washington Sundar
+    'washingtonsundar': 'WashingtonSundar',
+    'wsundar': 'WashingtonSundar',
+    'sundar': 'WashingtonSundar',
+    'washington': 'WashingtonSundar',
+    'washi': 'WashingtonSundar',
+    
+    // Yashasvi Jaiswal
+    'yashasvijaiswal': 'YashasviJaiswal',
+    'yjaiswal': 'YashasviJaiswal',
+    'jaiswal': 'YashasviJaiswal',
+    'yashasvi': 'YashasviJaiswal',
+    'yashaswi': 'YashasviJaiswal', // Common spelling variation
   };
   
   // Try matching strategies in order of preference
@@ -488,34 +570,9 @@ export async function fetchTeamPlayers(matchId: number, teamId: number): Promise
 
 /**
  * List of available player modules in our smart contract
+ * Imported from centralized config - SINGLE SOURCE OF TRUTH
  */
-const AVAILABLE_PLAYER_MODULES = [
-  'ViratKohli',
-  'HardikPandya',
-  'JaspreetBumhrah',
-  'ShubhmanGill',
-  'KaneWilliamson',
-  'BenStokes',
-  'GlenMaxwell',
-  'AbhishekSharma',
-  'ShubhamDube',
-  'TravisHead',
-  'SuryakumarYadav',
-  'AlickAthanaze',
-  'HarryBrook',
-  'JoeRoot',
-  'JohnCampbell',
-  'JosButtler',
-  'JoshInglis',
-  'KLRahul',
-  'KharyPierre',
-  'MohammedSiraj',
-  'RishabhPant',
-  'RohitSharma',
-  'ShaiHope',
-  'WashingtonSundar',
-  'YashasviJaiswal'
-];
+const AVAILABLE_PLAYER_MODULES = getPlayerModuleNames();
 
 /**
  * Get eligible players for a match (players we have modules for)

@@ -7,11 +7,16 @@ dotenv.config();
 // Aptos SDK configuration
 const aptosConfig = new AptosConfig({
   network: Network.TESTNET, // Using testnet for development
+  clientConfig:{
+    API_KEY: process.env.APTOS_API_KEY,
+  }
 });
 
 export const aptos = new Aptos(aptosConfig);
 
 
+
+import { getPlayerModuleNames } from '../config/players.config';
 
 // Contract configuration - Update these with your actual contract details
 export const CONTRACT_CONFIG = {
@@ -22,19 +27,8 @@ export const CONTRACT_CONFIG = {
   GET_TOKEN_HOLDERS_FUNCTION: 'get_token_holders',
   BALANCE_FUNCTION: 'balance',
   
-  // Array of module names to fetch data from
-  MODULE_NAMES: [
-    'AbhishekSharma',
-    'BenStokes',
-    'Boson',
-    'GlenMaxwell',
-    'HardikPandya',
-    'JaspreetBumhrah',
-    'KaneWilliamson',
-    'ShubhamDube',
-    'ShubhmanGill',
-    'ViratKohli'
-  ],
+  // Array of module names - imported from single source
+  MODULE_NAMES: getPlayerModuleNames(),
   
   // Default module name (can be overridden per player)
   DEFAULT_MODULE_NAME: 'AbhishekSharma',
